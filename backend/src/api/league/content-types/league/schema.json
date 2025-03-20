@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "leagues",
+  "info": {
+    "singularName": "league",
+    "pluralName": "leagues",
+    "displayName": "League"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    },
+    "statusleague": {
+      "type": "enumeration",
+      "enum": [
+        "planned",
+        "ongoing",
+        "completed"
+      ]
+    },
+    "matches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
+      "mappedBy": "league"
+    }
+  }
+}
