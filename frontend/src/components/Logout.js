@@ -1,11 +1,15 @@
-export default function Logout() {
-    const handleLogout = () => {
-      localStorage.removeItem("token");
-      window.dispatchEvent(new Event("user-logged-in")); // Reuse the same event
+// frontend/src/components/Logout.js
+export default function Logout({ onLogout }) {
+    const handleClick = () => {
+      if (onLogout) {
+        onLogout();
+      } else {
+        console.warn("onLogout prop is not provided to Logout component.");
+      }
     };
   
     return (
-      <button onClick={handleLogout} style={{ marginTop: "1rem" }}>
+      <button onClick={handleClick} style={{ marginTop: "1rem" }}>
         Logout
       </button>
     );
