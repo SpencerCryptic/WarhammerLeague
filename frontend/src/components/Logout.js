@@ -1,3 +1,5 @@
+import React from 'react';
+
 // frontend/src/components/Logout.js
 export default function Logout({ onLogout }) {
     const handleClick = () => {

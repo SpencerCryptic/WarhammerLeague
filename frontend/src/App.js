@@ -3,6 +3,8 @@ import axios from "axios";
 import Auth from "./components/Auth";
 import AddPlayer from "./components/AddPlayer";
 import Logout from "./components/Logout";
+import React from "react";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
