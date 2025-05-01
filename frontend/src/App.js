@@ -6,11 +6,18 @@ import Logout from "./components/Logout";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+// Validate API_URL and handle missing environment variable
+if (!API_URL) {
+  console.error("REACT_APP_API_URL is not defined in the environment variables.");
+  throw new Error("Please define REACT_APP_API_URL in your .env file.");
+}
+
 function App() {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [players, setPlayers] = useState([]);
 
+  // Fetch players when a valid token is available
   useEffect(() => {
     if (token) {
       axios
@@ -19,12 +26,25 @@ function App() {
             Authorization: `Bearer ${token}`,
           },
         })
-        .then((res) => setPlayers(res.data.data))
-        .catch((err) => console.error("Error fetching players:", err));
+        .then((res) => {
+          console.log("Players fetched successfully:", res.data.data);
+          setPlayers(res.data.data);
+        })
+        .catch((err) => {
+          console.error("Error fetching players:", err.response?.data || err.message);
+          alert("Failed to fetch players. Please try again later.");
+        });
     }
   }, [token]);
 
   const isAuthenticated = !!token;
+
+  const handleLogout = () => {
+    console.log("Logging out...");
+    setToken(null);
+    setUser(null);
+    setPlayers([]);
+  };
 
   return (
     <div>
@@ -34,12 +54,10 @@ function App() {
         <Auth setToken={setToken} setUser={setUser} />
       ) : (
         <>
-          <p>Logged in as <strong>{user?.email}</strong></p>
-          <Logout onLogout={() => {
-            setToken(null);
-            setUser(null);
-            setPlayers([]);
-          }} />
+          <p>
+            Logged in as <strong>{user?.email}</strong>
+          </p>
+          <Logout onLogout={handleLogout} />
         </>
       )}
 
