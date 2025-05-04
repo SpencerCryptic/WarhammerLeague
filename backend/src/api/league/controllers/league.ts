@@ -9,9 +9,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       fields: ['leaguePassword'],
     });
 
-    if (!league) {
-      return ctx.badRequest('League not found');
-    }
+    if (!league) return ctx.badRequest('League not found');
 
     if (league.leaguePassword && league.leaguePassword !== password) {
       return ctx.unauthorized('Incorrect password');
@@ -19,7 +17,6 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     const userId = ctx.state.user.id;
 
-    // Optional: Check if user already joined the league via a Player record
     const existingPlayer = await strapi.entityService.findMany('api::player.player', {
       filters: {
         user: userId,

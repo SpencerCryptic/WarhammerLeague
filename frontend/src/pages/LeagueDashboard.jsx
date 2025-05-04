@@ -14,13 +14,13 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [error, setError] = useState(null);
   const [joinPassword, setJoinPassword] = useState("");
   const [joinMessage, setJoinMessage] = useState("");
+  const [joinSuccess, setJoinSuccess] = useState(null);
 
   const handleJoin = async () => {
     setJoinMessage("");
+    setJoinSuccess(null);
     try {
-      const res = await axios.post(`${API_URL}/custom/join-league`, {
-        leagueId,
-        userId: user.id,
+      await axios.post(`${API_URL}/leagues/${leagueId}/join`, {
         password: joinPassword
       }, {
         headers: {
@@ -28,8 +28,10 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         }
       });
       setJoinMessage("Successfully joined the league!");
+      setJoinSuccess(true);
     } catch (err) {
       setJoinMessage(err.response?.data?.error?.message || "Failed to join league.");
+      setJoinSuccess(false);
     }
   };
 
@@ -96,7 +98,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="flex justify-between items-center p-4 border-b bg-white">
-        <h1 className="text-xl font-bold">Warhammer 40K League</h1>
+        <h1 className="text-xl font-bold">CC Leagues</h1>
         <div className="flex items-center gap-4">
           <p className="text-sm">
             Logged in as <strong>{user?.email || "Unknown"}</strong>
@@ -133,7 +135,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                       lg.id.toString() === leagueId ? "bg-blue-700" : ""
                     }`}
                   >
-                    {lg.name || "Unnamed League"}
+                    {lg.attributes?.name || "Unnamed League"}
                   </Link>
                 </li>
               ))
@@ -150,17 +152,19 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
             <p>No league found.</p>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mb-2">{leagueData.name || "Unnamed League"}</h2>
+              <h2 className="text-2xl font-bold mb-2">
+                {leagueData.attributes?.name || "Unnamed League"}
+              </h2>
               <div className="text-gray-600 mb-6">
-                {renderDescription(leagueData.description)}
+                {renderDescription(leagueData.attributes?.description)}
               </div>
               <p className="mb-6">
-                Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
+                Status: <strong>{leagueData.attributes?.statusleague || "Unknown"}</strong>
               </p>
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Join This League</h3>
-                {leagueData.leaguePassword ? (
+                {leagueData.attributes?.leaguePassword ? (
                   <>
                     <input
                       type="password"
@@ -180,7 +184,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                   Join League
                 </button>
                 {joinMessage && (
-                  <p className="mt-2 text-sm text-green-700">{joinMessage}</p>
+                  <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
+                    {joinMessage}
+                  </p>
                 )}
               </div>
             </>
