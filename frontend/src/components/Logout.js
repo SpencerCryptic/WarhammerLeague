@@ -1,19 +1,16 @@
-import React from 'react';
+// --- FILE: src/components/Logout.js ---
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-// frontend/src/components/Logout.js
-export default function Logout({ onLogout }) {
-    const handleClick = () => {
-      if (onLogout) {
-        onLogout();
-      } else {
-        console.warn("onLogout prop is not provided to Logout component.");
-      }
-    };
-  
-    return (
-      <button onClick={handleClick} style={{ marginTop: "1rem" }}>
-        Logout
-      </button>
-    );
-  }
-  
+const Logout = ({ onLogout }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    onLogout(); // clears token & user
+    navigate("/login"); // redirect to login page
+  }, [onLogout, navigate]);
+
+  return null; // nothing to display
+};
+
+export default Logout;

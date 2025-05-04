@@ -372,6 +372,7 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
 export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
   collectionName: 'leagues';
   info: {
+    description: '';
     displayName: 'League';
     pluralName: 'leagues';
     singularName: 'league';
@@ -384,6 +385,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Blocks;
+    leaguePassword: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

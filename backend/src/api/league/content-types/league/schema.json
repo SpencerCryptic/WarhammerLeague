@@ -4,7 +4,8 @@
   "info": {
     "singularName": "league",
     "pluralName": "leagues",
-    "displayName": "League"
+    "displayName": "League",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -29,6 +30,9 @@
       "relation": "oneToMany",
       "target": "api::match.match",
       "mappedBy": "league"
+    },
+    "leaguePassword": {
+      "type": "string"
     }
   }
 }
