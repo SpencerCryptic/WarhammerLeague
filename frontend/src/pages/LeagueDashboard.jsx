@@ -12,20 +12,38 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [leagueData, setLeagueData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joinPassword, setJoinPassword] = useState("");
+  const [joinMessage, setJoinMessage] = useState("");
+
+  const handleJoin = async () => {
+    setJoinMessage("");
+    try {
+      const res = await axios.post(`${API_URL}/custom/join-league`, {
+        leagueId,
+        userId: user.id,
+        password: joinPassword
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setJoinMessage("Successfully joined the league!");
+    } catch (err) {
+      setJoinMessage(err.response?.data?.error?.message || "Failed to join league.");
+    }
+  };
 
   const renderDescription = (desc) => {
-    if (!desc || typeof desc === "string") {
-      return <p>{desc || "No description available."}</p>;
-    }
     if (Array.isArray(desc)) {
-      return desc.map((block, i) => {
-        if (block.type === "paragraph" && Array.isArray(block.children)) {
-          return <p key={i}>{block.children.map((c) => c.text).join(" ")}</p>;
-        }
-        return null;
-      });
+      return desc.map((block, i) => (
+        <p key={i}>
+          {block.children?.map((child, j) => (
+            <span key={j}>{child.text}</span>
+          ))}
+        </p>
+      ));
     }
-    return <p>No description available.</p>;
+    return <p>{desc || "No description available."}</p>;
   };
 
   useEffect(() => {
@@ -36,18 +54,17 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Wrap in attributes for compatibility
-        const leaguesList = leaguesRes.data.data.map((l) => ({
-          id: l.id,
-          attributes: { ...l }
-        }));
-
+        const leaguesList = leaguesRes.data.data;
         setLeagues(leaguesList);
 
-        const matchedLeague = leaguesList.find((l) => l.id.toString() === leagueId);
-        if (!matchedLeague && leaguesList.length > 0) {
-          const firstValidId = leaguesList[0].id;
-          navigate(`/leagues/${firstValidId}`, { replace: true });
+        if (!leagueId || !leaguesList.some((l) => l.id.toString() === leagueId)) {
+          if (leaguesList.length > 0) {
+            const firstValidId = leaguesList[0].id;
+            navigate(`/leagues/${firstValidId}`, { replace: true });
+          } else {
+            setError("No leagues available");
+            setLeagueData(null);
+          }
           return;
         }
 
@@ -64,12 +81,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           },
         });
 
-        const leagueRaw = leagueRes.data.data[0];
-        setLeagueData({
-          id: leagueRaw.id,
-          attributes: { ...leagueRaw }
-        });
-
+        setLeagueData(leagueRes.data.data[0]);
       } catch (err) {
         console.error("Error loading league dashboard", err);
         setError("Failed to load data");
@@ -102,12 +114,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         <Link to="/leagues" className="text-blue-700 font-medium">
           Leagues
         </Link>
-        <Link to="#" className="text-blue-700">
-          My Stats
-        </Link>
-        <Link to="#" className="text-blue-700">
-          Create A League
-        </Link>
+        <Link to="#" className="text-blue-700">My Stats</Link>
+        <Link to="#" className="text-blue-700">Create A League</Link>
       </nav>
 
       <div className="flex">
@@ -125,7 +133,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                       lg.id.toString() === leagueId ? "bg-blue-700" : ""
                     }`}
                   >
-                    {lg.attributes?.name || "Unnamed League"}
+                    {lg.name || "Unnamed League"}
                   </Link>
                 </li>
               ))
@@ -142,16 +150,39 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
             <p>No league found.</p>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mb-2">
-                {leagueData.attributes?.name || "Unnamed League"}
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">{leagueData.name || "Unnamed League"}</h2>
               <div className="text-gray-600 mb-6">
-                {renderDescription(leagueData.attributes?.description)}
+                {renderDescription(leagueData.description)}
               </div>
-              <p>
-                Status:{" "}
-                <strong>{leagueData.attributes?.statusleague || "Unknown"}</strong>
+              <p className="mb-6">
+                Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
+
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">Join This League</h3>
+                {leagueData.leaguePassword ? (
+                  <>
+                    <input
+                      type="password"
+                      placeholder="Enter league password"
+                      className="border rounded px-2 py-1 mr-2"
+                      value={joinPassword}
+                      onChange={(e) => setJoinPassword(e.target.value)}
+                    />
+                  </>
+                ) : (
+                  <p className="mb-2 text-sm text-gray-600">No password required for this league.</p>
+                )}
+                <button
+                  onClick={handleJoin}
+                  className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+                >
+                  Join League
+                </button>
+                {joinMessage && (
+                  <p className="mt-2 text-sm text-green-700">{joinMessage}</p>
+                )}
+              </div>
             </>
           )}
         </main>
