@@ -1,12 +1,13 @@
 export default {
     routes: [
       {
-        method: 'POST',
-        path: '/leagues/:id/join',
-        handler: 'league.joinLeague',
+        method: "POST",
+        path: "/leagues/:id/join",
+        handler: "league.joinLeague",
         config: {
-          auth: { scope: ['authenticated'] },
-          policies: [],
+          auth: {
+            scope: ["plugin::users-permissions.authenticated"]
+          }
         },
       },
     ],

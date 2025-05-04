@@ -33,6 +33,12 @@
     },
     "leaguePassword": {
       "type": "string"
+    },
+    "players": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::player.player",
+      "inversedBy": "leagues"
     }
   }
 }

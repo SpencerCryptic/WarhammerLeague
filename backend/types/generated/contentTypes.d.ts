@@ -394,6 +394,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     statusleague: Schema.Attribute.Enumeration<
       ['planned', 'ongoing', 'completed']
@@ -449,6 +450,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     email: Schema.Attribute.Email;
     faction: Schema.Attribute.String;
+    leagues: Schema.Attribute.Relation<'manyToMany', 'api::league.league'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

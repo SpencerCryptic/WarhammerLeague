@@ -15,13 +15,11 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       return ctx.unauthorized('Incorrect password');
     }
 
-    const userId = ctx.state.user.id;
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('User not authenticated');
 
     const existingPlayer = await strapi.entityService.findMany('api::player.player', {
-      filters: {
-        user: userId,
-        league: id,
-      },
+      filters: { user: userId, league: id },
     });
 
     if (existingPlayer.length > 0) {
@@ -39,5 +37,5 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     });
 
     ctx.send({ message: 'Joined league successfully' });
-  },
+  }
 }));

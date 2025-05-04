@@ -53,11 +53,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       setLoading(true);
       try {
         const leaguesRes = await axios.get(`${API_URL}/leagues`, {
-            params: {
-              populate: ['name', 'statusleague'],
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          });          
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const leaguesList = leaguesRes.data.data;
         setLeagues(leaguesList);
@@ -79,8 +76,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               id: {
                 $eq: leagueId
               }
-            },
-            fields: ['name', 'description', 'statusleague', 'leaguePassword'],
+            }
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -139,7 +135,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                       lg.id.toString() === leagueId ? "bg-blue-700" : ""
                     }`}
                   >
-                    {lg.attributes?.name || "Unnamed League"}
+                    {lg.name || "Unnamed League"}
                   </Link>
                 </li>
               ))
@@ -157,18 +153,18 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           ) : (
             <>
               <h2 className="text-2xl font-bold mb-2">
-                {leagueData.attributes?.name || "Unnamed League"}
+                {leagueData.name || "Unnamed League"}
               </h2>
               <div className="text-gray-600 mb-6">
-                {renderDescription(leagueData.attributes?.description)}
+                {renderDescription(leagueData.description)}
               </div>
               <p className="mb-6">
-                Status: <strong>{leagueData.attributes?.statusleague || "Unknown"}</strong>
+                Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Join This League</h3>
-                {leagueData.attributes?.leaguePassword ? (
+                {leagueData.leaguePassword ? (
                   <>
                     <input
                       type="password"
