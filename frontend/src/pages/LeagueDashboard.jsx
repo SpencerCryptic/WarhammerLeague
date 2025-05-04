@@ -53,6 +53,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       setLoading(true);
       try {
         const leaguesRes = await axios.get(`${API_URL}/leagues`, {
+          params: {
+            fields: ['name', 'statusleague'],
+          },
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -76,7 +79,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               id: {
                 $eq: leagueId
               }
-            }
+            },
+            fields: ['name', 'description', 'statusleague', 'leaguePassword'],
           },
           headers: {
             Authorization: `Bearer ${token}`,
