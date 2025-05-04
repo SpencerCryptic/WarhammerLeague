@@ -6,8 +6,8 @@ export default {
         handler: "league.joinLeague",
         config: {
           auth: {
-            strategies: ["users-permissions"]
-          }
+            scope: ["plugin::users-permissions.authenticated"],
+          },
         },
       },
     ],

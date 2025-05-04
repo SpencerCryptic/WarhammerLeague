@@ -21,7 +21,9 @@ export default {
         path: '/leagues',
         handler: 'league.create',
         config: {
-          auth: { scope: ['authenticated'] },
+          auth: {
+            scope: ['plugin::users-permissions.authenticated'],
+          },
         },
       },
       {
@@ -29,7 +31,9 @@ export default {
         path: '/leagues/:id',
         handler: 'league.update',
         config: {
-          auth: { scope: ['authenticated'] },
+          auth: {
+            scope: ['plugin::users-permissions.authenticated'],
+          },
         },
       },
       {
@@ -37,7 +41,9 @@ export default {
         path: '/leagues/:id',
         handler: 'league.delete',
         config: {
-          auth: { scope: ['authenticated'] },
+          auth: {
+            scope: ['plugin::users-permissions.authenticated'],
+          },
         },
       },
       {
@@ -45,7 +51,9 @@ export default {
         path: '/leagues/:id/join',
         handler: 'league.joinLeague',
         config: {
-          auth: { scope: ['authenticated'] },
+          auth: {
+            scope: ['plugin::users-permissions.authenticated'],
+          },
         },
       },
     ],
