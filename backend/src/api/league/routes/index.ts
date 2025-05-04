@@ -22,7 +22,7 @@ export default {
         handler: 'league.create',
         config: {
           auth: {
-            scope: ['plugin::users-permissions.authenticated'],
+            roles: ['authenticated'],
           },
         },
       },
@@ -32,7 +32,7 @@ export default {
         handler: 'league.update',
         config: {
           auth: {
-            scope: ['plugin::users-permissions.authenticated'],
+            roles: ['authenticated'],
           },
         },
       },
@@ -42,7 +42,7 @@ export default {
         handler: 'league.delete',
         config: {
           auth: {
-            scope: ['plugin::users-permissions.authenticated'],
+            roles: ['authenticated'],
           },
         },
       },
@@ -52,7 +52,7 @@ export default {
         handler: 'league.joinLeague',
         config: {
           auth: {
-            scope: ['plugin::users-permissions.authenticated'],
+            roles: ['authenticated'],
           },
         },
       },
