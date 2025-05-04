@@ -53,11 +53,11 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       setLoading(true);
       try {
         const leaguesRes = await axios.get(`${API_URL}/leagues`, {
-          params: {
-            fields: ['name', 'statusleague'],
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        });
+            params: {
+              populate: ['name', 'statusleague'],
+            },
+            headers: { Authorization: `Bearer ${token}` },
+          });          
 
         const leaguesList = leaguesRes.data.data;
         setLeagues(leaguesList);

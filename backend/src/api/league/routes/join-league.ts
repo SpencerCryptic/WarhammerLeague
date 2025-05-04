@@ -6,8 +6,8 @@ export default {
         handler: 'league.joinLeague',
         config: {
           auth: { scope: ['authenticated'] },
+          policies: [],
         },
-        type: 'content-api',
       },
     ],
   };
