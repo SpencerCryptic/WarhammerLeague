@@ -22,7 +22,7 @@ export default {
         handler: 'league.create',
         config: {
           auth: {
-            roles: ['authenticated'],
+            required: true,
           },
         },
       },
@@ -32,7 +32,7 @@ export default {
         handler: 'league.update',
         config: {
           auth: {
-            roles: ['authenticated'],
+            required: true,
           },
         },
       },
@@ -42,7 +42,7 @@ export default {
         handler: 'league.delete',
         config: {
           auth: {
-            roles: ['authenticated'],
+            required: true,
           },
         },
       },
@@ -52,7 +52,7 @@ export default {
         handler: 'league.joinLeague',
         config: {
           auth: {
-            roles: false,
+            required: true,
           },
         },
       },
