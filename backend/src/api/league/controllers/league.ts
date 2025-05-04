@@ -17,21 +17,6 @@ type League = {
 };
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
-
-  async findOne(ctx) {
-    const { id } = ctx.params;
-
-    const entity = await strapi.entityService.findOne('api::league.league', parseInt(id, 10), {
-      populate: ['players'],
-    });
-
-    if (!entity) {
-      return ctx.notFound('League not found');
-    }
-
-    return ctx.send({ data: entity });
-  },
-
   async joinLeague(ctx) {
     const { id: leagueId } = ctx.params;
     const { password } = ctx.request.body;
@@ -98,4 +83,15 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     ctx.send({ message: 'Joined league successfully' });
   },
+
+  async findOne(ctx) {
+    const { id } = ctx.params;
+
+    const entity = await strapi.entityService.findOne('api::league.league', id, {
+      populate: ['players'],
+    });
+
+    if (!entity) return ctx.notFound('League not found');
+    ctx.body = { data: entity };
+  }
 }));
