@@ -52,7 +52,7 @@ export default {
         handler: 'league.joinLeague',
         config: {
           auth: {
-            roles: ['authenticated'],
+            roles: false,
           },
         },
       },
