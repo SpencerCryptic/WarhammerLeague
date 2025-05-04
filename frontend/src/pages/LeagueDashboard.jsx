@@ -21,7 +21,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
     setJoinSuccess(null);
     try {
       await axios.post(`${API_URL}/leagues/${leagueId}/join`, {
-        password: joinPassword
+        password: joinPassword,
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -70,20 +70,13 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           return;
         }
 
-        const leagueRes = await axios.get(`${API_URL}/leagues`, {
-          params: {
-            filters: {
-              id: {
-                $eq: leagueId
-              }
-            }
-          },
+        const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setLeagueData(leagueRes.data.data[0]);
+        setLeagueData(leagueRes.data.data);
       } catch (err) {
         console.error("Error loading league dashboard", err);
         setError("Failed to load data");
@@ -113,9 +106,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       </header>
 
       <nav className="flex gap-6 p-4 border-b bg-white">
-        <Link to="/leagues" className="text-blue-700 font-medium">
-          Leagues
-        </Link>
+        <Link to="/leagues" className="text-blue-700 font-medium">Leagues</Link>
         <Link to="#" className="text-blue-700">My Stats</Link>
         <Link to="#" className="text-blue-700">Create A League</Link>
       </nav>
@@ -152,28 +143,36 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
             <p>No league found.</p>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mb-2">
-                {leagueData.name || "Unnamed League"}
-              </h2>
-              <div className="text-gray-600 mb-6">
-                {renderDescription(leagueData.description)}
-              </div>
+              <h2 className="text-2xl font-bold mb-2">{leagueData.name || "Unnamed League"}</h2>
+              <div className="text-gray-600 mb-6">{renderDescription(leagueData.description)}</div>
               <p className="mb-6">
                 Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
 
+              {/* ✅ NEW: Players list */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
+                {leagueData.players?.length > 0 ? (
+                  <ul className="list-disc ml-6 text-sm text-gray-800">
+                    {leagueData.players.map((player) => (
+                      <li key={player.id}>{player.name || "Unnamed Player"}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">No players yet.</p>
+                )}
+              </div>
+
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Join This League</h3>
                 {leagueData.leaguePassword ? (
-                  <>
-                    <input
-                      type="password"
-                      placeholder="Enter league password"
-                      className="border rounded px-2 py-1 mr-2"
-                      value={joinPassword}
-                      onChange={(e) => setJoinPassword(e.target.value)}
-                    />
-                  </>
+                  <input
+                    type="password"
+                    placeholder="Enter league password"
+                    className="border rounded px-2 py-1 mr-2"
+                    value={joinPassword}
+                    onChange={(e) => setJoinPassword(e.target.value)}
+                  />
                 ) : (
                   <p className="mb-2 text-sm text-gray-600">No password required for this league.</p>
                 )}

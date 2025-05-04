@@ -17,6 +17,21 @@ type League = {
 };
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
+
+  async findOne(ctx) {
+    const { id } = ctx.params;
+
+    const entity = await strapi.entityService.findOne('api::league.league', parseInt(id, 10), {
+      populate: ['players'],
+    });
+
+    if (!entity) {
+      return ctx.notFound('League not found');
+    }
+
+    return ctx.send({ data: entity });
+  },
+
   async joinLeague(ctx) {
     const { id: leagueId } = ctx.params;
     const { password } = ctx.request.body;
@@ -49,41 +64,36 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
 
     if (!player) {
- // Create player
-player = await strapi.entityService.create('api::player.player', {
-    data: {
-      user: userId,
-      name: ctx.state.user.username || 'Anonymous',
-      faction: 'Unknown',
-      ranking: 0,
-      leagues: {
-        connect: [{ id: parseInt(leagueId, 10) }],
-      } as any,
-    },
-  }) as Player;
-  
+      player = await strapi.entityService.create('api::player.player', {
+        data: {
+          user: userId,
+          name: ctx.state.user.username || 'Anonymous',
+          faction: 'Unknown',
+          ranking: 0,
+          leagues: {
+            connect: [{ id: parseInt(leagueId, 10) }],
+          } as any,
+        },
+      }) as Player;
     } else {
-// Update existing player
-await strapi.entityService.update('api::player.player', player.id, {
-    data: {
-      leagues: {
-        connect: [{ id: parseInt(leagueId, 10) }],
-      } as any,
-    },
-  });
-  
+      await strapi.entityService.update('api::player.player', player.id, {
+        data: {
+          leagues: {
+            connect: [{ id: parseInt(leagueId, 10) }],
+          } as any,
+        },
+      });
     }
 
     const leagueHasPlayer = league.players?.some((p) => p.id === player.id);
     if (!leagueHasPlayer) {
-  // Update league with new player
-await strapi.entityService.update('api::league.league', parseInt(leagueId, 10), {
-    data: {
-      players: {
-        connect: [{ id: player.id }],
-      } as any,
-    },
-  });  
+      await strapi.entityService.update('api::league.league', parseInt(leagueId, 10), {
+        data: {
+          players: {
+            connect: [{ id: player.id }],
+          } as any,
+        },
+      });
     }
 
     ctx.send({ message: 'Joined league successfully' });
