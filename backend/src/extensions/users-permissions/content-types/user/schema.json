@@ -92,7 +92,8 @@
       "enum": [
         "Cryptic Cabin Bristol",
         "Cryptic Cabin Bracknell"
-      ]
+      ],
+      "required": true
     }
   }
 }

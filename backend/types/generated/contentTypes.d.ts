@@ -964,7 +964,8 @@ export interface PluginUsersPermissionsUser
     >;
     storeLocation: Schema.Attribute.Enumeration<
       ['Cryptic Cabin Bristol', 'Cryptic Cabin Bracknell']
-    >;
+    > &
+      Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

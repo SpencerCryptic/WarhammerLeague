@@ -7,7 +7,7 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
   const [formData, setFormData] = useState({
     username: user?.username || "",
     phoneNumber: user?.phoneNumber || "",
-    store: user?.store || "",
+    storeLocation: user?.storeLocation?.id?.toString() || "", // Handle relation ID as string
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     dateOfBirth: user?.dateOfBirth || "",
@@ -25,11 +25,19 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
     setSubmitting(true);
     setError("");
     try {
-      await axios.put(`${API_URL}/users/${user.id}`, formData, {
+      const payload = {
+        ...formData,
+        storeLocation: formData.storeLocation
+          ? { id: parseInt(formData.storeLocation) }
+          : null, // Send storeLocation as object
+      };
+
+      await axios.put(`${API_URL}/users/${user.id}`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
       onUpdate(); // refresh user context and close modal
     } catch (err) {
       console.error(err);
@@ -73,14 +81,14 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
             className="w-full border px-2 py-1"
           />
           <select
-            name="store"
-            value={formData.store}
+            name="storeLocation"
+            value={formData.storeLocation}
             onChange={handleChange}
             className="w-full border px-2 py-1"
           >
             <option value="">Select Store</option>
-            <option value="Cryptic Cabin Bristol">Cryptic Cabin Bristol</option>
-            <option value="Cryptic Cabin Bracknell">Cryptic Cabin Bracknell</option>
+            <option value="1">Cryptic Cabin Bristol</option>
+            <option value="2">Cryptic Cabin Bracknell</option>
           </select>
           <input
             name="dateOfBirth"

@@ -26,7 +26,7 @@ const AppWrapper = () => {
         })
         .then((res) => {
           setUser(res.data);
-
+  
           const requiredFields = [
             "username",
             "phoneNumber",
@@ -34,15 +34,14 @@ const AppWrapper = () => {
             "firstName",
             "lastName",
             "dateOfBirth",
-          ];          
-
+          ];
+  
           const isIncomplete = requiredFields.some(
             (field) => !res.data[field] || res.data[field].toString().trim() === ""
           );
-
-          if (isIncomplete) {
-            setShowProfileModal(true);
-          }
+  
+          // Delay modal slightly to avoid stale data
+          setTimeout(() => setShowProfileModal(isIncomplete), 0);
         })
         .catch((err) => {
           console.error("Token invalid or expired", err);
@@ -50,7 +49,7 @@ const AppWrapper = () => {
           localStorage.removeItem("jwt");
         });
     }
-  }, [token]);
+  }, [token]);  
 
   const handleLogin = (jwt, userData) => {
     localStorage.setItem("jwt", jwt);
@@ -69,17 +68,33 @@ const AppWrapper = () => {
   return (
     <>
 {showProfileModal && (
-  <UserProfileModal
-    user={user}
-    token={token}
-    onUpdate={async () => {
-      const updatedUser = await axios.get(`${API_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUser(updatedUser.data);
-      setShowProfileModal(false);
-    }}
-  />
+ <UserProfileModal
+ user={user}
+ token={token}
+ onUpdate={async () => {
+   const updatedUser = await axios.get(`${API_URL}/users/me`, {
+     headers: { Authorization: `Bearer ${token}` },
+   });
+   setUser(updatedUser.data);
+
+   const requiredFields = [
+    "username",
+    "phoneNumber",
+    "storeLocation", 
+    "firstName",
+    "lastName",
+    "dateOfBirth",
+  ];  
+
+   const isStillIncomplete = requiredFields.some(
+     (field) =>
+       !updatedUser.data[field] ||
+       updatedUser.data[field].toString().trim() === ""
+   );
+
+   setShowProfileModal(isStillIncomplete);
+ }}
+/>
 )}
 
 
