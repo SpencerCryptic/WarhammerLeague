@@ -7,7 +7,7 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
   const [formData, setFormData] = useState({
     username: user?.username || "",
     phoneNumber: user?.phoneNumber || "",
-    storeLocation: user?.storeLocation?.id?.toString() || "", // Handle relation ID as string
+    storeLocation: user?.storeLocation || "", // ENUM - keep as string
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     dateOfBirth: user?.dateOfBirth || "",
@@ -25,20 +25,18 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
     setSubmitting(true);
     setError("");
     try {
-      const payload = {
-        ...formData,
-        storeLocation: formData.storeLocation
-          ? { id: parseInt(formData.storeLocation) }
-          : null, // Send storeLocation as object
-      };
-
-      await axios.put(`${API_URL}/users/${user.id}`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await axios.put(
+        `${API_URL}/users/${user.id}`,
+        {
+          ...formData, // ✅ storeLocation stays as a string
         },
-      });
-
-      onUpdate(); // refresh user context and close modal
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      onUpdate(); // re-fetch & close modal
     } catch (err) {
       console.error(err);
       setError("Failed to update profile. Please try again.");
@@ -87,14 +85,13 @@ const UserProfileModal = ({ user, token, onUpdate }) => {
             className="w-full border px-2 py-1"
           >
             <option value="">Select Store</option>
-            <option value="1">Cryptic Cabin Bristol</option>
-            <option value="2">Cryptic Cabin Bracknell</option>
+            <option value="Cryptic Cabin Bristol">Cryptic Cabin Bristol</option>
+            <option value="Cryptic Cabin Bracknell">Cryptic Cabin Bracknell</option>
           </select>
           <input
             name="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={handleChange}
-            placeholder="Date of Birth (YYYY-MM-DD)"
             type="date"
             className="w-full border px-2 py-1"
           />

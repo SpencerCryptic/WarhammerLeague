@@ -7,7 +7,6 @@ import LeagueDashboard from "./pages/LeagueDashboard";
 import Logout from "./components/Logout";
 import UserProfileModal from "./components/UserProfileModal";
 
-
 const API_URL = process.env.REACT_APP_API_URL;
 
 const AppWrapper = () => {
@@ -26,21 +25,21 @@ const AppWrapper = () => {
         })
         .then((res) => {
           setUser(res.data);
-  
+
           const requiredFields = [
             "username",
             "phoneNumber",
-            "store",
+            "storeLocation",
             "firstName",
             "lastName",
             "dateOfBirth",
           ];
-  
+
           const isIncomplete = requiredFields.some(
-            (field) => !res.data[field] || res.data[field].toString().trim() === ""
+            (field) =>
+              !res.data[field] || String(res.data[field]).trim() === ""
           );
-  
-          // Delay modal slightly to avoid stale data
+
           setTimeout(() => setShowProfileModal(isIncomplete), 0);
         })
         .catch((err) => {
@@ -49,7 +48,7 @@ const AppWrapper = () => {
           localStorage.removeItem("jwt");
         });
     }
-  }, [token]);  
+  }, [token]);
 
   const handleLogin = (jwt, userData) => {
     localStorage.setItem("jwt", jwt);
@@ -67,53 +66,43 @@ const AppWrapper = () => {
 
   return (
     <>
-{showProfileModal && (
- <UserProfileModal
- user={user}
- token={token}
- onUpdate={async () => {
-   const updatedUser = await axios.get(`${API_URL}/users/me`, {
-     headers: { Authorization: `Bearer ${token}` },
-   });
-   setUser(updatedUser.data);
+      {showProfileModal && user && (
+        <UserProfileModal
+          user={user}
+          token={token}
+          onUpdate={async () => {
+            const updatedUser = await axios.get(`${API_URL}/users/me`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setUser(updatedUser.data);
 
-   const requiredFields = [
-    "username",
-    "phoneNumber",
-    "storeLocation", 
-    "firstName",
-    "lastName",
-    "dateOfBirth",
-  ];  
+            const requiredFields = [
+              "username",
+              "phoneNumber",
+              "storeLocation",
+              "firstName",
+              "lastName",
+              "dateOfBirth",
+            ];
 
-   const isStillIncomplete = requiredFields.some(
-     (field) =>
-       !updatedUser.data[field] ||
-       updatedUser.data[field].toString().trim() === ""
-   );
+            const isStillIncomplete = requiredFields.some(
+              (field) =>
+                !updatedUser.data[field] ||
+                String(updatedUser.data[field]).trim() === ""
+            );
 
-   setShowProfileModal(isStillIncomplete);
- }}
-/>
-)}
-
+            setShowProfileModal(isStillIncomplete);
+          }}
+        />
+      )}
 
       <Routes>
         <Route path="/" element={<Navigate to="/leagues" />} />
         <Route path="/login" element={<Auth onLogin={handleLogin} />} />
         <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
-        <Route
-          path="/add-player"
-          element={<AddPlayer token={token} user={user} />}
-        />
-        <Route
-          path="/leagues"
-          element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
-        />
-        <Route
-          path="/leagues/:leagueId"
-          element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
-        />
+        <Route path="/add-player" element={<AddPlayer token={token} user={user} />} />
+        <Route path="/leagues" element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />} />
+        <Route path="/leagues/:leagueId" element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />} />
       </Routes>
     </>
   );
