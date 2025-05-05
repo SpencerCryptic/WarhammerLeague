@@ -5,12 +5,15 @@ import Auth from "./components/Auth";
 import AddPlayer from "./components/AddPlayer";
 import LeagueDashboard from "./pages/LeagueDashboard";
 import Logout from "./components/Logout";
+import UserProfileModal from "./components/UserProfileModal";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const AppWrapper = () => {
   const [token, setToken] = useState(localStorage.getItem("jwt") || "");
   const [user, setUser] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +26,23 @@ const AppWrapper = () => {
         })
         .then((res) => {
           setUser(res.data);
+
+          const requiredFields = [
+            "username",
+            "phoneNumber",
+            "store",
+            "firstName",
+            "lastName",
+            "dateOfBirth",
+          ];          
+
+          const isIncomplete = requiredFields.some(
+            (field) => !res.data[field] || res.data[field].toString().trim() === ""
+          );
+
+          if (isIncomplete) {
+            setShowProfileModal(true);
+          }
         })
         .catch((err) => {
           console.error("Token invalid or expired", err);
@@ -47,23 +67,40 @@ const AppWrapper = () => {
   };
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/leagues" />} />
-      <Route path="/login" element={<Auth onLogin={handleLogin} />} />
-      <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
-      <Route
-        path="/add-player"
-        element={<AddPlayer token={token} user={user} />}
-      />
-      <Route
-        path="/leagues"
-        element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
-      />
-      <Route
-        path="/leagues/:leagueId"
-        element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
-      />
-    </Routes>
+    <>
+{showProfileModal && (
+  <UserProfileModal
+    user={user}
+    token={token}
+    onUpdate={async () => {
+      const updatedUser = await axios.get(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(updatedUser.data);
+      setShowProfileModal(false);
+    }}
+  />
+)}
+
+
+      <Routes>
+        <Route path="/" element={<Navigate to="/leagues" />} />
+        <Route path="/login" element={<Auth onLogin={handleLogin} />} />
+        <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
+        <Route
+          path="/add-player"
+          element={<AddPlayer token={token} user={user} />}
+        />
+        <Route
+          path="/leagues"
+          element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/leagues/:leagueId"
+          element={<LeagueDashboard token={token} user={user} onLogout={handleLogout} />}
+        />
+      </Routes>
+    </>
   );
 };
 

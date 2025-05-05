@@ -9,7 +9,7 @@
     "displayName": "User"
   },
   "options": {
-    "timestamps": true
+    "draftAndPublish": false
   },
   "attributes": {
     "username": {
@@ -70,6 +70,29 @@
       "relation": "oneToOne",
       "target": "api::player.player",
       "mappedBy": "user"
+    },
+    "firstName": {
+      "type": "string",
+      "required": true
+    },
+    "lastName": {
+      "type": "string",
+      "required": true
+    },
+    "phoneNumber": {
+      "type": "string",
+      "required": true
+    },
+    "dateOfBirth": {
+      "required": true,
+      "type": "date"
+    },
+    "storeLocation": {
+      "type": "enumeration",
+      "enum": [
+        "Cryptic Cabin Bristol",
+        "Cryptic Cabin Bracknell"
+      ]
     }
   }
 }
