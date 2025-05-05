@@ -5,9 +5,9 @@ export default {
         path: '/user/profile',
         handler: 'user.updateProfile',
         config: {
-          auth: {
-            scope: ['authenticated'],
-          },
+            auth: {
+                required: true,
+              },
         },
       },
     ],
