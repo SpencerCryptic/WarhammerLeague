@@ -97,6 +97,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
     fetchLeaguesAndLeagueData();
   }, [leagueId, token, navigate]);
 
+  const currentPlayerId = user?.player?.id;
+  const userHasJoined = leagueData?.players?.some((p) => p.id === currentPlayerId);
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="flex justify-between items-center p-4 border-b bg-white">
@@ -167,12 +170,18 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                 {leagueData.players?.length > 0 ? (
                   <ul className="list-disc ml-6 text-sm text-gray-800">
                     {leagueData.players.map((player) => (
-                      <li key={player.id}>
+                      <li
+                        key={player.id}
+                        className={player.id === currentPlayerId ? "font-semibold text-green-800" : ""}
+                      >
                         {player.name || "Unnamed Player"}
                         <span className="text-gray-500">
                           {" – "}
                           {player.faction?.trim() || "Faction not set"}
                         </span>
+                        {player.id === currentPlayerId && (
+                          <span className="ml-2 text-green-600 text-xs font-semibold">(You)</span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -186,9 +195,15 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                 <button
                   onClick={() => setShowJoinModal(true)}
                   className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+                  disabled={userHasJoined}
                 >
                   Join League
                 </button>
+                {userHasJoined && (
+                  <p className="text-sm text-red-600 mt-2">
+                    You have already joined this league
+                  </p>
+                )}
                 {joinMessage && (
                   <p
                     className={`mt-2 text-sm ${

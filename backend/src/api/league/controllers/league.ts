@@ -5,7 +5,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const { id: leagueId } = ctx.params;
     const { password, faction } = ctx.request.body;
 
-    const league = await strapi.entityService.findOne('api::league.league', parseInt(leagueId, 10), {
+    const league = await strapi.entityService.findOne('api::league.league', parseInt(leagueId), {
       fields: ['leaguePassword'],
     });
 
@@ -25,8 +25,10 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     const [existingLP] = await strapi.entityService.findMany('api::league-player.league-player', {
       filters: {
-        player: { id: player.id },
-        league: { id: parseInt(leagueId, 10) },
+        $and: [
+          { player: { id: player.id } },
+          { league: { id: parseInt(leagueId) } },
+        ],
       },
     });
 
@@ -35,7 +37,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     await strapi.entityService.create('api::league-player.league-player', {
       data: {
         player: player.id,
-        league: parseInt(leagueId, 10),
+        league: parseInt(leagueId),
         faction,
         wins: 0,
         draws: 0,
@@ -50,13 +52,17 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   async findOne(ctx) {
     const { id } = ctx.params;
 
-    const league = await strapi.entityService.findOne('api::league.league', parseInt(id, 10), {
+    const league = await strapi.entityService.findOne('api::league.league', parseInt(id), {
       fields: ['name', 'statusleague', 'description', 'leaguePassword'],
       populate: {
         league_players: {
+          fields: ['faction'],
           populate: {
             player: {
               fields: ['id', 'name'],
+            },
+            league: {
+              fields: ['id'], // This ensures the filtering works
             },
           },
         },
@@ -65,11 +71,13 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     if (!league) return ctx.notFound('League not found');
 
-    const players = (league as any).league_players?.map((lp: any) => ({
-      id: lp.player?.id,
-      name: lp.player?.name,
-      faction: lp.faction || 'Unknown',
-    })) || [];
+    const players = (league as any).league_players
+      ?.filter((lp: any) => lp.league?.id === parseInt(id)) // Enforce match on correct league
+      .map((lp: any) => ({
+        id: lp.player?.id,
+        name: lp.player?.name,
+        faction: lp.faction,
+      })) || [];
 
     ctx.body = {
       data: {
