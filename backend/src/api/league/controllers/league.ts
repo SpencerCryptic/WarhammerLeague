@@ -53,29 +53,26 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const { id } = ctx.params;
 
     const league = await strapi.entityService.findOne('api::league.league', parseInt(id), {
-        fields: ['name', 'statusleague', 'description', 'leaguePassword'],
-        populate: {
-          league_players: {
-            fields: ['faction'], // ✅ ENSURE faction is populated
-            populate: {
-              player: {
-                fields: ['id', 'name'], // ✅ Get player name + ID
-              },
+      fields: ['name', 'statusleague', 'description', 'leaguePassword'],
+      populate: {
+        league_players: {
+          fields: ['faction'],
+          populate: {
+            player: {
+              fields: ['id', 'name'],
             },
           },
         },
-      });      
-      
+      },
+    });
 
     if (!league) return ctx.notFound('League not found');
 
-    const leagueAny = league as any;
-    const players = (leagueAny.league_players || []).map((lp: any) => ({
+    const players = (league as any).league_players?.map((lp: any) => ({
       id: lp.player?.id,
       name: lp.player?.name,
       faction: lp.faction,
-    }));
-    
+    })) || [];
 
     ctx.body = {
       data: {

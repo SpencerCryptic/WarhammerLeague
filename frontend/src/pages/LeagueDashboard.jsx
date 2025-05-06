@@ -169,9 +169,10 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                     {leagueData.players.map((player) => (
                       <li key={player.id}>
                         {player.name || "Unnamed Player"}
-                        {player.faction && (
-                          <span className="text-gray-500"> – {player.faction}</span>
-                        )}
+                        <span className="text-gray-500">
+                          {" – "}
+                          {player.faction?.trim() || "Faction not set"}
+                        </span>
                       </li>
                     ))}
                   </ul>
