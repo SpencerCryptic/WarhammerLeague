@@ -56,15 +56,15 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         fields: ['name', 'statusleague', 'description', 'leaguePassword'],
         populate: {
           league_players: {
-            fields: ['faction'], // 👈 ensure this is explicitly populated
+            fields: ['faction'], // ✅ ENSURE faction is populated
             populate: {
               player: {
-                fields: ['id', 'name'],
+                fields: ['id', 'name'], // ✅ Get player name + ID
               },
             },
           },
         },
-      });
+      });      
       
 
     if (!league) return ctx.notFound('League not found');
