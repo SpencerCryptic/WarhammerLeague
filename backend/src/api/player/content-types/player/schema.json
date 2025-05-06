@@ -4,7 +4,8 @@
   "info": {
     "singularName": "player",
     "pluralName": "players",
-    "displayName": "Player"
+    "displayName": "Player",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -16,29 +17,11 @@
     "email": {
       "type": "email"
     },
-    "ranking": {
-      "type": "integer"
-    },
-    "faction": {
-      "type": "string"
-    },
     "user": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "player"
-    },
-    "matches": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::match.match",
-      "mappedBy": "player2"
-    },
-    "leagues": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::league.league",
-      "mappedBy": "players"
     },
     "league_players": {
       "type": "relation",

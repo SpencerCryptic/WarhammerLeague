@@ -433,7 +433,6 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
-    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     statusleague: Schema.Attribute.Enumeration<
       ['planned', 'ongoing', 'completed']
@@ -447,6 +446,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
+    description: '';
     displayName: 'Match';
     pluralName: 'matches';
     singularName: 'match';
@@ -459,11 +459,17 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
+    league_player1: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::league-player.league-player'
+    >;
+    league_player2: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::league-player.league-player'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
-    player1: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
-    player2: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     score1: Schema.Attribute.Integer;
     score2: Schema.Attribute.Integer;
@@ -476,6 +482,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
 export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   collectionName: 'players';
   info: {
+    description: '';
     displayName: 'Player';
     pluralName: 'players';
     singularName: 'player';
@@ -488,22 +495,18 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     email: Schema.Attribute.Email;
-    faction: Schema.Attribute.String;
     league_players: Schema.Attribute.Relation<
       'oneToMany',
       'api::league-player.league-player'
     >;
-    leagues: Schema.Attribute.Relation<'manyToMany', 'api::league.league'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::player.player'
     > &
       Schema.Attribute.Private;
-    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    ranking: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
