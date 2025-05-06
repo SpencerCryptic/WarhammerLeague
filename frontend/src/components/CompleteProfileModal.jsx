@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -32,15 +31,62 @@ const CompleteProfileModal = ({ token, user, onComplete }) => {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError("");
+
     try {
+      // Step 1: Update user
       await axios.put(`${process.env.REACT_APP_API_URL}/users/me`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      // Step 2: Refresh user and check for linked player
+      const refreshedUser = await axios.get(`${process.env.REACT_APP_API_URL}/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!refreshedUser.data.player) {
+        // Step 3: Create Player linked to user
+        const playerRes = await axios.post(
+          `${process.env.REACT_APP_API_URL}/players`,
+          {
+            data: {
+              name: formData.username,
+              user: refreshedUser.data.id,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Step 4 (optional if Player->User handles the relation only): update User with Player
+        await axios.put(`${process.env.REACT_APP_API_URL}/users/${refreshedUser.data.id}`, {
+          player: playerRes.data.data.id,
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
       onComplete();
     } catch (err) {
-      setError(err.response?.data?.error?.message || "Update failed.");
+      console.error(err);
+      if (
+        err.response?.data?.error?.message?.includes("username must be unique") ||
+        err.response?.data?.error?.details?.errors?.some(
+          (e) => e.path === "username" && e.message.includes("unique")
+        )
+      ) {
+        setError("This username is already taken. Please choose another.");
+      } else {
+        setError("Update failed.");
+      }
     } finally {
       setSubmitting(false);
     }

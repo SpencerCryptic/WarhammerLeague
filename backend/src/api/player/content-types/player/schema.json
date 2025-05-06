@@ -39,6 +39,12 @@
       "relation": "manyToMany",
       "target": "api::league.league",
       "mappedBy": "players"
+    },
+    "league_players": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::league-player.league-player",
+      "mappedBy": "player"
     }
   }
 }

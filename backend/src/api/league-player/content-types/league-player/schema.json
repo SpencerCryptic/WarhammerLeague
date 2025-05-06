@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "league_players",
+  "info": {
+    "singularName": "league-player",
+    "pluralName": "league-players",
+    "displayName": "LeaguePlayer"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "player": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::player.player",
+      "inversedBy": "league_players"
+    },
+    "league": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::league.league",
+      "inversedBy": "league_players"
+    },
+    "faction": {
+      "type": "string"
+    },
+    "wins": {
+      "type": "integer"
+    },
+    "draws": {
+      "type": "integer"
+    },
+    "losses": {
+      "type": "integer"
+    },
+    "rankingPoints": {
+      "type": "integer"
+    }
+  }
+}

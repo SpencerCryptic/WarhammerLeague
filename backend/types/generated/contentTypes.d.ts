@@ -369,6 +369,41 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiLeaguePlayerLeaguePlayer
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'league_players';
+  info: {
+    displayName: 'LeaguePlayer';
+    pluralName: 'league-players';
+    singularName: 'league-player';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    draws: Schema.Attribute.Integer;
+    faction: Schema.Attribute.String;
+    league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::league-player.league-player'
+    > &
+      Schema.Attribute.Private;
+    losses: Schema.Attribute.Integer;
+    player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
+    publishedAt: Schema.Attribute.DateTime;
+    rankingPoints: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    wins: Schema.Attribute.Integer;
+  };
+}
+
 export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
   collectionName: 'leagues';
   info: {
@@ -385,6 +420,10 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Blocks;
+    league_players: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::league-player.league-player'
+    >;
     leaguePassword: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -450,6 +489,10 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     email: Schema.Attribute.Email;
     faction: Schema.Attribute.String;
+    league_players: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::league-player.league-player'
+    >;
     leagues: Schema.Attribute.Relation<'manyToMany', 'api::league.league'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -988,6 +1031,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::league-player.league-player': ApiLeaguePlayerLeaguePlayer;
       'api::league.league': ApiLeagueLeague;
       'api::match.match': ApiMatchMatch;
       'api::player.player': ApiPlayerPlayer;

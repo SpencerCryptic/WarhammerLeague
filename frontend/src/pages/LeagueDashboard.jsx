@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import FactionSelectionModal from "../components/FactionSelectionModal";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -12,24 +13,32 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [leagueData, setLeagueData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [joinPassword, setJoinPassword] = useState("");
+
   const [joinMessage, setJoinMessage] = useState("");
   const [joinSuccess, setJoinSuccess] = useState(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const handleJoin = async () => {
+  const handleJoin = async ({ password, faction }) => {
     setJoinMessage("");
     setJoinSuccess(null);
+
     try {
-      await axios.post(`${API_URL}/leagues/${leagueId}/join`, {
-        password: joinPassword,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await axios.post(
+        `${API_URL}/leagues/${leagueId}/join`,
+        { password, faction },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setJoinMessage("Successfully joined the league!");
       setJoinSuccess(true);
+      setShowJoinModal(false);
+
+      const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeagueData(leagueRes.data.data);
+
     } catch (err) {
+      console.error(err);
       setJoinMessage(err.response?.data?.error?.message || "Failed to join league.");
       setJoinSuccess(false);
     }
@@ -94,7 +103,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         <h1 className="text-xl font-bold">CC Leagues</h1>
         <div className="flex items-center gap-4">
           <p className="text-sm">
-            Logged in as <strong>{user?.email || "Unknown"}</strong>
+            Logged in as <strong>{user?.username || user?.email || "Unknown"}</strong>
           </p>
           <button
             onClick={onLogout}
@@ -143,19 +152,27 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
             <p>No league found.</p>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mb-2">{leagueData.name || "Unnamed League"}</h2>
-              <div className="text-gray-600 mb-6">{renderDescription(leagueData.description)}</div>
+              <h2 className="text-2xl font-bold mb-2">
+                {leagueData.name || "Unnamed League"}
+              </h2>
+              <div className="text-gray-600 mb-6">
+                {renderDescription(leagueData.description)}
+              </div>
               <p className="mb-6">
                 Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
 
-              {/* ✅ NEW: Players list */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
                 {leagueData.players?.length > 0 ? (
                   <ul className="list-disc ml-6 text-sm text-gray-800">
                     {leagueData.players.map((player) => (
-                      <li key={player.id}>{player.name || "Unnamed Player"}</li>
+                      <li key={player.id}>
+                        {player.name || "Unnamed Player"}
+                        {player.faction && (
+                          <span className="text-gray-500"> – {player.faction}</span>
+                        )}
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -165,25 +182,18 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Join This League</h3>
-                {leagueData.leaguePassword ? (
-                  <input
-                    type="password"
-                    placeholder="Enter league password"
-                    className="border rounded px-2 py-1 mr-2"
-                    value={joinPassword}
-                    onChange={(e) => setJoinPassword(e.target.value)}
-                  />
-                ) : (
-                  <p className="mb-2 text-sm text-gray-600">No password required for this league.</p>
-                )}
                 <button
-                  onClick={handleJoin}
+                  onClick={() => setShowJoinModal(true)}
                   className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
                 >
                   Join League
                 </button>
                 {joinMessage && (
-                  <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
+                  <p
+                    className={`mt-2 text-sm ${
+                      joinSuccess ? "text-green-700" : "text-red-600"
+                    }`}
+                  >
                     {joinMessage}
                   </p>
                 )}
@@ -192,6 +202,14 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           )}
         </main>
       </div>
+
+      {showJoinModal && (
+        <FactionSelectionModal
+          onClose={() => setShowJoinModal(false)}
+          onSubmit={handleJoin}
+          requiresPassword={!!leagueData?.leaguePassword}
+        />
+      )}
     </div>
   );
 };

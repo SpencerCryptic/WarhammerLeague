@@ -1,30 +1,13 @@
 import { factories } from '@strapi/strapi';
 
-type Player = {
-  id: string | number;
-  name: string;
-  email: string;
-  faction: string;
-  ranking: number;
-  leagues?: { id: string | number }[];
-};
-
-type League = {
-  id: string | number;
-  name: string;
-  leaguePassword?: string;
-  players?: { id: string | number }[];
-};
-
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
   async joinLeague(ctx) {
     const { id: leagueId } = ctx.params;
-    const { password } = ctx.request.body;
+    const { password, faction } = ctx.request.body;
 
-    const league = (await strapi.entityService.findOne('api::league.league', parseInt(leagueId, 10), {
+    const league = await strapi.entityService.findOne('api::league.league', parseInt(leagueId), {
       fields: ['leaguePassword'],
-      populate: ['players'],
-    })) as League;
+    });
 
     if (!league) return ctx.badRequest('League not found');
     if (league.leaguePassword && league.leaguePassword !== password) {
@@ -34,52 +17,34 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const userId = ctx.state.user?.id;
     if (!userId) return ctx.unauthorized('User not authenticated');
 
-    const playerResults = (await strapi.entityService.findMany('api::player.player', {
-      filters: { user: userId },
-      populate: ['leagues'],
-    })) as Player[];
+    const [player] = await strapi.entityService.findMany('api::player.player', {
+      filters: { user: { id: userId } },
+    });
 
-    let player = playerResults[0];
+    if (!player) return ctx.badRequest('No player linked to this user');
 
-    if (player) {
-      const alreadyJoined = player.leagues?.some((l) => l.id.toString() === leagueId);
-      if (alreadyJoined) {
-        return ctx.badRequest('User already joined this league');
-      }
-    }
+    const [existingLP] = await strapi.entityService.findMany('api::league-player.league-player', {
+      filters: {
+        $and: [
+          { player: { id: player.id } },
+          { league: { id: parseInt(leagueId) } },
+        ],
+      },
+    });
 
-    if (!player) {
-      player = await strapi.entityService.create('api::player.player', {
-        data: {
-          user: userId,
-          name: ctx.state.user.username || 'Anonymous',
-          faction: 'Unknown',
-          ranking: 0,
-          leagues: {
-            connect: [{ id: parseInt(leagueId, 10) }],
-          } as any,
-        },
-      }) as Player;
-    } else {
-      await strapi.entityService.update('api::player.player', player.id, {
-        data: {
-          leagues: {
-            connect: [{ id: parseInt(leagueId, 10) }],
-          } as any,
-        },
-      });
-    }
+    if (existingLP) return ctx.badRequest('You have already joined this league');
 
-    const leagueHasPlayer = league.players?.some((p) => p.id === player.id);
-    if (!leagueHasPlayer) {
-      await strapi.entityService.update('api::league.league', parseInt(leagueId, 10), {
-        data: {
-          players: {
-            connect: [{ id: player.id }],
-          } as any,
-        },
-      });
-    }
+    await strapi.entityService.create('api::league-player.league-player', {
+      data: {
+        player: player.id,
+        league: parseInt(leagueId),
+        faction,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        rankingPoints: 0,
+      },
+    });
 
     ctx.send({ message: 'Joined league successfully' });
   },
@@ -87,11 +52,34 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   async findOne(ctx) {
     const { id } = ctx.params;
 
-    const entity = await strapi.entityService.findOne('api::league.league', id, {
-      populate: ['players'],
+    const league = await strapi.entityService.findOne('api::league.league', parseInt(id), {
+      fields: ['name', 'statusleague', 'description', 'leaguePassword'],
+      populate: {
+        league_players: {
+          populate: {
+            player: {
+              fields: ['id', 'name'],
+            },
+          },
+        },
+      },
     });
 
-    if (!entity) return ctx.notFound('League not found');
-    ctx.body = { data: entity };
+    if (!league) return ctx.notFound('League not found');
+
+    const leagueAny = league as any;
+    const players = (leagueAny.league_players || []).map((lp: any) => ({
+      id: lp.player?.id,
+      name: lp.player?.name,
+      faction: lp.faction,
+    }));
+    
+
+    ctx.body = {
+      data: {
+        ...league,
+        players,
+      },
+    };
   }
 }));
