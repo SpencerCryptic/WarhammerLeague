@@ -32,7 +32,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       setJoinSuccess(true);
       setShowJoinModal(false);
 
-      const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}`, {
+      const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}?populate[league_players][populate]=player`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeagueData(leagueRes.data.data);
@@ -79,10 +79,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           return;
         }
 
-        const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const leagueRes = await axios.get(`${API_URL}/leagues/${leagueId}?populate[league_players][populate]=player`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         setLeagueData(leagueRes.data.data);
@@ -98,7 +96,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   }, [leagueId, token, navigate]);
 
   const currentPlayerId = user?.player?.id;
-  const userHasJoined = leagueData?.players?.some((p) => p.id === currentPlayerId);
+  const userHasJoined = leagueData?.league_players?.some(
+    (lp) => lp.player?.id === currentPlayerId
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -167,19 +167,19 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
-                {leagueData.players?.length > 0 ? (
+                {leagueData.league_players?.length > 0 ? (
                   <ul className="list-disc ml-6 text-sm text-gray-800">
-                    {leagueData.players.map((player) => (
+                    {leagueData.league_players.map((lp) => (
                       <li
-                        key={player.id}
-                        className={player.id === currentPlayerId ? "font-semibold text-green-800" : ""}
+                        key={lp.id}
+                        className={lp.player?.id === currentPlayerId ? "font-semibold text-green-800" : ""}
                       >
-                        {player.name || "Unnamed Player"}
+                        {lp.player?.name || "Unnamed Player"}
                         <span className="text-gray-500">
                           {" – "}
-                          {player.faction?.trim() || "Faction not set"}
+                          {lp.faction?.trim() || "Faction not set"}
                         </span>
-                        {player.id === currentPlayerId && (
+                        {lp.player?.id === currentPlayerId && (
                           <span className="ml-2 text-green-600 text-xs font-semibold">(You)</span>
                         )}
                       </li>

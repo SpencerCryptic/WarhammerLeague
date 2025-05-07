@@ -52,7 +52,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   async findOne(ctx) {
     const { id } = ctx.params;
 
-    const league = await strapi.entityService.findOne('api::league.league', parseInt(id), {
+    const rawLeague = await strapi.entityService.findOne('api::league.league', parseInt(id), {
       fields: ['name', 'statusleague', 'description', 'leaguePassword'],
       populate: {
         league_players: {
@@ -62,28 +62,64 @@ export default factories.createCoreController('api::league.league', ({ strapi })
               fields: ['id', 'name'],
             },
             league: {
-              fields: ['id'], // This ensures the filtering works
+              fields: ['id'],
             },
           },
         },
       },
     });
 
-    if (!league) return ctx.notFound('League not found');
+    if (!rawLeague) return ctx.notFound('League not found');
 
-    const players = (league as any).league_players
-      ?.filter((lp: any) => lp.league?.id === parseInt(id)) // Enforce match on correct league
-      .map((lp: any) => ({
-        id: lp.player?.id,
-        name: lp.player?.name,
-        faction: lp.faction,
-      })) || [];
+    const league = rawLeague as any;
+
+    const players = league.league_players?.filter((lp: any) => lp.league?.id === parseInt(id)).map((lp: any) => ({
+      id: lp.player?.id,
+      name: lp.player?.name,
+      faction: lp.faction,
+    })) || [];
 
     ctx.body = {
       data: {
         ...league,
         players,
       },
+    };
+  },
+
+  async find(ctx) {
+    const rawLeagues = await strapi.entityService.findMany('api::league.league', {
+      fields: ['name', 'statusleague', 'description', 'leaguePassword'],
+      populate: {
+        league_players: {
+          fields: ['faction'],
+          populate: {
+            player: {
+              fields: ['id', 'name'],
+            },
+            league: {
+              fields: ['id'],
+            },
+          },
+        },
+      },
+    });
+
+    const leagues = rawLeagues.map((league: any) => {
+      const players = league.league_players?.filter((lp: any) => lp.league?.id === league.id).map((lp: any) => ({
+        id: lp.player?.id,
+        name: lp.player?.name,
+        faction: lp.faction,
+      })) || [];
+
+      return {
+        ...league,
+        players,
+      };
+    });
+
+    ctx.body = {
+      data: leagues,
     };
   }
 }));
