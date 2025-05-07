@@ -39,6 +39,25 @@
       "relation": "oneToMany",
       "target": "api::league-player.league-player",
       "mappedBy": "league"
+    },
+    "createdByUser": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "leagues"
+    },
+    "gameSystem": {
+      "type": "enumeration",
+      "enum": [
+        "Warhammer: 40,000",
+        "Warhammer: Age of Sigmar",
+        "Warhammer: Kill Team",
+        "Warhammer: Warcry",
+        "Warhammer: Necromunda",
+        "A Song of Ice and Fire",
+        "Middle Earth SBG",
+        "Marvel Crisis Protocol"
+      ]
     }
   }
 }

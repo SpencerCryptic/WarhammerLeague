@@ -373,6 +373,7 @@ export interface ApiLeaguePlayerLeaguePlayer
   extends Struct.CollectionTypeSchema {
   collectionName: 'league_players';
   info: {
+    description: '';
     displayName: 'LeaguePlayer';
     pluralName: 'league-players';
     singularName: 'league-player';
@@ -397,6 +398,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;
+    startDate: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -419,7 +421,23 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    createdByUser: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     description: Schema.Attribute.Blocks;
+    gameSystem: Schema.Attribute.Enumeration<
+      [
+        'Warhammer: 40,000',
+        'Warhammer: Age of Sigmar',
+        'Warhammer: Kill Team',
+        'Warhammer: Warcry',
+        'Warhammer: Necromunda',
+        'A Song of Ice and Fire',
+        'Middle Earth SBG',
+        'Marvel Crisis Protocol',
+      ]
+    >;
     league_players: Schema.Attribute.Relation<
       'oneToMany',
       'api::league-player.league-player'
@@ -988,6 +1006,7 @@ export interface PluginUsersPermissionsUser
       }>;
     firstName: Schema.Attribute.String & Schema.Attribute.Required;
     lastName: Schema.Attribute.String & Schema.Attribute.Required;
+    leagues: Schema.Attribute.Relation<'oneToMany', 'api::league.league'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

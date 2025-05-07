@@ -4,7 +4,8 @@
   "info": {
     "singularName": "league-player",
     "pluralName": "league-players",
-    "displayName": "LeaguePlayer"
+    "displayName": "LeaguePlayer",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -36,6 +37,9 @@
     },
     "rankingPoints": {
       "type": "integer"
+    },
+    "startDate": {
+      "type": "datetime"
     }
   }
 }

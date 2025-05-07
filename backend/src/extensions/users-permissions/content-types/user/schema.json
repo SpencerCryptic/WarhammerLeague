@@ -94,6 +94,12 @@
         "Cryptic Cabin Bracknell"
       ],
       "required": true
+    },
+    "leagues": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::league.league",
+      "mappedBy": "createdByUser"
     }
   }
 }

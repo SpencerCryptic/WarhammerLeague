@@ -1,6 +1,24 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
+  async create(ctx) {
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('You must be logged in to create a league');
+
+    const { data } = ctx.request.body;
+
+    const newLeague = await strapi.entityService.create('api::league.league', {
+      data: {
+        ...data,
+        createdByUser: userId,
+      },
+    });
+
+    ctx.body = {
+      data: newLeague,
+    };
+  },
+
   async joinLeague(ctx) {
     const { id: leagueId } = ctx.params;
     const { password, faction } = ctx.request.body;
@@ -53,21 +71,25 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const { id } = ctx.params;
 
     const rawLeague = await strapi.entityService.findOne('api::league.league', parseInt(id), {
-      fields: ['name', 'statusleague', 'description', 'leaguePassword'],
-      populate: {
-        league_players: {
-          fields: ['faction'],
+        ...( {
+          fields: ['name', 'statusleague', 'description', 'leaguePassword', 'startDate'],
           populate: {
-            player: {
-              fields: ['id', 'name'],
-            },
-            league: {
-              fields: ['id'],
+            createdByUser: { fields: ['id', 'username'] },
+            league_players: {
+              fields: ['faction'],
+              populate: {
+                player: {
+                  fields: ['id', 'name'],
+                },
+                league: {
+                  fields: ['id'],
+                },
+              },
             },
           },
-        },
-      },
-    });
+        } as any)
+      });
+      
 
     if (!rawLeague) return ctx.notFound('League not found');
 
@@ -89,21 +111,21 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
   async find(ctx) {
     const rawLeagues = await strapi.entityService.findMany('api::league.league', {
-      fields: ['name', 'statusleague', 'description', 'leaguePassword'],
-      populate: {
-        league_players: {
-          fields: ['faction'],
+        ...( {
+          fields: ['name', 'statusleague', 'description', 'leaguePassword', 'startDate'],
           populate: {
-            player: {
-              fields: ['id', 'name'],
-            },
-            league: {
-              fields: ['id'],
+            createdByUser: { fields: ['id', 'username'] },
+            league_players: {
+              fields: ['faction'],
+              populate: {
+                player: { fields: ['id', 'name'] },
+                league: { fields: ['id'] },
+              },
             },
           },
-        },
-      },
-    });
+        } as any)
+      });
+      
 
     const leagues = rawLeagues.map((league: any) => {
       const players = league.league_players?.filter((lp: any) => lp.league?.id === league.id).map((lp: any) => ({
