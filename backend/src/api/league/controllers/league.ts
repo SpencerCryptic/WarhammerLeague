@@ -21,7 +21,15 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
   async joinLeague(ctx) {
     const { id: leagueId } = ctx.params;
-    const { password, faction } = ctx.request.body;
+    const { password, faction, leagueName, goodFaithAccepted } = ctx.request.body;
+
+if (!leagueName || typeof leagueName !== "string") {
+  return ctx.badRequest("League name is required and must be a string.");
+}
+if (goodFaithAccepted !== true) {
+  return ctx.badRequest("You must agree to the good faith commitment.");
+}
+
 
     const league = await strapi.entityService.findOne('api::league.league', parseInt(leagueId), {
       fields: ['leaguePassword'],
@@ -53,17 +61,19 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     if (existingLP) return ctx.badRequest('You have already joined this league');
 
     await strapi.entityService.create('api::league-player.league-player', {
-      data: {
-        player: player.id,
-        league: parseInt(leagueId),
-        leagueName: league.name, 
-        faction,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        rankingPoints: 0,
-      },
-    });
+        data: {
+          player: player.id,
+          league: parseInt(leagueId),
+          faction,
+          leagueName,
+          goodFaithAccepted,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          rankingPoints: 0,
+        },
+      });
+      
 
     ctx.send({ message: 'Joined league successfully' });
   },

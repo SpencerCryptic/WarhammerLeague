@@ -32,16 +32,24 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [joinSuccess, setJoinSuccess] = useState(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const handleJoin = async ({ password, faction }) => {
+  const handleJoin = async ({ password, faction, leagueName, goodFaithAccepted }) => {
     setJoinMessage("");
     setJoinSuccess(null);
 
     try {
       await axios.post(
         `${API_URL}/leagues/${leagueId}/join`,
-        { password, faction },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          password,
+          faction,
+          leagueName,
+          goodFaithAccepted,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
       setJoinMessage("Successfully joined the league!");
       setJoinSuccess(true);
       setShowJoinModal(false);
@@ -202,36 +210,36 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                 Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
 
-              <div className="mb-6">
               {leagueData.createdByUser?.id === user.id && (
-  <div className="mb-6">
-    <h3 className="text-lg font-semibold mb-2 text-red-700">Admin Controls</h3>
-    {leagueData.statusleague !== 'ongoing' ? (
-      <button
-        className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
-        onClick={async () => {
-          try {
-            await axios.post(`${API_URL}/leagues/${leagueId}/start`, {}, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            const updatedLeague = await axios.get(`${API_URL}/leagues/${leagueId}?populate[league_players][populate]=player`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setLeagueData(updatedLeague.data.data);
-          } catch (err) {
-            console.error("Failed to start league", err);
-            alert("Failed to start league.");
-          }
-        }}
-      >
-        Start League
-      </button>
-    ) : (
-      <p className="text-sm text-green-600">League already started</p>
-    )}
-  </div>
-)}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2 text-red-700">Admin Controls</h3>
+                  {leagueData.statusleague !== 'ongoing' ? (
+                    <button
+                      className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
+                      onClick={async () => {
+                        try {
+                          await axios.post(`${API_URL}/leagues/${leagueId}/start`, {}, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
+                          const updatedLeague = await axios.get(`${API_URL}/leagues/${leagueId}?populate[league_players][populate]=player`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
+                          setLeagueData(updatedLeague.data.data);
+                        } catch (err) {
+                          console.error("Failed to start league", err);
+                          alert("Failed to start league.");
+                        }
+                      }}
+                    >
+                      Start League
+                    </button>
+                  ) : (
+                    <p className="text-sm text-green-600">League already started</p>
+                  )}
+                </div>
+              )}
 
+              <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
                 {leagueData.league_players?.length > 0 ? (
                   <ul className="list-disc ml-6 text-sm text-gray-800">
