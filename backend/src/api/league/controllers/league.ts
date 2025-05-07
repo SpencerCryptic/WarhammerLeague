@@ -56,6 +56,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       data: {
         player: player.id,
         league: parseInt(leagueId),
+        leagueName: league.name, 
         faction,
         wins: 0,
         draws: 0,
@@ -88,8 +89,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
             },
           },
         } as any)
-      });
-      
+      });      
 
     if (!rawLeague) return ctx.notFound('League not found');
 

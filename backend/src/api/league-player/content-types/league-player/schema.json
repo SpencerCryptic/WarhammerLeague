@@ -38,8 +38,10 @@
     "rankingPoints": {
       "type": "integer"
     },
-    "startDate": {
-      "type": "datetime"
+    "leagueName": {
+      "type": "string",
+      "required": true,
+      "unique": true
     }
   }
 }

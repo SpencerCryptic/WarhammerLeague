@@ -388,6 +388,9 @@ export interface ApiLeaguePlayerLeaguePlayer
     draws: Schema.Attribute.Integer;
     faction: Schema.Attribute.String;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
+    leagueName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -398,7 +401,6 @@ export interface ApiLeaguePlayerLeaguePlayer
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;
-    startDate: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -452,6 +454,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    startDate: Schema.Attribute.DateTime;
     statusleague: Schema.Attribute.Enumeration<
       ['planned', 'ongoing', 'completed']
     >;

@@ -58,6 +58,9 @@
         "Middle Earth SBG",
         "Marvel Crisis Protocol"
       ]
+    },
+    "startDate": {
+      "type": "datetime"
     }
   }
 }
