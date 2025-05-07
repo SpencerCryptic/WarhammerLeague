@@ -148,15 +148,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       </header>
 
       <nav className="flex gap-6 p-4 border-b bg-white">
-        <Link to="/leagues" className="text-blue-700 font-medium">
-          Leagues
-        </Link>
-        <Link to="#" className="text-blue-700">
-          My Stats
-        </Link>
-        <Link to="#" className="text-blue-700">
-          Create A League
-        </Link>
+        <Link to="/leagues" className="text-blue-700 font-medium">Leagues</Link>
+        <Link to="#" className="text-blue-700">My Stats</Link>
+        <Link to="#" className="text-blue-700">Create A League</Link>
       </nav>
 
       <div className="flex">
@@ -191,29 +185,26 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
             <p>No league found.</p>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mb-2">
-                {leagueData.name || "Unnamed League"}
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">{leagueData.name || "Unnamed League"}</h2>
               <div className="text-gray-600 mb-2">
                 {renderDescription(leagueData.description)}
               </div>
+
               {leagueData.startDate && (
                 <div className="mb-2 text-sm text-gray-700">
                   League Starts:{" "}
-                  <strong>
-                    {new Date(leagueData.startDate).toLocaleDateString()}
-                  </strong>{" "}
-                  ({timeUntil(leagueData.startDate)})
+                  <strong>{new Date(leagueData.startDate).toLocaleDateString()}</strong> ({timeUntil(leagueData.startDate)})
                 </div>
               )}
+
               <p className="mb-6">
                 Status: <strong>{leagueData.statusleague || "Unknown"}</strong>
               </p>
 
-              {leagueData.createdByUser?.id === user.id && (
+              {user && leagueData.createdByUser?.id === user.id && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2 text-red-700">Admin Controls</h3>
-                  {leagueData.statusleague !== 'ongoing' ? (
+                  {leagueData.statusleague !== "ongoing" ? (
                     <button
                       className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                       onClick={async () => {
@@ -258,9 +249,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                           {lp.faction?.trim() || "Faction not set"}
                         </span>
                         {lp.player?.id === currentPlayerId && (
-                          <span className="ml-2 text-green-600 text-xs font-semibold">
-                            (You)
-                          </span>
+                          <span className="ml-2 text-green-600 text-xs font-semibold">(You)</span>
                         )}
                       </li>
                     ))}
@@ -280,16 +269,10 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                   Join League
                 </button>
                 {userHasJoined && (
-                  <p className="text-sm text-red-600 mt-2">
-                    You have already joined this league
-                  </p>
+                  <p className="text-sm text-red-600 mt-2">You have already joined this league</p>
                 )}
                 {joinMessage && (
-                  <p
-                    className={`mt-2 text-sm ${
-                      joinSuccess ? "text-green-700" : "text-red-600"
-                    }`}
-                  >
+                  <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
                     {joinMessage}
                   </p>
                 )}
