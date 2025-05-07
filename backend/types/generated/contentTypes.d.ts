@@ -429,6 +429,15 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     description: Schema.Attribute.Blocks;
+    format: Schema.Attribute.Enumeration<
+      [
+        'round_robin',
+        'single_elimination',
+        'double_elimination',
+        'group_to_elimination',
+      ]
+    > &
+      Schema.Attribute.Required;
     gameSystem: Schema.Attribute.Enumeration<
       [
         'Warhammer: 40,000',

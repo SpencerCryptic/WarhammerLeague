@@ -61,6 +61,16 @@
     },
     "startDate": {
       "type": "datetime"
+    },
+    "format": {
+      "type": "enumeration",
+      "enum": [
+        "round_robin",
+        "single_elimination",
+        "double_elimination",
+        "group_to_elimination"
+      ],
+      "required": true
     }
   }
 }
