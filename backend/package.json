@@ -22,14 +22,17 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
-    "styled-components": "^6.0.0"
+    "styled-components": "^6.0.0",
+    "@strapi/types": "^4.20.0"
   },
   "devDependencies": {
     "@strapi/types": "^5.13.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@strapi/types": "^4.20.0"
+
   },
   "engines": {
     "node": ">=18.0.0 <=22.x.x",
