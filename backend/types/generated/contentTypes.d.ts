@@ -387,6 +387,7 @@ export interface ApiLeaguePlayerLeaguePlayer
       Schema.Attribute.Private;
     draws: Schema.Attribute.Integer;
     faction: Schema.Attribute.String;
+    goodFaithAccepted: Schema.Attribute.Boolean;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
     leagueName: Schema.Attribute.String &
       Schema.Attribute.Required &
