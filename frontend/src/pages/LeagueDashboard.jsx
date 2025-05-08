@@ -73,32 +73,16 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
   useEffect(() => {
     const resolvePlayerId = async () => {
-      if (user?.player?.id) {
-        setPlayerId(user.player.id);
-      } else {
-        try {
-          const query = qs.stringify({
-            filters: {
-              user: {
-                $eq: user.id,
-              },
-            },
-          }, {
-            encodeValuesOnly: true,
-          });
-  
-          const res = await axios.get(`${API_URL}/players?${query}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-  
-          const fetched = res.data?.data?.[0];
-          if (fetched?.id) {
-            setPlayerId(fetched.id);
-          } else {
-            console.warn("No player found for user", user.id);
-          }
-        } catch (err) {
-          console.error("Failed to fetch player ID", err);
+        if (user?.player?.id) {
+          setPlayerId(user.player.id);
+        } else {
+          try {
+            const res = await axios.get(`${API_URL}/me/player`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setPlayerId(res.data.id);
+          } catch (err) {
+            console.error("Failed to fetch player ID", err);
         }
       }
     };
