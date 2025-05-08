@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import FactionSelectionModal from "../components/FactionSelectionModal";
+import qs from "qs";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -9,13 +10,10 @@ function timeUntil(startDate) {
   const start = new Date(startDate);
   const now = new Date();
   const diffMs = start.getTime() - now.getTime();
-
   if (diffMs <= 0) return "League is live";
-
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
   const mins = Math.floor((diffMs / (1000 * 60)) % 60);
-
   return `${days}d ${hours}h ${mins}m until start`;
 }
 
@@ -31,32 +29,28 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [joinMessage, setJoinMessage] = useState("");
   const [joinSuccess, setJoinSuccess] = useState(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
-
-  const currentPlayerId = user?.player?.id;
+  const [playerId, setPlayerId] = useState(user?.player?.id || null);
 
   const userHasJoined = leagueData?.league_players?.some(
-    (lp) => lp.player?.id === currentPlayerId
+    (lp) => lp.player?.id === playerId
   );
 
   const handleJoin = async ({ password, faction, leagueName, goodFaithAccepted }) => {
     setJoinMessage("");
     setJoinSuccess(null);
-
     try {
-      await axios.post(
-        `${API_URL}/leagues/${leagueId}/join`,
-        { password, faction, leagueName, goodFaithAccepted },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(`${API_URL}/leagues/${leagueId}/join`, {
+        password, faction, leagueName, goodFaithAccepted
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setJoinMessage("Successfully joined the league!");
       setJoinSuccess(true);
       setShowJoinModal(false);
       await fetchLeagueData();
     } catch (err) {
       console.error(err);
-      setJoinMessage(
-        err.response?.data?.error?.message || "Failed to join league."
-      );
+      setJoinMessage(err.response?.data?.error?.message || "Failed to join league.");
       setJoinSuccess(false);
     }
   };
@@ -70,15 +64,47 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   };
 
   const fetchMatches = async () => {
-    const res = await axios.get(
-      `${API_URL}/league-players/${currentPlayerId}/matches`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setMatches(res.data); // no `.data.data` here, because your controller sets `ctx.body = data`
+    if (!playerId) return;
+    const res = await axios.get(`${API_URL}/league-players/${playerId}/matches`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setMatches(res.data);
   };
+
+  useEffect(() => {
+    const resolvePlayerId = async () => {
+      if (user?.player?.id) {
+        setPlayerId(user.player.id);
+      } else {
+        try {
+          const query = qs.stringify({
+            filters: {
+              user: {
+                $eq: user.id,
+              },
+            },
+          }, {
+            encodeValuesOnly: true,
+          });
   
+          const res = await axios.get(`${API_URL}/players?${query}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+  
+          const fetched = res.data?.data?.[0];
+          if (fetched?.id) {
+            setPlayerId(fetched.id);
+          } else {
+            console.warn("No player found for user", user.id);
+          }
+        } catch (err) {
+          console.error("Failed to fetch player ID", err);
+        }
+      }
+    };
+  
+    if (user?.id) resolvePlayerId();
+  }, [user, token]);  
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -87,7 +113,6 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         const leaguesRes = await axios.get(`${API_URL}/leagues`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const leaguesList = leaguesRes.data.data;
         setLeagues(leaguesList);
 
@@ -113,24 +138,22 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
     };
 
     fetchAll();
-  }, [leagueId, token, navigate]);
+  }, [leagueId, token, navigate, playerId]);
 
   const nextMatch = useMemo(() => {
     return matches.find((m) => {
-      const player1Id = m.attributes.league_player1?.data?.attributes?.player?.data?.id;
-      const player2Id = m.attributes.league_player2?.data?.attributes?.player?.data?.id;
-      return player1Id === currentPlayerId || player2Id === currentPlayerId;
+      const p1Id = m.league_player1?.player?.id;
+      const p2Id = m.league_player2?.player?.id;
+      return p1Id === playerId || p2Id === playerId;
     });
-  }, [matches, currentPlayerId]);  
+  }, [matches, playerId]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="flex justify-between items-center p-4 border-b bg-white">
         <h1 className="text-xl font-bold">CC Leagues</h1>
         <div className="flex items-center gap-4">
-          <p className="text-sm">
-            Logged in as <strong>{user?.username || user?.email || "Unknown"}</strong>
-          </p>
+          <p className="text-sm">Logged in as <strong>{user?.username || user?.email || "Unknown"}</strong></p>
           <button onClick={onLogout} className="text-sm text-red-500 font-semibold">Logout</button>
         </div>
       </header>
@@ -145,22 +168,16 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         <aside className="w-64 bg-blue-900 text-white p-4 min-h-screen">
           <h2 className="text-lg font-semibold mb-4">Active Leagues</h2>
           <ul className="space-y-2">
-            {leagues.length === 0 ? (
-              <li>No leagues found.</li>
-            ) : (
-              leagues.map((lg) => (
-                <li key={lg.id}>
-                  <Link
-                    to={`/leagues/${lg.id}`}
-                    className={`block px-2 py-1 rounded hover:bg-blue-700 ${
-                      lg.id.toString() === leagueId ? "bg-blue-700" : ""
-                    }`}
-                  >
-                    {lg.name || "Unnamed League"}
-                  </Link>
-                </li>
-              ))
-            )}
+            {leagues.map((lg) => (
+              <li key={lg.id}>
+                <Link
+                  to={`/leagues/${lg.id}`}
+                  className={`block px-2 py-1 rounded hover:bg-blue-700 ${lg.id.toString() === leagueId ? "bg-blue-700" : ""}`}
+                >
+                  {lg.name || "Unnamed League"}
+                </Link>
+              </li>
+            ))}
           </ul>
         </aside>
 
@@ -181,9 +198,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                 <div className="mb-6 p-4 border rounded bg-yellow-100 text-yellow-900">
                   <h3 className="font-semibold mb-2">Your Next Match</h3>
                   <p>
-                  {nextMatch?.attributes?.league_player1?.data?.attributes?.player?.data?.attributes?.name} vs{" "}
-{nextMatch?.attributes?.league_player2?.data?.attributes?.player?.data?.attributes?.name}
-
+                    {nextMatch.league_player1?.player?.name} vs{" "}
+                    {nextMatch.league_player2?.player?.name}
                   </p>
                 </div>
               )}
@@ -195,16 +211,11 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                     <button
                       className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                       onClick={async () => {
-                        try {
-                          await axios.post(`${API_URL}/leagues/${leagueId}/start`, {}, {
-                            headers: { Authorization: `Bearer ${token}` },
-                          });
-                          await fetchLeagueData();
-                          await fetchMatches();
-                        } catch (err) {
-                          console.error("Failed to start league", err);
-                          alert("Failed to start league.");
-                        }
+                        await axios.post(`${API_URL}/leagues/${leagueId}/start`, {}, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        await fetchLeagueData();
+                        await fetchMatches();
                       }}
                     >
                       Start League
@@ -217,36 +228,34 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
-                <div className="mt-6">
-  <h3 className="text-lg font-semibold mb-2">Your Match History</h3>
-  <ul className="list-disc ml-6 text-sm text-gray-800">
-    {matches.length === 0 ? (
-      <li>No matches played yet.</li>
-    ) : (
-      matches.map((match) => {
-        const p1 = match.league_player1?.player?.name || "Player 1";
-        const p2 = match.league_player2?.player?.name || "Player 2";
-        const s1 = match.score1;
-        const s2 = match.score2;
-        return (
-          <li key={match.id}>
-            {p1} vs {p2} — {s1} : {s2}
-          </li>
-        );
-      })
-    )}
-  </ul>
-</div>
-
                 <ul className="list-disc ml-6 text-sm text-gray-800">
                   {leagueData?.league_players?.map((lp) => (
-                    <li key={lp.id} className={lp.player?.id === currentPlayerId ? "font-semibold text-green-800" : ""}>
+                    <li key={lp.id} className={lp.player?.id === playerId ? "font-semibold text-green-800" : ""}>
                       {lp.player?.name} – <span className="text-gray-600">{lp.faction}</span>
-                      {lp.player?.id === currentPlayerId && (
-                        <span className="ml-2 text-green-600 text-xs font-semibold">(You)</span>
-                      )}
+                      {lp.player?.id === playerId && <span className="ml-2 text-green-600 text-xs font-semibold">(You)</span>}
                     </li>
                   ))}
+                </ul>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">Your Match History</h3>
+                <ul className="list-disc ml-6 text-sm text-gray-800">
+                  {matches.length === 0 ? (
+                    <li>No matches played yet.</li>
+                  ) : (
+                    matches.map((match) => {
+                      const p1 = match.league_player1?.player?.name || "Player 1";
+                      const p2 = match.league_player2?.player?.name || "Player 2";
+                      const s1 = match.score1;
+                      const s2 = match.score2;
+                      return (
+                        <li key={match.id}>
+                          {p1} vs {p2} — {s1} : {s2}
+                        </li>
+                      );
+                    })
+                  )}
                 </ul>
               </div>
 
@@ -259,9 +268,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                 >
                   Join League
                 </button>
-                {userHasJoined && (
-                  <p className="text-sm text-red-600 mt-2">You have already joined this league</p>
-                )}
+                {userHasJoined && <p className="text-sm text-red-600 mt-2">You have already joined this league</p>}
                 {joinMessage && (
                   <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
                     {joinMessage}

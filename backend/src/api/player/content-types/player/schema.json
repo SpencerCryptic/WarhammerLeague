@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "attributes": {
     "name": {
@@ -21,7 +21,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "player"
+      "inversedBy": "player",
+      "filterable": true,
+      "populate": true
     },
     "league_players": {
       "type": "relation",
