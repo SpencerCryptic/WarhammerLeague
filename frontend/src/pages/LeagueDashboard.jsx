@@ -71,11 +71,14 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
   const fetchMatches = async () => {
     const res = await axios.get(
-      `${API_URL}/matches?filters[league][id][$eq]=${leagueId}&populate[league_player1][populate]=player&populate[league_player2][populate]=player`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      `${API_URL}/league-players/${currentPlayerId}/matches`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
-    setMatches(res.data.data);
+    setMatches(res.data); // no `.data.data` here, because your controller sets `ctx.body = data`
   };
+  
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -214,6 +217,27 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Players Joined</h3>
+                <div className="mt-6">
+  <h3 className="text-lg font-semibold mb-2">Your Match History</h3>
+  <ul className="list-disc ml-6 text-sm text-gray-800">
+    {matches.length === 0 ? (
+      <li>No matches played yet.</li>
+    ) : (
+      matches.map((match) => {
+        const p1 = match.league_player1?.player?.name || "Player 1";
+        const p2 = match.league_player2?.player?.name || "Player 2";
+        const s1 = match.score1;
+        const s2 = match.score2;
+        return (
+          <li key={match.id}>
+            {p1} vs {p2} — {s1} : {s2}
+          </li>
+        );
+      })
+    )}
+  </ul>
+</div>
+
                 <ul className="list-disc ml-6 text-sm text-gray-800">
                   {leagueData?.league_players?.map((lp) => (
                     <li key={lp.id} className={lp.player?.id === currentPlayerId ? "font-semibold text-green-800" : ""}>
