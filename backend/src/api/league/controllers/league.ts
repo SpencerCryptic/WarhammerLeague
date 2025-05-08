@@ -1,6 +1,9 @@
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreController('api::league.league', ({ strapi }) => ({
+const core = factories.createCoreController('api::league.league');
+
+export default {
+  ...core, // expose find, findOne, etc.
 
   async create(ctx) {
     const userId = ctx.state.user?.id;
@@ -149,7 +152,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const { id: leagueId } = ctx.params;
     const userId = ctx.state.user?.id;
     if (!userId) return ctx.unauthorized('You must be logged in.');
-  
+
     const rawLeague = await strapi.entityService.findOne('api::league.league', parseInt(leagueId), {
       populate: {
         createdByUser: true,
@@ -158,9 +161,9 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         },
       },
     });
-  
-    const league = rawLeague as any; // ✅ Cast to any
-  
+
+    const league = rawLeague as any;
+
     if (!league) return ctx.notFound('League not found.');
     if (league.createdByUser?.id !== userId) {
       return ctx.unauthorized('Only the league admin can start the league.');
@@ -168,19 +171,19 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     if (league.statusleague === 'ongoing') {
       return ctx.badRequest('League has already started.');
     }
-  
+
     const leaguePlayers = league.league_players;
     if (leaguePlayers.length < 2) {
       return ctx.badRequest('At least two players required to start the league.');
     }
-  
+
     const matchPromises = [];
-  
+
     for (let i = 0; i < leaguePlayers.length; i++) {
       for (let j = i + 1; j < leaguePlayers.length; j++) {
         const player1 = leaguePlayers[i];
         const player2 = leaguePlayers[j];
-  
+
         matchPromises.push(
           strapi.entityService.create('api::match.match', {
             data: {
@@ -194,15 +197,13 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         );
       }
     }
-  
+
     await Promise.all(matchPromises);
-  
+
     await strapi.entityService.update('api::league.league', parseInt(leagueId), {
       data: { statusleague: 'ongoing' },
     });
-  
+
     ctx.body = { message: 'League started with matches generated.' };
   }
-  
-
-}));
+};

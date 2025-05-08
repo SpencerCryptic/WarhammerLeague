@@ -1,61 +1,43 @@
-export default {
-    routes: [
-      {
-        method: 'GET',
-        path: '/leagues',
-        handler: 'league.find',
-        config: {
-          auth: false,
-        },
+export default [
+    {
+      method: 'GET',
+      path: '/leagues',
+      handler: 'league.find',
+      config: {
+        auth: { scope: ['authenticated'] },
       },
-      {
-        method: 'GET',
-        path: '/leagues/:id',
-        handler: 'league.findOne',
-        config: {
-          auth: false,
-        },
+    },
+    {
+      method: 'GET',
+      path: '/leagues/:id',
+      handler: 'league.findOne',
+      config: {
+        auth: { scope: ['authenticated'] },
       },
-      {
-        method: 'POST',
-        path: '/leagues',
-        handler: 'league.create',
-        config: {
-          auth: {
-            required: true,
-          },
-        },
+    },
+    {
+      method: 'POST',
+      path: '/leagues',
+      handler: 'league.create',
+      config: {
+        auth: { scope: ['authenticated'] },
       },
-      {
-        method: 'PUT',
-        path: '/leagues/:id',
-        handler: 'league.update',
-        config: {
-          auth: {
-            required: true,
-          },
-        },
+    },
+    {
+      method: 'POST',
+      path: '/leagues/:id/join',
+      handler: 'league.joinLeague',
+      config: {
+        auth: { scope: ['authenticated'] },
       },
-      {
-        method: 'DELETE',
-        path: '/leagues/:id',
-        handler: 'league.delete',
-        config: {
-          auth: {
-            required: true,
-          },
-        },
+    },
+    {
+      method: 'POST',
+      path: '/leagues/:id/start',
+      handler: 'league.start',
+      config: {
+        auth: { scope: ['authenticated'] }, // ✅ Fixed here
       },
-      {
-        method: 'POST',
-        path: '/leagues/:id/join',
-        handler: 'league.joinLeague',
-        config: {
-          auth: {
-            required: true,
-          },
-        },
-      },
-    ],
-  };
+    },
+  ];
   
