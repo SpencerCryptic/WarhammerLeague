@@ -519,7 +519,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     singularName: 'player';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
