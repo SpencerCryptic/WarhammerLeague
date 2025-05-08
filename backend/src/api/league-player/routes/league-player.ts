@@ -10,7 +10,6 @@ const customRouterConfig = {
     update: {},
     delete: {},
   },
- 
   routes: [
     {
       method: 'GET',
@@ -24,4 +23,7 @@ const customRouterConfig = {
   ],
 } as any;
 
-export default factories.createCoreRouter('api::league-player.league-player', customRouterConfig);
+export default factories.createCoreRouter(
+  'api::league-player.league-player',
+  customRouterConfig
+);
