@@ -15,7 +15,8 @@ export default factories.createCoreRouter('api::player.player', {
       handler: 'player.me',
       config: {
         auth: true,
+        policies: [],
       },
     },
   ],
-} as any); // 👈 Fix TS error with "as any"
+} as any);
