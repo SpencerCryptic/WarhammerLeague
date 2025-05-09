@@ -1,16 +1,14 @@
-// import type { Core } from '@strapi/strapi';
-
 export default {
   register(/* { strapi }: { strapi: Core.Strapi } */) {},
 
-  bootstrap({ strapi }) {
+  async bootstrap({ strapi }) {
+    // Auto-create Player on User registration
     strapi.db.lifecycles.subscribe({
       models: ['plugin::users-permissions.user'],
       async afterCreate(event) {
         const { result } = event;
         const userId = result.id;
 
-        // Check if a Player already exists for this User
         const existingPlayers = await strapi.entityService.findMany('api::player.player', {
           filters: { user: userId },
         });
@@ -26,5 +24,38 @@ export default {
         }
       },
     });
+
+    // ✅ Grant access to /me/player for 'authenticated' role
+    const role = await strapi
+      .query('plugin::users-permissions.role')
+      .findOne({ where: { type: 'authenticated' } });
+
+    if (role) {
+      const existingPermission = await strapi
+        .query('plugin::users-permissions.permission')
+        .findOne({
+          where: {
+            role: role.id,
+            action: 'plugin::users-permissions.player.me',
+            controller: 'player',
+            type: 'api',
+          },
+        });
+
+      if (!existingPermission) {
+        await strapi.query('plugin::users-permissions.permission').create({
+          data: {
+            action: 'plugin::users-permissions.player.me',
+            controller: 'player',
+            type: 'api',
+            role: role.id,
+            enabled: true,
+            policy: '',
+          },
+        });
+
+        strapi.log.info(`✅ Registered /me/player permission for authenticated role`);
+      }
+    }
   },
 };

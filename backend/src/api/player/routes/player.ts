@@ -1,6 +1,6 @@
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::player.player', {
+const customRouterConfig = {
   config: {
     find: {},
     findOne: {},
@@ -14,9 +14,14 @@ export default factories.createCoreRouter('api::player.player', {
       path: '/me/player',
       handler: 'player.me',
       config: {
-        auth: false,
+        auth: false, // set to true once working
         policies: [],
       },
     },
   ],
-} as any);
+} as any;
+
+export default factories.createCoreRouter(
+  'api::player.player',
+  customRouterConfig
+);
