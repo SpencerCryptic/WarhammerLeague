@@ -14,7 +14,7 @@ export default factories.createCoreRouter('api::player.player', {
       path: '/me/player',
       handler: 'player.me',
       config: {
-        auth: true,
+        auth: false,
         policies: [],
       },
     },
