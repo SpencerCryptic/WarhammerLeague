@@ -1,8 +1,6 @@
-// path: src/api/league-player/routes/league-player.ts
-
 import { factories } from '@strapi/strapi';
 
-const customRouterConfig = {
+export default factories.createCoreRouter('api::league-player.league-player', {
   config: {
     find: {},
     findOne: {},
@@ -21,9 +19,4 @@ const customRouterConfig = {
       },
     },
   ],
-} as any;
-
-export default factories.createCoreRouter(
-  'api::league-player.league-player',
-  customRouterConfig
-);
+} as any);
