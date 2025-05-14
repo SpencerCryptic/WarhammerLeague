@@ -66,11 +66,22 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
 
   const fetchMatches = async () => {
     if (!playerId) return;
-    const res = await axios.get(`${API_URL}/league-players/${playerId}/matches`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setMatches(res.data);
+    try {
+      const res = await axios.get(`${API_URL}/league-players/${playerId}/matches`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMatches(res.data || []);
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        // No matches yet is fine - show empty list
+        setMatches([]);
+      } else {
+        console.error("Error fetching matches", err);
+        setError("Failed to load matches");
+      }
+    }
   };
+  
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -126,7 +137,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         }
 
         await fetchLeagueData();
-        await fetchMatches();
+        if (leagueData?.statusleague === "ongoing") {
+            await fetchMatches();
+          }
       } catch (err) {
         console.error("Error loading league dashboard", err);
         setError("Failed to load data");

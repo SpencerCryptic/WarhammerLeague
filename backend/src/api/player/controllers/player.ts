@@ -5,18 +5,13 @@ export default factories.createCoreController('api::player.player', ({ strapi })
     const userId = ctx.state.user?.id;
     if (!userId) return ctx.unauthorized("No authenticated user");
 
-    try {
-      const players = await strapi.entityService.findMany('api::player.player', {
-        filters: { user: userId },
-        populate: ['user'],
-      });
+    const playerRes = await strapi.entityService.findMany('api::player.player', {
+      filters: { user: userId },
+      populate: ['user', 'league_players'],
+    });
 
-      if (!players.length) return ctx.notFound("No player associated with this user");
+    if (!playerRes?.length) return ctx.notFound("No player associated with this user");
 
-      ctx.body = players[0];
-    } catch (error) {
-      console.error("Error in player.me:", error);
-      ctx.internalServerError("Failed to fetch player");
-    }
+    ctx.body = playerRes[0]; // clean response
   },
 }));
