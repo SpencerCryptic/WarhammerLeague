@@ -17,6 +17,7 @@ function timeUntil(startDate) {
   return `${days}d ${hours}h ${mins}m until start`;
 }
 
+  
 const LeagueDashboard = ({ token, user, onLogout }) => {
   const { leagueId } = useParams();
   const navigate = useNavigate();
@@ -72,22 +73,35 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   };
 
   useEffect(() => {
-    const resolvePlayerId = async () => {
-        if (user?.player?.id) {
-          setPlayerId(user.player.id);
+    const fetchPlayer = async () => {
+      try {
+        const query = qs.stringify({
+          filters: {
+            user: {
+              id: {
+                $eq: user.id,
+              },
+            },
+          },
+          populate: 'user',
+        }, { encodeValuesOnly: true });
+  
+        const playerRes = await axios.get(`${API_URL}/players?${query}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        const player = playerRes.data.data[0];
+        if (player) {
+          setPlayerId(player.id);
         } else {
-          try {
-            const res = await axios.get(`${API_URL}/me/player`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setPlayerId(res.data.id);
-          } catch (err) {
-            console.error("Failed to fetch player ID", err);
+          console.warn("No player linked to user");
         }
+      } catch (err) {
+        console.error("Error resolving player", err);
       }
     };
   
-    if (user?.id) resolvePlayerId();
+    if (user?.id) fetchPlayer();
   }, [user, token]);  
 
   useEffect(() => {
