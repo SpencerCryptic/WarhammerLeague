@@ -399,6 +399,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     > &
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
+    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;

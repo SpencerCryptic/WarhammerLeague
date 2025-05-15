@@ -65,15 +65,24 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   };
 
   const fetchMatches = async () => {
-    if (!playerId) return;
+    if (!leagueData || !leagueData.league_players) return;
+  
+    const leaguePlayerEntry = leagueData.league_players.find((lp) => lp.player?.id === playerId);
+  
+    if (!leaguePlayerEntry) {
+      console.warn("No LeaguePlayer entry found for the current user");
+      setMatches([]);
+      return;
+    }
+  
     try {
-      const res = await axios.get(`${API_URL}/league-players/${playerId}/matches`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await axios.get(`${API_URL}/league-players/${leaguePlayerEntry.id}/matches`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("Fetched matches:", res.data);
       setMatches(res.data || []);
     } catch (err) {
       if (err.response && err.response.status === 404) {
-        // No matches yet is fine - show empty list
         setMatches([]);
       } else {
         console.error("Error fetching matches", err);
@@ -81,6 +90,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       }
     }
   };
+  
+  
   
 
   useEffect(() => {
@@ -124,7 +135,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         });
         const leaguesList = leaguesRes.data.data;
         setLeagues(leaguesList);
-
+  
         if (!leagueId || !leaguesList.some((l) => l.id.toString() === leagueId)) {
           if (leaguesList.length > 0) {
             const firstValidId = leaguesList[0].id;
@@ -135,11 +146,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
           }
           return;
         }
-
+  
         await fetchLeagueData();
-        if (leagueData?.statusleague === "ongoing") {
-            await fetchMatches();
-          }
       } catch (err) {
         console.error("Error loading league dashboard", err);
         setError("Failed to load data");
@@ -147,9 +155,9 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         setLoading(false);
       }
     };
-
+  
     fetchAll();
-  }, [leagueId, token, navigate, playerId]);
+  }, [leagueId, token, navigate]);
 
   const nextMatch = useMemo(() => {
     return matches.find((m) => {
@@ -252,21 +260,22 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Your Match History</h3>
                 <ul className="list-disc ml-6 text-sm text-gray-800">
-                  {matches.length === 0 ? (
-                    <li>No matches played yet.</li>
-                  ) : (
-                    matches.map((match) => {
-                      const p1 = match.league_player1?.player?.name || "Player 1";
-                      const p2 = match.league_player2?.player?.name || "Player 2";
-                      const s1 = match.score1;
-                      const s2 = match.score2;
-                      return (
-                        <li key={match.id}>
-                          {p1} vs {p2} — {s1} : {s2}
-                        </li>
-                      );
-                    })
-                  )}
+                {matches.length === 0 ? (
+  <li>No matches played yet.</li>
+) : (
+  matches.map((match) => {
+    const p1 = match.league_player1?.player?.name || match.league_player1?.id || "Player 1";
+    const p2 = match.league_player2?.player?.name || match.league_player2?.id || "Player 2";
+    const s1 = match.score1 ?? "-";
+    const s2 = match.score2 ?? "-";
+    return (
+      <li key={match.id}>
+        {p1} vs {p2} — {s1} : {s2}
+      </li>
+    );
+  })
+)}
+
                 </ul>
               </div>
 
