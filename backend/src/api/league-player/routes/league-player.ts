@@ -14,7 +14,7 @@ export default factories.createCoreRouter('api::league-player.league-player', {
       path: '/league-players/:id/matches',
       handler: 'league-player.matches',
       config: {
-        auth: true,
+        auth: false,
         policies: [],
       },
     },
