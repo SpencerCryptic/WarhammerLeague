@@ -18,6 +18,7 @@ export default factories.createCoreRouter('api::match.match', {
       handler: 'match.report',
       config: {
         auth: true,
+        policies: [],
       },
     },
   ],
