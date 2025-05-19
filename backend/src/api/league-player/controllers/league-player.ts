@@ -11,9 +11,13 @@ export default factories.createCoreController('api::league-player.league-player'
           { league_player2: leaguePlayerId },
         ],
       },
-      populate: ['league_player1', 'league_player2', 'league'],
+      populate: {
+        league_player1: { populate: ['player'] },
+        league_player2: { populate: ['player'] },
+        league: true,
+      },
     });
 
-    ctx.send(matches);
+    ctx.body = matches;
   },
 }));
