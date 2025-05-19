@@ -401,6 +401,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     losses: Schema.Attribute.Integer;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
+    playList: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
@@ -505,6 +506,9 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     score1: Schema.Attribute.Integer;
     score2: Schema.Attribute.Integer;
+    statusmatch: Schema.Attribute.Enumeration<
+      ['Upcoming', 'Planned', 'Played', 'Abandoned']
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

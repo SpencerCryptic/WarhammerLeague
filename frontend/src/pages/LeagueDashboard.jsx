@@ -281,10 +281,13 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                         const p2 = match.league_player2?.player?.name || match.league_player2?.id || "Player 2";                        
                       const s1 = match.score1;
                       const s2 = match.score2;
+                      const f1 = match.league_player1?.faction || "Unknown";
+const f2 = match.league_player2?.faction || "Unknown";
+
                       return (
                         <li key={match.id}>
-                          {p1} vs {p2} — {s1} : {s2}
-                        </li>
+                        {p1} ({f1}) vs {p2} ({f2}) — {match.score1} : {match.score2}
+                      </li>                      
                       );
                     })
                   )}

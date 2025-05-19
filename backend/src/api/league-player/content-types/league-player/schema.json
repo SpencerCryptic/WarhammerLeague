@@ -50,6 +50,9 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::match.match"
+    },
+    "playList": {
+      "type": "text"
     }
   }
 }

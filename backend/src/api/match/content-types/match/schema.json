@@ -32,6 +32,15 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::league-player.league-player"
+    },
+    "statusmatch": {
+      "type": "enumeration",
+      "enum": [
+        "Upcoming",
+        "Planned",
+        "Played",
+        "Abandoned"
+      ]
     }
   }
 }
