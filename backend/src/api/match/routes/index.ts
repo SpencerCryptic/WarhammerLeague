@@ -6,8 +6,12 @@ export default factories.createCoreRouter('api::match.match', {
       findOne: {},
       create: {},
       delete: {},
-      report: { auth: true },
-      respondToProposal: { auth: true },
+      report: { config: {
+        auth: true,
+      }, },
+      respondToProposal: { config: {
+        auth: true,
+      }, },
     },
     routes: [
       {
@@ -15,10 +19,7 @@ export default factories.createCoreRouter('api::match.match', {
         path: '/matches/:id',
         handler: 'match.update',
         config: {
-          auth: {
-            scope: ['plugin::users-permissions.user'],
-          },
-          policies: [],
+          auth: true,
         },
       },
       {
@@ -26,10 +27,7 @@ export default factories.createCoreRouter('api::match.match', {
         path: '/matches/:id/report',
         handler: 'match.report',
         config: {
-          auth: {
-            scope: ['plugin::users-permissions.user'],
-          },
-          policies: [],
+          auth: true,
         },
       },
       {
@@ -37,10 +35,7 @@ export default factories.createCoreRouter('api::match.match', {
         path: '/matches/:id/respond-proposal',
         handler: 'match.respondToProposal',
         config: {
-          auth: {
-            scope: ['plugin::users-permissions.user'],
-          },
-          policies: [],
+          auth: true,
         },
       },
     ],
