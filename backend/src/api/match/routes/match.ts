@@ -10,6 +10,7 @@ export default factories.createCoreRouter('api::match.match', {
     report: {
       auth: true,
     },
+    respondToProposal: { auth: true },
   },
   routes: [
     {
@@ -21,5 +22,14 @@ export default factories.createCoreRouter('api::match.match', {
         policies: [],
       },
     },
+      {
+        method: 'POST',
+        path: '/matches/:id/respond-proposal',
+        handler: 'match.respondToProposal',
+        config: {
+            auth: true,
+            policies: [],
+          },
+      },
   ],
 } as any);

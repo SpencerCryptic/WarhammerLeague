@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import qs from "qs";
 import FactionSelectionModal from "../components/FactionSelectionModal";
+import ProposeMatchModal from "../components/ProposeMatchModal";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -33,6 +35,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const [joinSuccess, setJoinSuccess] = useState(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [playerId, setPlayerId] = useState(user?.player?.id || null);
+  const [showProposalModal, setShowProposalModal] = useState(false);
+
 
   const userHasJoined = leagueData?.league_players?.some(
     (lp) => lp.player?.id === playerId
@@ -176,6 +180,32 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
   const upcomingMatches = useMemo(() => {
     return matches.filter((m) => m.statusmatch !== "Played" && m.statusmatch !== "Abandoned");
   }, [matches]);
+
+  {nextMatch && (
+    <>
+      <div className="mb-6 p-4 border rounded bg-yellow-100 text-yellow-900">
+        <h3 className="font-semibold mb-2">Your Next Match</h3>
+        <p>{nextMatch.league_player1?.player?.name} vs {nextMatch.league_player2?.player?.name}</p>
+        <p className="text-sm mt-1 italic">
+          Proposed time: {nextMatch.proposalTimestamp ? new Date(nextMatch.proposalTimestamp).toLocaleString() : "No date set"}
+        </p>
+        <button
+          onClick={() => setShowProposalModal(true)}
+          className="mt-3 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+        >
+          Propose Time
+        </button>
+      </div>
+      {showProposalModal && (
+        <ProposeMatchModal
+          matchId={nextMatch.id}
+          token={token}
+          onClose={() => setShowProposalModal(false)}
+          onSuccess={fetchMatches}
+        />
+      )}
+    </>
+  )}
   
   const pastMatches = useMemo(() => {
     return matches.filter((m) => m.statusmatch === "Played");
