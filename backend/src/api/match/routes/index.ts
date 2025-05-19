@@ -6,12 +6,9 @@ export default factories.createCoreRouter('api::match.match', {
       findOne: {},
       create: {},
       delete: {},
-      report: { config: {
-        auth: true,
-      }, },
-      respondToProposal: { config: {
-        auth: true,
-      }, },
+      update: { auth: true },
+      report: { auth: true },
+      respondToProposal: { auth: true },
     },
     routes: [
       {
