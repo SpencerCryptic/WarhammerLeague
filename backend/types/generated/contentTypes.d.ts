@@ -399,6 +399,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     > &
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
+    match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     playList: Schema.Attribute.Text;
@@ -503,6 +504,15 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
+    matchUID: Schema.Attribute.UID;
+    proposalStatus: Schema.Attribute.Enumeration<
+      ['Pending', 'Accepted', 'Rejected']
+    >;
+    proposalTimestamp: Schema.Attribute.DateTime;
+    proposedBy: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::league-player.league-player'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     score1: Schema.Attribute.Integer;
     score2: Schema.Attribute.Integer;

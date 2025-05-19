@@ -41,6 +41,26 @@
         "Played",
         "Abandoned"
       ]
+    },
+    "proposedBy": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::league-player.league-player",
+      "mappedBy": "match"
+    },
+    "proposalStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Accepted",
+        "Rejected"
+      ]
+    },
+    "proposalTimestamp": {
+      "type": "datetime"
+    },
+    "matchUID": {
+      "type": "uid"
     }
   }
 }

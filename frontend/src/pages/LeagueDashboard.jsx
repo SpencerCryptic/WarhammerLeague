@@ -172,6 +172,15 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       return p1Id === playerId || p2Id === playerId;
     });
   }, [matches, playerId]);
+  
+  const upcomingMatches = useMemo(() => {
+    return matches.filter((m) => m.statusmatch !== "Played" && m.statusmatch !== "Abandoned");
+  }, [matches]);
+  
+  const pastMatches = useMemo(() => {
+    return matches.filter((m) => m.statusmatch === "Played");
+  }, [matches]);
+  
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -271,47 +280,66 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               </div>
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Your Match History</h3>
-                <ul className="list-disc ml-6 text-sm text-gray-800">
-                  {matches.length === 0 ? (
-                    <li>No matches played yet.</li>
-                  ) : (
-                    matches.map((match) => {
-                        const p1 = match.league_player1?.player?.name || match.league_player1?.id || "Player 1";
-                        const p2 = match.league_player2?.player?.name || match.league_player2?.id || "Player 2";                        
-                      const s1 = match.score1;
-                      const s2 = match.score2;
-                      const f1 = match.league_player1?.faction || "Unknown";
-const f2 = match.league_player2?.faction || "Unknown";
+{/* Upcoming Matches */}
+<div className="mt-6">
+  <h3 className="text-lg font-semibold mb-2">Upcoming Matches</h3>
+  <ul className="list-disc ml-6 text-sm text-gray-800">
+    {upcomingMatches.length === 0 ? (
+      <li>No upcoming matches.</li>
+    ) : (
+      upcomingMatches.map((match) => {
+        const p1 = match.league_player1?.player?.name || "Player 1";
+        const p2 = match.league_player2?.player?.name || "Player 2";
+        const date = match.playDate ? new Date(match.playDate).toLocaleString() : "No date set";
+        return (
+          <li key={match.id}>
+            {p1} vs {p2} — {date}
+          </li>
+        );
+      })
+    )}
+  </ul>
+</div>
 
-                      return (
-                        <li key={match.id}>
-                        {p1} ({f1}) vs {p2} ({f2}) — {match.score1} : {match.score2}
-                      </li>                      
-                      );
-                    })
-                  )}
-                </ul>
+{/* Match History */}
+<div className="mt-6">
+  <h3 className="text-lg font-semibold mb-2">Match History</h3>
+  <ul className="list-disc ml-6 text-sm text-gray-800">
+    {pastMatches.length === 0 ? (
+      <li>No matches played yet.</li>
+    ) : (
+      pastMatches.map((match) => {
+        const p1 = match.league_player1?.player?.name || "Player 1";
+        const p2 = match.league_player2?.player?.name || "Player 2";
+        return (
+          <li key={match.id}>
+            {p1} vs {p2} — {match.score1} : {match.score2}
+          </li>
+        );
+      })
+    )}
+  </ul>
+</div>
+
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Join This League</h3>
-                <button
-                  onClick={() => setShowJoinModal(true)}
-                  className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-                  disabled={userHasJoined}
-                >
-                  Join League
-                </button>
-                {userHasJoined && (
-                  <p className="text-sm text-red-600 mt-2">You have already joined this league</p>
-                )}
-                {joinMessage && (
-                  <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
-                    {joinMessage}
-                  </p>
-                )}
-              </div>
+              {!userHasJoined && leagueData?.statusleague !== "ongoing" && (
+  <div className="mt-6">
+    <h3 className="text-lg font-semibold mb-2">Join This League</h3>
+    <button
+      onClick={() => setShowJoinModal(true)}
+      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+    >
+      Join League
+    </button>
+    {joinMessage && (
+      <p className={`mt-2 text-sm ${joinSuccess ? "text-green-700" : "text-red-600"}`}>
+        {joinMessage}
+      </p>
+    )}
+  </div>
+)}
+
             </>
           )}
         </main>

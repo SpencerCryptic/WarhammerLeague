@@ -53,6 +53,12 @@
     },
     "playList": {
       "type": "text"
+    },
+    "match": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::match.match",
+      "inversedBy": "proposedBy"
     }
   }
 }
