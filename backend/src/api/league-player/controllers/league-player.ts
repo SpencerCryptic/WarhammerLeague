@@ -12,10 +12,15 @@ export default factories.createCoreController('api::league-player.league-player'
         ],
       },
       populate: {
-        league_player1: { populate: ['player'] },
-        league_player2: { populate: ['player'] },
+        league_player1: {
+          populate: ['player'], // includes name/email/etc.
+        },
+        league_player2: {
+          populate: ['player'],
+        },
         league: true,
       },
+      sort: ['updatedAt:desc'], // optional: newest first
     });
 
     ctx.body = matches;

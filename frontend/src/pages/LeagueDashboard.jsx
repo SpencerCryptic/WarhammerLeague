@@ -80,7 +80,7 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
       const res = await axios.get(`${API_URL}/league-players/${leaguePlayerEntry.id}/matches`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMatches(res.data.data || []);
+      setMatches(res.data || []);
     } catch (err) {
       if (err.response?.status === 404) {
         setMatches([]);
@@ -277,8 +277,8 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
                     <li>No matches played yet.</li>
                   ) : (
                     matches.map((match) => {
-                      const p1 = match.league_player1?.player?.name || "Player 1";
-                      const p2 = match.league_player2?.player?.name || "Player 2";
+                        const p1 = match.league_player1?.player?.name || match.league_player1?.id || "Player 1";
+                        const p2 = match.league_player2?.player?.name || match.league_player2?.id || "Player 2";                        
                       const s1 = match.score1;
                       const s2 = match.score2;
                       return (
