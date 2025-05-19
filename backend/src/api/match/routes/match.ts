@@ -5,12 +5,22 @@ export default factories.createCoreRouter('api::match.match', {
     find: {},
     findOne: {},
     create: {},
-    update: {},
+    update: {
+        auth: {
+          scope: ['plugin::users-permissions.user'],
+        },
+      },
     delete: {},
     report: {
-      auth: true,
-    },
-    respondToProposal: { auth: true },
+        auth: {
+          scope: ['plugin::users-permissions.user'],
+        },
+      },
+    respondToProposal: {
+        auth: {
+          scope: ['plugin::users-permissions.user'],
+        },
+      },
   },
   routes: [
     {
@@ -31,5 +41,14 @@ export default factories.createCoreRouter('api::match.match', {
             policies: [],
           },
       },
+      {
+        method: 'PUT',
+        path: '/matches/:id',
+        handler: 'match.update',
+        config: {
+          auth: true,
+          policies: [],
+        },
+      }      
   ],
 } as any);

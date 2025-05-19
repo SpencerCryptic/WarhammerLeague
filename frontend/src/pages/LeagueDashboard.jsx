@@ -181,31 +181,6 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
     return matches.filter((m) => m.statusmatch !== "Played" && m.statusmatch !== "Abandoned");
   }, [matches]);
 
-  {nextMatch && (
-    <>
-      <div className="mb-6 p-4 border rounded bg-yellow-100 text-yellow-900">
-        <h3 className="font-semibold mb-2">Your Next Match</h3>
-        <p>{nextMatch.league_player1?.player?.name} vs {nextMatch.league_player2?.player?.name}</p>
-        <p className="text-sm mt-1 italic">
-          Proposed time: {nextMatch.proposalTimestamp ? new Date(nextMatch.proposalTimestamp).toLocaleString() : "No date set"}
-        </p>
-        <button
-          onClick={() => setShowProposalModal(true)}
-          className="mt-3 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-        >
-          Propose Time
-        </button>
-      </div>
-      {showProposalModal && (
-        <ProposeMatchModal
-          matchId={nextMatch.id}
-          token={token}
-          onClose={() => setShowProposalModal(false)}
-          onSuccess={fetchMatches}
-        />
-      )}
-    </>
-  )}
   
   const pastMatches = useMemo(() => {
     return matches.filter((m) => m.statusmatch === "Played");
@@ -263,11 +238,30 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               <p className="mb-6">Status: <strong>{leagueData?.statusleague}</strong></p>
 
               {leagueData?.statusleague === "ongoing" && nextMatch && (
-                <div className="mb-6 p-4 border rounded bg-yellow-100 text-yellow-900">
-                  <h3 className="font-semibold mb-2">Your Next Match</h3>
-                  <p>{nextMatch.league_player1?.player?.name} vs {nextMatch.league_player2?.player?.name}</p>
-                </div>
-              )}
+  <>
+    <div className="mb-6 p-4 border rounded bg-yellow-100 text-yellow-900">
+      <h3 className="font-semibold mb-2">Your Next Match</h3>
+      <p>{nextMatch.league_player1?.player?.name} vs {nextMatch.league_player2?.player?.name}</p>
+      <p className="text-sm mt-1 italic">
+        Proposed time: {nextMatch.proposalTimestamp ? new Date(nextMatch.proposalTimestamp).toLocaleString() : "No date set"}
+      </p>
+      <button
+        onClick={() => setShowProposalModal(true)}
+        className="mt-3 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+      >
+        Propose Time
+      </button>
+    </div>
+    {showProposalModal && (
+      <ProposeMatchModal
+        matchId={nextMatch.id}
+        token={token}
+        onClose={() => setShowProposalModal(false)}
+        onSuccess={fetchMatches}
+      />
+    )}
+  </>
+)}
 
               {user?.id === leagueData?.createdByUser?.id && (
                 <div className="mb-6">
