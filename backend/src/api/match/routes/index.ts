@@ -1,40 +1,72 @@
-import { factories } from '@strapi/strapi';
+// src/api/match/routes/index.ts
 
-export default factories.createCoreRouter('api::match.match', {
-    config: {
-      find: {},
-      findOne: {},
-      create: {},
-      delete: {},
-      update: { auth: true },
-      report: { auth: true },
-      respondToProposal: { auth: true },
+export default {
+  routes: [
+    {
+      method: 'GET',
+      path: '/matches',
+      handler: 'match.find',
+      config: {
+        auth: false,
+      },
     },
-    routes: [
-      {
-        method: 'PUT',
-        path: '/matches/:id',
-        handler: 'match.update',
-        config: {
-          auth: true,
+    {
+      method: 'GET',
+      path: '/matches/:id',
+      handler: 'match.findOne',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'POST',
+      path: '/matches',
+      handler: 'match.create',
+      config: {
+        auth: {
+          required: true,
         },
       },
-      {
-        method: 'POST',
-        path: '/matches/:id/report',
-        handler: 'match.report',
-        config: {
-          auth: true,
+    },
+    {
+      method: 'PUT',
+      path: '/matches/:id',
+      handler: 'match.update',
+      config: {
+        auth: {
+          required: true,
         },
       },
-      {
-        method: 'POST',
-        path: '/matches/:id/respond-proposal',
-        handler: 'match.respondToProposal',
-        config: {
-          auth: true,
+    },
+    {
+      method: 'DELETE',
+      path: '/matches/:id',
+      handler: 'match.delete',
+      config: {
+        auth: {
+          required: true,
         },
       },
-    ],
-  } as any);
-  
+    },
+    {
+      method: 'POST',
+      path: '/matches/:id/report',
+      handler: 'match.report',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
+    },
+    {
+      method: 'POST',
+      path: '/matches/:id/respond-proposal',
+      handler: 'match.respondToProposal',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
+    },
+  ],
+};
