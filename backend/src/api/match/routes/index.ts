@@ -50,8 +50,8 @@ export default {
     },
     {
       method: 'POST',
-      path: '/matches/:id/report',
-      handler: 'match.report',
+      path: '/matches/:id/submit',
+      handler: 'match.submit',
       config: {
         auth: {
           required: true,

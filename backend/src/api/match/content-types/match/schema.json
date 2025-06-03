@@ -10,37 +10,44 @@
   "options": {
     "draftAndPublish": true
   },
+  "pluginOptions": {},
   "attributes": {
-    "score1": {
-      "type": "integer"
-    },
-    "score2": {
-      "type": "integer"
-    },
     "league": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::league.league",
       "inversedBy": "matches"
     },
-    "league_player2": {
+    "leaguePlayer1": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::league-player.league-player"
     },
-    "league_player1": {
+    "leaguePlayer2": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::league-player.league-player"
     },
-    "statusmatch": {
+    "statusMatch": {
       "type": "enumeration",
       "enum": [
-        "Upcoming",
-        "Planned",
-        "Played",
-        "Abandoned"
+        "upcoming",
+        "planned",
+        "played",
+        "abandoned"
       ]
+    },
+    "leaguePlayer1Score": {
+      "type": "integer"
+    },
+    "leaguePlayer2Score": {
+      "type": "integer"
+    },
+    "leaguePlayer1Result": {
+      "type": "integer"
+    },
+    "leaguePlayer2Result": {
+      "type": "integer"
     },
     "proposedBy": {
       "type": "relation",
