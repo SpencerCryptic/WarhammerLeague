@@ -44,10 +44,30 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       data: { 
         leaguePlayer1Score,
         leaguePlayer2Score,
+        leaguePlayer1List: match.leaguePlayer1.playList,
+        leaguePlayer2List: match.leaguePlayer2.playList,
         leaguePlayer1Result: leaguePlayer1Score > leaguePlayer2Score ? 2 : leaguePlayer2Score > leaguePlayer1Score ? 0 : 1,
         leaguePlayer2Result: leaguePlayer2Score > leaguePlayer1Score ? 2 : leaguePlayer1Score > leaguePlayer2Score ? 0 : 1,
         statusMatch: 'played'
       },
+    });
+    await strapi.documents('api::league-player.league-player').update({
+      documentId: match.leaguePlayer1.documentId,
+      data: {
+        wins: match.leaguePlayer1.wins += (leaguePlayer1Score > leaguePlayer2Score ? 1 : 0),
+        draws: match.leaguePlayer1.draws += (leaguePlayer1Score === leaguePlayer2Score ? 1 : 0),
+        losses: match.leaguePlayer1.losses += (leaguePlayer1Score < leaguePlayer2Score ? 1 : 0),
+        rankingPoints: match.leaguePlayer1.rankingPoints += leaguePlayer1Score
+      }
+    });
+    await strapi.documents('api::league-player.league-player').update({
+      documentId: match.leaguePlayer2.documentId,
+      data: {
+        wins: match.leaguePlayer2.wins += (leaguePlayer2Score > leaguePlayer1Score ? 1 : 0),
+        draws: match.leaguePlayer2.draws += (leaguePlayer2Score === leaguePlayer1Score ? 1 : 0),
+        losses: match.leaguePlayer2.losses += (leaguePlayer2Score < leaguePlayer1Score ? 1 : 0),
+        rankingPoints: match.leaguePlayer2.rankingPoints += leaguePlayer2Score
+      }
     });
     ctx.body = { message: 'Match result reported successfully', match: updatedMatch };
   },

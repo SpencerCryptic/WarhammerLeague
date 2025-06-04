@@ -28,6 +28,12 @@
       "relation": "oneToOne",
       "target": "api::league-player.league-player"
     },
+    "leaguePlayer1List": {
+      "type": "text"
+    },
+    "leaguePlayer2List": {
+      "type": "text"
+    },
     "statusMatch": {
       "type": "enumeration",
       "enum": [

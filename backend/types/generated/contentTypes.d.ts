@@ -501,12 +501,14 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'oneToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer1List: Schema.Attribute.Text;
     leaguePlayer1Result: Schema.Attribute.Integer;
     leaguePlayer1Score: Schema.Attribute.Integer;
     leaguePlayer2: Schema.Attribute.Relation<
       'oneToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer2List: Schema.Attribute.Text;
     leaguePlayer2Result: Schema.Attribute.Integer;
     leaguePlayer2Score: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
