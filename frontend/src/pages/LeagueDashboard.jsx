@@ -135,13 +135,13 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
         const leaguesRes = await axios.get(`${API_URL}/leagues`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const leaguesList = leaguesRes.data.data;
+        console.log(leaguesList)
         setLeagues(leaguesList);
 
-        if (!leagueId || !leaguesList.some((l) => l.id.toString() === leagueId)) {
+        if (!leagueId || !leaguesList.some((l) => l.documentId.toString() === leagueId)) {
           if (leaguesList.length > 0) {
-            const firstValidId = leaguesList[0].id;
+            const firstValidId = leaguesList[0].documentId;
             navigate(`/leagues/${firstValidId}`, { replace: true });
           } else {
             setError("No leagues available");
@@ -211,10 +211,10 @@ const LeagueDashboard = ({ token, user, onLogout }) => {
               <li>No leagues found.</li>
             ) : (
               leagues.map((lg) => (
-                <li key={lg.id}>
+                <li key={lg.documentId}>
                   <Link
-                    to={`/leagues/${lg.id}`}
-                    className={`block px-2 py-1 rounded hover:bg-blue-700 ${lg.id.toString() === leagueId ? "bg-blue-700" : ""}`}
+                    to={`/leagues/${lg.documentId}`}
+                    className={`block px-2 py-1 rounded hover:bg-blue-700 ${lg.documentId === leagueId ? "bg-blue-700" : ""}`}
                   >
                     {lg.name || "Unnamed League"}
                   </Link>
