@@ -34,6 +34,10 @@ export interface AdminApiToken extends Struct.CollectionTypeSchema {
         minLength: 1;
       }> &
       Schema.Attribute.DefaultTo<''>;
+    encryptedKey: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        minLength: 1;
+      }>;
     expiresAt: Schema.Attribute.DateTime;
     lastUsedAt: Schema.Attribute.DateTime;
     lifespan: Schema.Attribute.BigInteger;
@@ -493,14 +497,18 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
-    league_player1: Schema.Attribute.Relation<
+    leaguePlayer1: Schema.Attribute.Relation<
       'oneToOne',
       'api::league-player.league-player'
     >;
-    league_player2: Schema.Attribute.Relation<
+    leaguePlayer1Result: Schema.Attribute.Integer;
+    leaguePlayer1Score: Schema.Attribute.Integer;
+    leaguePlayer2: Schema.Attribute.Relation<
       'oneToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer2Result: Schema.Attribute.Integer;
+    leaguePlayer2Score: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
@@ -514,10 +522,8 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'api::league-player.league-player'
     >;
     publishedAt: Schema.Attribute.DateTime;
-    score1: Schema.Attribute.Integer;
-    score2: Schema.Attribute.Integer;
-    statusmatch: Schema.Attribute.Enumeration<
-      ['Upcoming', 'Planned', 'Played', 'Abandoned']
+    statusMatch: Schema.Attribute.Enumeration<
+      ['upcoming', 'planned', 'played', 'abandoned']
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
