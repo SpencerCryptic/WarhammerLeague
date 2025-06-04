@@ -2,27 +2,27 @@ import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league-player.league-player', ({ strapi }) => ({
   async matches(ctx) {
+    await this.validateQuery(ctx);
+    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
     const { id: leaguePlayerId } = ctx.params;
-
-    const matches = await strapi.entityService.findMany('api::match.match', {
+    const matches = await strapi.documents('api::match.match').findMany({
       filters: {
         $or: [
-          { league_player1: leaguePlayerId },
-          { league_player2: leaguePlayerId },
+          { leaguePlayer1: leaguePlayerId },
+          { leaguePlayer2: leaguePlayerId },
         ],
       },
       populate: {
-        league_player1: {
+        leaguePlayer1: {
           populate: ['player'], // includes name/email/etc.
         },
-        league_player2: {
+        leaguePlayer2: {
           populate: ['player'],
         },
         league: true,
       },
       sort: ['updatedAt:desc'], // optional: newest first
     });
-
     ctx.body = matches;
   },
 }));
