@@ -1,0 +1,42 @@
+import type { Metadata } from "next";
+import { Fira_Sans, Fira_Mono } from "next/font/google";
+import "./globals.css";
+import Navbar from "@/components/Navbar";
+
+
+const FiraSans = Fira_Sans({
+  weight: ['400', '700'],
+  subsets: ["latin"]
+})
+
+const FiraMono = Fira_Mono({
+  weight: ['400', '700'],
+  subsets: ["latin"]
+})
+
+export const metadata: Metadata = {
+  title: "Cryptic Cabin Leagues",
+  description: "Web App for playing and maintaining Cabin Leagues",
+  openGraph: {
+    siteName: "Cryptic Cabin Leagues",
+  }
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${FiraSans.className} ${FiraMono.className} antialiased`}
+      >
+        <Navbar />
+        <main className="max-w-6xl mx-auto">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
