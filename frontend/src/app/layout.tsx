@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fira_Sans, Fira_Mono } from "next/font/google";
+import { Fira_Sans, Fira_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -10,6 +10,11 @@ const FiraSans = Fira_Sans({
 })
 
 const FiraMono = Fira_Mono({
+  weight: ['400', '700'],
+  subsets: ["latin"]
+})
+
+const montserrat = Montserrat({
   weight: ['400', '700'],
   subsets: ["latin"]
 })
@@ -30,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${FiraSans.className} ${FiraMono.className} antialiased`}
+        className={`${montserrat.className} ${montserrat.className} antialiased`}
       >
         <Navbar />
         <main className="max-w-6xl mx-auto">
