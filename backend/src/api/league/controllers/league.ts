@@ -119,7 +119,9 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   async find(ctx) {
     await this.validateQuery(ctx);
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
+    const filters = ctx.query?.filters || {};
     const rawLeagues = await strapi.documents('api::league.league').findMany({
+      filters,
       ...( {
         fields: ['name', 'statusleague', 'description', 'leaguePassword', 'startDate', 'gameSystem'],
         populate: {

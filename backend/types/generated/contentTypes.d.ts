@@ -455,6 +455,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
         'A Song of Ice and Fire',
         'Middle Earth SBG',
         'Marvel Crisis Protocol',
+        'Conquest',
       ]
     >;
     league_players: Schema.Attribute.Relation<
