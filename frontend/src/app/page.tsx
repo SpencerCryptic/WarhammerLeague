@@ -1,10 +1,20 @@
-import React from 'react'
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-const App = () => {
-  return ( <div>
-    <h1 className='text-6xl'>App</h1>
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/auth/login');
+    }
+  }, []);
+
+  return (
+    <div className="text-white text-center mt-10 text-2xl">
+      Redirecting or loading content...
     </div>
   );
 }
-
-export default App
