@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
-import useSWR from 'swr'
 
 const LeagueDashboard = () => {
   
