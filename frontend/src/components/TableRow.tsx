@@ -14,11 +14,11 @@ export interface LeaguePlayer {
   playList: string
 }
 
-const TableRow = async () => {
+const TableRow = () => {
   
   const [leaguePlayers, setLeaguePlayers] = useState<LeaguePlayer[]>([])
   const [activeList, setActiveList] = useState({id: '', list: ''})
-  const getLeague = async (documentId: string) => {
+  const getLeague = (documentId: string) => {
     useEffect(() => {
       fetch(`http://localhost:1337/api/leagues/${documentId}`)
       .then((res) => res.json())
@@ -38,7 +38,7 @@ const TableRow = async () => {
 
   const pathName: string[] = usePathname().split('/')
   const documentId = pathName[2]
-  await getLeague(documentId)
+  getLeague(documentId)
     
   return (
     <div>
@@ -78,7 +78,7 @@ const TableRow = async () => {
           </thead>
           <tbody>
             {leaguePlayers.map((player: LeaguePlayer) => (
-              <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+              <tr key={player.documentId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                 <td className="px-6 py-4 capitalize">
                   {player.leagueName}
                 </td>
