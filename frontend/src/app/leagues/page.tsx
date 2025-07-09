@@ -76,7 +76,7 @@ export default async function Leagues({ searchParams }: { searchParams?: { gameS
           <div key={league.documentId}>
             <Link
               href={`/leagues/${encodeURIComponent(league.documentId)}`}
-              className="block max-w-sm m-4 p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+              className="block max-w-sm m-4 p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 transition-all duration-150"
             >
               <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{league.name}</h5>
               <p className="font-normal text-gray-700 dark:text-gray-400">
