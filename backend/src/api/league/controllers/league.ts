@@ -186,7 +186,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         },
       },
     });
-    const league = rawLeague as any; // ✅ Cast to any
+    const league = rawLeague as any;
     if (!league) return ctx.notFound('League not found.');
     if (league.createdByUser?.id !== userId) {
       return ctx.unauthorized('Only the league admin can start the league.');
@@ -201,12 +201,13 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const matchPromises = [];
     const pairs = leaguePlayers.map( (v, i) => leaguePlayers.slice(i + 1).map(w => [v, w]) ).flat();
     pairs.forEach((pair: any) => {
+      console.log(pair)
       matchPromises.push(
           strapi.documents('api::match.match').create({
             data: {
-              league: parseInt(leagueId),
-              league_player1: pair[0].id,
-              league_player2: pair[1].id,
+              league: league,
+              leaguePlayer1: pair[0],
+              leaguePlayer2: pair[1],
               score1: 0,
               score2: 0,
               statusMatch: 'upcoming'
