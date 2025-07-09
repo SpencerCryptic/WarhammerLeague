@@ -201,7 +201,6 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const matchPromises = [];
     const pairs = leaguePlayers.map( (v, i) => leaguePlayers.slice(i + 1).map(w => [v, w]) ).flat();
     pairs.forEach((pair: any) => {
-      console.log(pair)
       matchPromises.push(
           strapi.documents('api::match.match').create({
             data: {
