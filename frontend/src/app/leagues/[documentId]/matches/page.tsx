@@ -1,8 +1,11 @@
+import MatchesDashboard from '@/components/MatchesDashbaord'
 import React from 'react'
 
 const Matches = () => {
   return (
-    <div>Matches</div>
+    <div className="">
+      <MatchesDashboard></MatchesDashboard>
+    </div>
   )
 }
 
