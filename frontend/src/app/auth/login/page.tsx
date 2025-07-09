@@ -22,7 +22,7 @@ const LoginPage = () => {
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_URL}/api/auth/local`, { identifier, password });
+      const res = await axios.post(`http://localhost:1337/api/auth/local`, { identifier, password });
       const { jwt, user } = res.data;
       localStorage.setItem('token', jwt);
       localStorage.setItem('user', JSON.stringify(user));
