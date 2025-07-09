@@ -30,7 +30,8 @@ const LeagueDashboard = () => {
        <h1 className='mb-20 text-6xl'>
         {league['data']['name']}
       </h1>
-      <ul className="flex max-w-6xl mt-4 mx-4 bg-white border border-gray-200 rounded-t-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <div className='relative overflow-x-auto'>
+        <ul className="flex max-w-6xl mt-4 mx-4 bg-white border border-gray-200 rounded-t-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <li className={`inline-block rounded-tl-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ease-linear transition-all duration-150 ${ selected==='' ? 'text-orange-500 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
           <Link href={ '/leagues/' + documentId + '/' }>
             <div className='p-4'>
@@ -60,6 +61,7 @@ const LeagueDashboard = () => {
           </Link>
         </li>
       </ul>
+      </div>
     </div>
    
   )
