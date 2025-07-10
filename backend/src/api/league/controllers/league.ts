@@ -98,7 +98,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {
-            fields: ['faction'],
+            fields: ['leagueName', 'faction', 'wins', 'draws', 'losses', 'rankingPoints', 'playList'],
             populate: {
               player: { fields: ['id', 'name'] },
               league: { fields: ['id'] },

@@ -1,5 +1,4 @@
-import Tabgroup from '@/components/Tabgroup';
-import { error } from 'console';
+
 import React from 'react'
 import { RichText } from "@graphcms/rich-text-react-renderer";
 
@@ -18,6 +17,7 @@ const League = async ({ params }: { params: any }) => {
 
   const { documentId } = await params
   const league = await getLeague(documentId);
+  console.log(league.data)
 
   return (
     <div>
