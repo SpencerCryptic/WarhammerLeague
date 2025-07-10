@@ -86,7 +86,15 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const rawLeague = await strapi.documents('api::league.league').findOne({
       documentId: id,
       ...( {
-        fields: ['name', 'statusleague', 'description', 'leaguePassword', 'startDate'],
+        fields: [
+          'name',
+          'statusleague',
+          'description',
+          'leaguePassword',
+          'startDate',
+          'gameSystem',
+          'format'
+        ],
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {

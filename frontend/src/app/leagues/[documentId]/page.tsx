@@ -21,12 +21,42 @@ const League = async ({ params }: { params: any }) => {
 
   return (
     <div>
-      <h1 className='mb-20 text-6xl'>
-        {league.data.name}
-      </h1>
-  
+      <h1 className="mb-20 text-6xl">{league.data.name}</h1>
       <div className="block max-w-6xl m-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
         <Tabgroup />
+      </div>
+  
+      <div className="max-w-6xl m-4 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <h2 className="text-xl font-semibold mb-4">League Details</h2>
+        <ul className="space-y-2">
+          <li>
+            <strong>Organiser:</strong>{" "}
+            {league.data?.createdByUser?.username || "Unknown"}
+          </li>
+          <li>
+            <strong>Game System:</strong>{" "}
+            {league.data?.gameSystem || "N/A"}
+          </li>
+          <li>
+  <strong>Format:</strong>{" "}
+  <span className="capitalize">
+    {league.data?.format
+      ? league.data.format.replace("_", " ")
+      : "N/A"}
+  </span>
+</li>
+
+          <li>
+            <strong>Start Date:</strong>{" "}
+            {league.data?.startDate
+              ? new Date(league.data.startDate).toLocaleString()
+              : "Not set"}
+          </li>
+          <li>
+            <strong>Players:</strong>{" "}
+            {league.data?.league_players?.length || 0}
+          </li>
+        </ul>
       </div>
   
       {league.data?.description && (
@@ -35,7 +65,7 @@ const League = async ({ params }: { params: any }) => {
         </div>
       )}
     </div>
-  )  
+  );  
   
 }  
 
