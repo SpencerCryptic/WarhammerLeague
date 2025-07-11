@@ -1,8 +1,5 @@
-import Tabgroup from '@/components/Tabgroup';
-import { error } from 'console';
-import React from 'react'
+import React from 'react';
 import { RichText } from "@graphcms/rich-text-react-renderer";
-
 
 const getLeague = async (documentId: string) => {
   const response = await fetch(`http://localhost:1337/api/leagues/${documentId}`);
@@ -12,20 +9,14 @@ const getLeague = async (documentId: string) => {
   }
 
   return await response.json();
-}
+};
 
 const League = async ({ params }: { params: any }) => {
-
-  const { documentId } = await params
+  const { documentId } = params;
   const league = await getLeague(documentId);
 
   return (
     <div>
-      <h1 className="mb-20 text-6xl">{league.data.name}</h1>
-      <div className="block max-w-6xl m-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-        <Tabgroup />
-      </div>
-  
       <div className="max-w-6xl m-4 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <h2 className="text-xl font-semibold mb-4">League Details</h2>
         <ul className="space-y-2">
@@ -37,14 +28,11 @@ const League = async ({ params }: { params: any }) => {
             <strong>Game System:</strong>{" "}
             {league.data?.gameSystem || "N/A"}
           </li>
-          <li>
+          <li className="capitalize">
             <strong>Format:</strong>{" "}
-            <p className="capitalize">
-  {league.data?.format
-    ? league.data.format.replace("_", " ")
-    : "N/A"}
-</p>
-
+            {league.data?.format
+              ? league.data.format.replace("_", " ")
+              : "N/A"}
           </li>
           <li>
             <strong>Start Date:</strong>{" "}
@@ -58,15 +46,14 @@ const League = async ({ params }: { params: any }) => {
           </li>
         </ul>
       </div>
-  
+
       {league.data?.description && (
         <div className="max-w-6xl m-4 p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <RichText content={league.data.description} />
         </div>
       )}
     </div>
-  );  
-  
-}  
+  );
+};
 
-export default League
+export default League;
