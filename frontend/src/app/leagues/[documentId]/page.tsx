@@ -1,6 +1,7 @@
 import React from 'react';
 import { RichText } from "@graphcms/rich-text-react-renderer";
 
+
 const getLeague = async (documentId: string) => {
   const response = await fetch(`http://localhost:1337/api/leagues/${documentId}`);
 
