@@ -391,6 +391,10 @@ export interface ApiLeaguePlayerLeaguePlayer
       Schema.Attribute.Private;
     draws: Schema.Attribute.Integer;
     faction: Schema.Attribute.String;
+    firstPlayerMatches: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match.match'
+    >;
     goodFaithAccepted: Schema.Attribute.Boolean;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
     leagueName: Schema.Attribute.String &
@@ -404,11 +408,14 @@ export interface ApiLeaguePlayerLeaguePlayer
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
     match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
-    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     playList: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;
+    secondPlayerMatches: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::match.match'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -499,14 +506,14 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
     leaguePlayer1: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'api::league-player.league-player'
     >;
     leaguePlayer1List: Schema.Attribute.Text;
     leaguePlayer1Result: Schema.Attribute.Integer;
     leaguePlayer1Score: Schema.Attribute.Integer;
     leaguePlayer2: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'api::league-player.league-player'
     >;
     leaguePlayer2List: Schema.Attribute.Text;

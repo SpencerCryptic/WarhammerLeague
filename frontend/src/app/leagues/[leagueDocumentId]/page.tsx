@@ -12,8 +12,8 @@ const getLeague = async (documentId: string) => {
 };
 
 const League = async ({ params }: { params: any }) => {
-  const { documentId } = params;
-  const league = await getLeague(documentId);
+  const { leagueDocumentId } = params;
+  const league = await getLeague(leagueDocumentId);
 
   return (
     <div>

@@ -2,6 +2,44 @@ import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::match.match', ({ strapi }) => ({
 
+  async findOne(ctx) {
+    await this.validateQuery(ctx);
+    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
+    const { id } = ctx.params;
+    const rawMatch = await strapi.documents('api::match.match').findOne({
+      documentId: id,
+      fields: [
+        'proposalStatus',
+        'proposalTimestamp',
+        'matchUID',
+        'createdAt',
+        'updatedAt',
+        'publishedAt',
+        'leaguePlayer1Score',
+        'leaguePlayer2Score',
+        'leaguePlayer1Result',
+        'leaguePlayer2Result',
+        'statusMatch',
+        'leaguePlayer1List',
+        'leaguePlayer2List'
+      ],
+      populate: {
+        leaguePlayer1: {
+          fields: ['leagueName', 'faction', 'playList'],
+          populate: ['player']
+        },
+        leaguePlayer2: {
+          fields: ['leagueName', 'faction', 'playList'],
+          populate: ['player']
+        }
+      }
+    } as any)
+    if (!rawMatch) {
+      return ctx.notFound('Match not found')
+    }
+    ctx.body = { data: rawMatch };
+  },
+
   async submit(ctx) {
     await this.validateQuery(ctx);
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
