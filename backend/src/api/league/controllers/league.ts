@@ -2,20 +2,40 @@ import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
 
-  async create(ctx) {
-    await this.validateQuery(ctx);
-    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
-    const { results, pagination } = await strapi.service('api::league.league').create(sanitizedQueryParams);
-    const userId = ctx.state.user?.id;
-    if (!userId) {
-      return ctx.unauthorized('You must be logged in to create a league')
+async create(ctx) {
+  // Check authentication FIRST
+  const userId = ctx.state.user?.id;
+  if (!userId) {
+    return ctx.unauthorized('You must be logged in to create a league');
+  }
+
+  try {
+    // Get the request body data
+    const requestData = ctx.request.body;
+    console.log('🔍 Backend - Received data:', requestData);
+
+    // Prepare the data with the authenticated user
+    const data = {
+      ...requestData,
+      createdByUser: userId,
     };
-    const data = {...ctx.request.body, createdByUser: userId};
+
+    console.log('🔍 Backend - Creating league with data:', data);
+
+    // Create the league
     const newLeague = await strapi.documents('api::league.league').create({
       data: data
     });
+
+    console.log('🔍 Backend - League created successfully:', newLeague);
+
+    // Return the created league
     ctx.body = { data: newLeague };
-  },
+  } catch (error) {
+    console.error('🔍 Backend - Error creating league:', error);
+    return ctx.badRequest(`Failed to create league: ${error.message}`);
+  }
+},
 
   async joinLeague(ctx) {
     await this.validateQuery(ctx);
