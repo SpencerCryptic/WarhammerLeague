@@ -10,7 +10,7 @@ export default function CreateLeagueButton() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log("Token in localStorage:", token); // ✅ runs only on client
+    console.log("Token in localStorage:", token); 
 
     if (!token) return;
 

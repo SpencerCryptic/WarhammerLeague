@@ -39,35 +39,76 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
     { value: 'group_to_elimination', label: 'Group to Elimination' }
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:1337/api/leagues', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          data: formData
-        }),
-      });
-
-      if (response.ok) {
-        onClose();
-        window.location.reload(); // Refresh to show new league
-      } else {
-        console.error('Failed to create league');
-      }
-    } catch (error) {
-      console.error('Error creating league:', error);
-    } finally {
-      setLoading(false);
+  try {
+    // ✅ Fixed: Use 'token' instead of 'authToken'
+    const token = localStorage.getItem('token');
+    
+    console.log('🔍 Token:', token); // Debug log
+    
+    if (!token) {
+      alert('You must be logged in to create a league');
+      return;
     }
-  };
+
+    // ✅ Fixed: Prepare data without wrapping in 'data' object
+    const requestData = {
+      ...formData,
+      statusleague: 'planned', // ✅ Fixed: Use valid status value
+      // Convert description to blocks format if needed
+      description: formData.description ? [
+        {
+          type: 'paragraph',
+          children: [{ type: 'text', text: formData.description }]
+        }
+      ] : []
+    };
+
+    console.log('🔍 Sending data:', requestData); // Debug log
+
+    const response = await fetch('http://localhost:1337/api/leagues', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      // ✅ Fixed: Send data directly, not wrapped in 'data' object
+      body: JSON.stringify(requestData),
+    });
+
+    console.log('🔍 Response status:', response.status);
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('🔍 Success:', result);
+      
+      setFormData({
+        name: '',
+        description: '',
+        gameSystem: '',
+        format: '',
+        startDate: '',
+        leaguePassword: '',
+        statusleague: 'planned'
+      });
+      
+      onClose();
+      window.location.reload();
+    } else {
+      const errorText = await response.text();
+      console.error('🔍 Error response:', errorText);
+      alert(`Failed to create league: ${errorText}`);
+    }
+  } catch (error) {
+    console.error('🔍 Error creating league:', error);
+    alert('Error creating league');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
