@@ -27,11 +27,6 @@
     "faction": {
       "type": "string"
     },
-    "matches": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::match.match"
-    },
     "wins": {
       "type": "integer"
     },
@@ -60,6 +55,18 @@
       "relation": "manyToOne",
       "target": "api::match.match",
       "inversedBy": "proposedBy"
+    },
+    "firstPlayerMatches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
+      "mappedBy": "leaguePlayer1"
+    },
+    "secondPlayerMatches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::match.match",
+      "mappedBy": "leaguePlayer2"
     }
   }
 }

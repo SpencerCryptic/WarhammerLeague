@@ -20,13 +20,15 @@
     },
     "leaguePlayer1": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::league-player.league-player"
+      "relation": "manyToOne",
+      "target": "api::league-player.league-player",
+      "inversedBy": "firstPlayerMatches"
     },
     "leaguePlayer2": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::league-player.league-player"
+      "relation": "manyToOne",
+      "target": "api::league-player.league-player",
+      "inversedBy": "secondPlayerMatches"
     },
     "leaguePlayer1List": {
       "type": "text"

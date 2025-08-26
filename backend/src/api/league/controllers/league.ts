@@ -100,10 +100,29 @@ export default factories.createCoreController('api::league.league', ({ strapi })
           league_players: {
             fields: ['leagueName', 'faction', 'wins', 'draws', 'losses', 'rankingPoints', 'playList'],
             populate: {
-              player: { fields: ['id', 'name'] },
+              player: { fields: ['id', 'name', 'email'] },
               league: { fields: ['id'] },
             },
           },
+          matches: {
+            fields: [
+              'statusMatch',
+              'leaguePlayer1List',
+              'leaguePlayer2List',
+              'leaguePlayer1Score',
+              'leaguePlayer2Score',
+              'leaguePlayer1Result',
+              'leaguePlayer2Result',
+              'proposalStatus',
+              'proposalTimestamp',
+              'matchUID'
+            ],
+            populate: {
+              leaguePlayer1 : { fields: ['id', 'leagueName', 'faction'] },
+              leaguePlayer2 : { fields: ['id', 'leagueName', 'faction'] },
+              proposedBy : { fields: ['id', 'leagueName', 'faction'] },
+            }
+          }
         },
       } as any)
     });
@@ -175,7 +194,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         },
       },
     });
-    const league = rawLeague as any; // ✅ Cast to any
+    const league = rawLeague as any;
     if (!league) return ctx.notFound('League not found.');
     if (league.createdByUser?.id !== userId) {
       return ctx.unauthorized('Only the league admin can start the league.');
@@ -193,11 +212,12 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       matchPromises.push(
           strapi.documents('api::match.match').create({
             data: {
-              league: parseInt(leagueId),
-              league_player1: pair[0].id,
-              league_player2: pair[1].id,
+              league: league,
+              leaguePlayer1: pair[0],
+              leaguePlayer2: pair[1],
               score1: 0,
               score2: 0,
+              statusMatch: 'upcoming'
             }
           })
         );
