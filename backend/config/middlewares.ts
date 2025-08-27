@@ -6,6 +6,12 @@ export default [
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',
+
+  {
+    name: 'global::sanitize-null-password',
+    config: {},
+  },
+
   'strapi::session',
   'strapi::favicon',
   'strapi::public',

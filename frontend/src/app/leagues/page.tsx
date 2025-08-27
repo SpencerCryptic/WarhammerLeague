@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import React from 'react';
+import CreateLeagueButtonWrapper from '@/components/CLBWrapper';
+
+
 import qs from 'qs';
 
 function timeUntil(startDate: Date) {
@@ -38,39 +41,40 @@ export default async function Leagues({ searchParams }: { searchParams?: { gameS
   const leagues = await fetchLeagues(gameSystem);
 
   return (
-    <div>
-      <div className='flex items-center mb-10'>
-        <h1 className='text-6xl'>Leagues</h1>
+    <>
+      <div className="px-4 py-8 max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold">Leagues</h1>
+          <CreateLeagueButtonWrapper />
+        </div>
+
         <div className="ml-auto">
-        <form method="GET" action="/leagues" className="ml-auto flex items-center gap-2">
-  <select
-    name="gameSystem"
-    className="px-4 py-2 rounded bg-orange-600 text-white"
-    defaultValue={gameSystem}
-  >
-    <option value="">All Games</option>
-    <option value="Warhammer: 40,000">Warhammer: 40,000</option>
-    <option value="Warhammer: Age of Sigmar">Warhammer: Age of Sigmar</option>
-    <option value="Warhammer: Kill Team">Warhammer: Kill Team</option>
-    <option value="Warhammer: Warcry">Warhammer: Warcry</option>
-    <option value="Warhammer: Necromunda">Warhammer: Necromunda</option>
-    <option value="A Song of Ice and Fire">A Song of Ice and Fire</option>
-    <option value="Middle Earth SBG">Middle Earth SBG</option>
-    <option value="Marvel Crisis Protocol">Marvel Crisis Protocol</option>
-    <option value="Conquest">Conquest</option>
-  </select>
-  <button
-    type="submit"
-    className="px-3 py-2 rounded bg-orange-700 text-white"
-  >
-    Filter
-  </button>
-</form>
-
-</div>
-
+          <form method="GET" action="/leagues" className="ml-auto flex items-center gap-2">
+            <select
+              name="gameSystem"
+              className="px-4 py-2 rounded bg-orange-600 text-white"
+              defaultValue={gameSystem}
+            >
+              <option value="">All Games</option>
+              <option value="Warhammer: 40,000">Warhammer: 40,000</option>
+              <option value="Warhammer: Age of Sigmar">Warhammer: Age of Sigmar</option>
+              <option value="Warhammer: Kill Team">Warhammer: Kill Team</option>
+              <option value="Warhammer: Warcry">Warhammer: Warcry</option>
+              <option value="Warhammer: Necromunda">Warhammer: Necromunda</option>
+              <option value="A Song of Ice and Fire">A Song of Ice and Fire</option>
+              <option value="Middle Earth SBG">Middle Earth SBG</option>
+              <option value="Marvel Crisis Protocol">Marvel Crisis Protocol</option>
+              <option value="Conquest">Conquest</option>
+            </select>
+            <button
+              type="submit"
+              className="px-3 py-2 rounded bg-orange-700 text-white"
+            >
+              Filter
+            </button>
+          </form>
+        </div>
       </div>
-
       <div className="grid grid-cols-1 grid-rows-1 md:grid-cols-3">
         {leagues.data.map((league: any) => (
           <div key={league.documentId}>
@@ -95,6 +99,6 @@ export default async function Leagues({ searchParams }: { searchParams?: { gameS
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
