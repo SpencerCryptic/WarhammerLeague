@@ -2,6 +2,32 @@ export default {
     routes: [
       {
         method: 'GET',
+        path: '/leagues/dashboard',
+        handler: 'league.dashboard',
+        config: {
+          auth: false,
+        },
+      },
+      {
+        method: 'GET',
+        path: '/leagues/store-events',
+        handler: 'league.storeEvents',
+        config: {
+          auth: false,
+        },
+      },
+      {
+        method: 'GET',
+        path: '/leagues/user-leagues',
+        handler: 'league.userLeagues',
+        config: {
+          auth: {
+            required: true,
+          },
+        },
+      },
+      {
+        method: 'GET',
         path: '/leagues',
         handler: 'league.find',
         config: {

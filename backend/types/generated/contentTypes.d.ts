@@ -107,6 +107,43 @@ export interface AdminApiTokenPermission extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface AdminAuditLog extends Struct.CollectionTypeSchema {
+  collectionName: 'strapi_audit_logs';
+  info: {
+    displayName: 'Audit Log';
+    pluralName: 'audit-logs';
+    singularName: 'audit-log';
+  };
+  options: {
+    draftAndPublish: false;
+    timestamps: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    action: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'admin::audit-log'> &
+      Schema.Attribute.Private;
+    payload: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<'oneToOne', 'admin::user'>;
+  };
+}
+
 export interface AdminPermission extends Struct.CollectionTypeSchema {
   collectionName: 'admin_permissions';
   info: {
@@ -397,9 +434,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     >;
     goodFaithAccepted: Schema.Attribute.Boolean;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
-    leagueName: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    leagueName: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -479,6 +514,21 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    rulesetType: Schema.Attribute.Enumeration<
+      ['cryptic_cabin_standard', 'custom']
+    > &
+      Schema.Attribute.DefaultTo<'custom'>;
+    scoringRules: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<{
+        bonusPoints: {
+          lostButScored50Percent: 1;
+          scoredAllPrimaryObjectives: 1;
+        };
+        gameDrawn: 2;
+        gameLost: 0;
+        gameWon: 4;
+        maxPointsPerGame: 5;
+      }>;
     startDate: Schema.Attribute.DateTime;
     statusleague: Schema.Attribute.Enumeration<
       ['planned', 'ongoing', 'completed']
@@ -509,6 +559,13 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer1BonusPoints: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<{
+        lostButScored50Percent: false;
+        scoredAllPrimaryObjectives: false;
+      }>;
+    leaguePlayer1LeaguePoints: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     leaguePlayer1List: Schema.Attribute.Text;
     leaguePlayer1Result: Schema.Attribute.Integer;
     leaguePlayer1Score: Schema.Attribute.Integer;
@@ -516,12 +573,23 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer2BonusPoints: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<{
+        lostButScored50Percent: false;
+        scoredAllPrimaryObjectives: false;
+      }>;
+    leaguePlayer2LeaguePoints: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     leaguePlayer2List: Schema.Attribute.Text;
     leaguePlayer2Result: Schema.Attribute.Integer;
     leaguePlayer2Score: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
+    matchResult: Schema.Attribute.Enumeration<
+      ['player1_win', 'player2_win', 'draw', 'unplayed']
+    > &
+      Schema.Attribute.DefaultTo<'unplayed'>;
     matchUID: Schema.Attribute.UID;
     proposalStatus: Schema.Attribute.Enumeration<
       ['Pending', 'Accepted', 'Rejected']
@@ -1092,6 +1160,7 @@ declare module '@strapi/strapi' {
     export interface ContentTypeSchemas {
       'admin::api-token': AdminApiToken;
       'admin::api-token-permission': AdminApiTokenPermission;
+      'admin::audit-log': AdminAuditLog;
       'admin::permission': AdminPermission;
       'admin::role': AdminRole;
       'admin::transfer-token': AdminTransferToken;

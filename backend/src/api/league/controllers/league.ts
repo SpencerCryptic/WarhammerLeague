@@ -2,6 +2,69 @@ import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
 
+  async dashboard(ctx) {
+    try {
+      // Fetch upcoming leagues (planned status, limit 3)
+      const upcomingLeagues = await strapi.documents('api::league.league').findMany({
+        filters: { statusleague: 'planned' },
+        limit: 3,
+        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem'],
+        populate: {
+          createdByUser: { fields: ['username'] }
+        }
+      });
+
+      // Fetch current/ongoing leagues (ongoing status, limit 3)
+      const currentLeagues = await strapi.documents('api::league.league').findMany({
+        filters: { statusleague: 'ongoing' },
+        limit: 3,
+        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem'],
+        populate: {
+          createdByUser: { fields: ['username'] },
+          league_players: {
+            fields: ['leagueName'],
+            populate: {
+              player: { fields: ['name'] }
+            }
+          }
+        }
+      });
+
+      // Fetch top players (sorted by points, limit 3)
+      const topPlayers = await strapi.documents('api::league-player.league-player').findMany({
+        limit: 3,
+        sort: ['rankingPoints:desc'],
+        fields: ['leagueName', 'faction', 'wins', 'losses', 'draws', 'rankingPoints'],
+        populate: {
+          league: { fields: ['gameSystem'] }
+        }
+      });
+
+      // Get league stats
+      const totalLeagues = await strapi.documents('api::league.league').count({});
+      const activeLeagues = await strapi.documents('api::league.league').count({
+        filters: { statusleague: 'ongoing' }
+      });
+      const totalPlayers = await strapi.documents('api::league-player.league-player').count({});
+
+      ctx.body = {
+        data: {
+          upcomingLeagues,
+          currentLeagues,
+          topPlayers,
+          stats: {
+            totalLeagues,
+            activeLeagues,
+            totalPlayers
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      return ctx.badRequest(`Failed to fetch dashboard data: ${error.message}`);
+    }
+  },
+
   async create(ctx) {
     const userId = ctx.state.user?.id;
     if (!userId) {
@@ -59,14 +122,26 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       return ctx.unauthorized('User not authenticated');
     }
 
-    const [player] = await strapi.documents('api::player.player').findMany({
+    // Find or create a player record for this user
+    let [player] = await strapi.documents('api::player.player').findMany({
       filters: { user: { id: userId } }
     });
+    
     if (!player) {
-      return ctx.badRequest('No player linked to this user');
+      // Create a player record for this user
+      console.log('🔍 Creating player record for user:', userId);
+      player = await strapi.documents('api::player.player').create({
+        data: {
+          user: userId,
+          name: `Player${userId}`, // Default name, user can update later
+          email: ctx.state.user.email || `player${userId}@example.com`
+        }
+      });
+      console.log('✅ Created player record:', player.documentId);
     }
 
-    const [leaguePlayer] = await strapi.documents('api::league-player.league-player').findMany({
+    // Check if player has already joined this league
+    const [existingPlayer] = await strapi.documents('api::league-player.league-player').findMany({
       filters: {
         $and: [
           { player: { documentId: player.documentId } },
@@ -74,8 +149,21 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         ]
       }
     });
-    if (leaguePlayer) {
+    if (existingPlayer) {
       return ctx.badRequest('You have already joined this league');
+    }
+
+    // Check if league name is already taken in this specific league
+    const [existingLeagueName] = await strapi.documents('api::league-player.league-player').findMany({
+      filters: {
+        $and: [
+          { leagueName: leagueName },
+          { league: { documentId: leagueId } },
+        ]
+      }
+    });
+    if (existingLeagueName) {
+      return ctx.badRequest('This league name is already taken in this league. Please choose a different name.');
     }
 
     await strapi.documents('api::league-player.league-player').create({
@@ -175,7 +263,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {
-            fields: ['faction'],
+            fields: ['faction', 'leagueName', 'wins', 'draws', 'losses', 'rankingPoints'],
             populate: {
               player: { fields: ['id', 'name'] },
               league: { fields: ['id'] }
@@ -281,5 +369,281 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     console.error('❌ Error starting league:', error);
     return ctx.badRequest(`Failed to start league: ${error.message}`);
   }
-}
+},
+
+  async storeEvents(ctx) {
+    console.log('🔍 Store events endpoint called');
+    
+    try {
+      let storeEvents = [];
+      
+      try {
+        console.log('🔍 Attempting to fetch from Mahina API...');
+        
+        const response = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://crypticcabin.com/',
+            'Origin': 'https://crypticcabin.com',
+          },
+          body: JSON.stringify({
+            "shop": "cryptic-cabin.myshopify.com",
+            "selectedEventId": null,
+            "selectedRecurringDate": null,
+            "page": 1
+          }),
+          signal: AbortSignal.timeout(10000) // 10 second timeout
+        });
+
+        console.log(`🔍 Mahina API Response: ${response.status} ${response.statusText}`);
+
+        if (response.ok) {
+          const mahinaData = await response.json();
+          storeEvents = transformMahinaEvents(mahinaData);
+          console.log(`✅ Successfully processed ${storeEvents.length} events from Mahina`);
+          
+          // Sort events by date (earliest first)
+          storeEvents.sort((a, b) => {
+            const dateA = new Date(a.date || '9999-12-31');
+            const dateB = new Date(b.date || '9999-12-31');
+            return dateA.getTime() - dateB.getTime();
+          });
+        } else {
+          const errorText = await response.text();
+          console.warn(`❌ Mahina API failed: ${response.status} ${response.statusText}`);
+          console.warn(`❌ Response: ${errorText.substring(0, 200)}${errorText.length > 200 ? '...' : ''}`);
+          throw new Error(`Mahina API returned ${response.status}: ${response.statusText}`);
+        }
+      } catch (apiError) {
+        if (apiError.name === 'AbortError') {
+          console.warn('❌ Mahina API request timed out');
+        } else if (apiError.code === 'ENOTFOUND') {
+          console.warn('❌ Could not connect to Mahina API - DNS/network issue');
+        } else {
+          console.warn('❌ Mahina API error:', apiError.message);
+        }
+        
+        // Return empty array with proper success response
+        storeEvents = [];
+      }
+
+      // Always return a successful response with data array
+      ctx.body = {
+        data: storeEvents.slice(0, 5), // Limit to 5 events
+        meta: {
+          source: storeEvents.length > 0 ? 'mahina' : 'empty',
+          count: storeEvents.length,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('❌ Critical error in storeEvents controller:', error);
+      
+      // Return empty array instead of error to prevent frontend breaking
+      ctx.body = {
+        data: [],
+        meta: {
+          source: 'error',
+          error: error.message,
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+  },
+
+  async userLeagues(ctx) {
+    console.log('🔍 User leagues endpoint called');
+    const userId = ctx.state.user?.id;
+    console.log('🔍 User ID:', userId);
+    
+    if (!userId) {
+      console.log('❌ No user ID found');
+      return ctx.unauthorized('User not authenticated');
+    }
+
+    try {
+      // For now, return a simple response to test if the endpoint works
+      ctx.body = {
+        data: [],
+        debug: {
+          userId: userId,
+          message: 'User leagues endpoint working'
+        }
+      };
+    } catch (error) {
+      console.error('❌ Error in userLeagues:', error);
+      return ctx.badRequest(`Failed to fetch user leagues: ${error.message}`);
+    }
+  },
+
 }));
+
+// Helper functions outside the controller
+function transformMahinaEvents(mahinaData: any) {
+    try {
+      console.log('🔍 Raw Mahina response structure:', JSON.stringify(mahinaData, null, 2));
+      
+      // Handle different possible response structures
+      let events = [];
+      if (mahinaData?.events) {
+        events = mahinaData.events;
+      } else if (mahinaData?.data?.events) {
+        events = mahinaData.data.events;
+      } else if (Array.isArray(mahinaData)) {
+        events = mahinaData;
+      } else if (mahinaData?.results) {
+        events = mahinaData.results;
+      } else {
+        console.warn('❌ Unexpected Mahina response structure:', Object.keys(mahinaData || {}));
+        return [];
+      }
+
+      console.log(`🔍 Processing ${events.length} events from Mahina`);
+
+      return events.map((event: any, index: number) => {
+        try {
+          // More flexible field mapping
+          const title = event.title || event.name || event.summary || `Event ${index + 1}`;
+          
+          // Clean HTML from description and truncate properly
+          let description = event.description || event.summary || event.details || 'Join us for this exciting gaming event!';
+          // Strip HTML tags for cleaner display
+          description = description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          // Truncate with proper word boundaries
+          if (description.length > 150) {
+            description = description.substring(0, 147).trim() + '...';
+          }
+          
+          // Try multiple possible date fields
+          const rawDate = event.startDate || event.start_time || event.start || event.date || event.dateTime;
+          const date = formatEventDate(rawDate);
+          
+          // Try multiple location field patterns
+          const locationName = event.location?.name || event.venue?.name || event.venue || event.location || '';
+          const location = determineLocation(locationName);
+          
+          // Use tags from Mahina API for more accurate categorization
+          const gameType = determineGameTypeFromTags(event.tags, title, description);
+          const color = getColorForGameType(gameType);
+
+          const processedEvent = {
+            title: title,
+            date: date,
+            location: location,
+            description: description,
+            color: color,
+            gameType: gameType
+          };
+
+          console.log(`✅ Processed event: ${processedEvent.title} - ${processedEvent.date} - ${processedEvent.location} (${processedEvent.gameType})`);
+          return processedEvent;
+        } catch (eventError) {
+          console.warn(`❌ Error processing event ${index}:`, eventError, event);
+          return null;
+        }
+      }).filter(Boolean); // Remove null events
+    } catch (error) {
+      console.error('❌ Error transforming Mahina events:', error);
+      return [];
+    }
+}
+
+function determineGameTypeFromTags(tags: any[], title: string, description: string) {
+    // Use Mahina tags for primary categorization
+    if (tags && Array.isArray(tags)) {
+      const tagTitles = tags.map(tag => tag.title?.toLowerCase()).filter(Boolean);
+      
+      // Check for specific tag-based categories
+      if (tagTitles.includes('tcg')) {
+        return 'TCG';
+      }
+      if (tagTitles.includes('class')) {
+        return 'Workshop';
+      }
+      if (tagTitles.includes('table top game')) {
+        return 'Table Top Game';
+      }
+    }
+    
+    // Fallback to content-based detection if no matching tags
+    return determineGameType(title, description);
+}
+
+function determineGameType(title: string, description: string) {
+    const text = (title + ' ' + description).toLowerCase();
+    
+    // TCG detection - more comprehensive
+    if (text.includes('pokemon') || text.includes('pokémon') || text.includes('mtg') || 
+        text.includes('magic') || text.includes('flesh') || text.includes('blood') ||
+        text.includes('yu-gi-oh') || text.includes('yugioh') || text.includes('final fantasy') ||
+        text.includes('tcg') || text.includes('draft') || text.includes('booster')) {
+      return 'TCG';
+    }
+    
+    // Workshop/Class detection
+    if (text.includes('paint') || text.includes('class') || text.includes('workshop') || 
+        text.includes('learn') || text.includes('miniatures') || text.includes('faces 101')) {
+      return 'Workshop';
+    }
+    
+    // Miniatures games detection
+    if (text.includes('warhammer') || text.includes('40k') || text.includes('aos') || 
+        text.includes('song of ice') || text.includes('fire') || text.includes('miniature')) {
+      return 'Miniatures';
+    }
+    
+    // Board games detection
+    if (text.includes('board game') || text.includes('social')) {
+      return 'Board Games';
+    }
+    
+    return 'Mixed';
+}
+
+function determineLocation(venue: string) {
+    const venueText = venue.toLowerCase();
+    if (venueText.includes('bristol')) return 'Bristol';
+    if (venueText.includes('bracknell')) return 'Bracknell';
+    return 'Bristol'; // Default to Bristol
+}
+
+function formatEventDate(dateString: string) {
+    try {
+      if (!dateString) return 'Date TBD';
+      
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Date TBD';
+      }
+      
+      const options: Intl.DateTimeFormatOptions = { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Europe/London'  // Match the timezone from Mahina
+      };
+      return date.toLocaleDateString('en-US', options);
+    } catch (error) {
+      return 'Date TBD';
+    }
+}
+
+function getColorForGameType(gameType: string) {
+    const colorMap = {
+      'TCG': 'blue-500',
+      'Miniatures': 'green-500',
+      'Workshop': 'orange-500',
+      'Table Top Game': 'purple-500',
+      'Board Games': 'purple-500',
+      'Mixed': 'gray-500'
+    };
+    return colorMap[gameType as keyof typeof colorMap] || 'gray-500';
+}
