@@ -329,28 +329,33 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   }
 
   const matchPromises = [];
-  const pairs = leaguePlayers.map( (v, i) => leaguePlayers.slice(i + 1).map(w => [v, w]) ).flat();
+  const numPlayers = leaguePlayers.length;
+  const rounds = generateRoundRobinSchedule(leaguePlayers);
   
-  console.log('🔍 Creating matches for pairs:', pairs);
+  console.log('🔍 Generated', rounds.length, 'rounds for', numPlayers, 'players');
 
-  pairs.forEach((pair: any) => {
-    console.log('🔍 Creating match between:', pair[0].documentId, 'and', pair[1].documentId);
+  rounds.forEach((roundMatches, roundIndex) => {
+    const roundNumber = roundIndex + 1;
     
-    matchPromises.push(
-        strapi.documents('api::match.match').create({
-          data: {
-            // ✅ Fixed: Use documentId directly, not parseInt
-            league: leagueId,
-            // ✅ Fixed: Use correct field names from schema
-            leaguePlayer1: pair[0].documentId,
-            leaguePlayer2: pair[1].documentId,
-            // ✅ Fixed: Remove score fields that don't exist in schema
-            leaguePlayer1Score: 0,
-            leaguePlayer2Score: 0,
-            statusMatch: 'upcoming'
-          }
-        })
-      );
+    roundMatches.forEach((match) => {
+      if (match.player1 && match.player2) {
+        console.log('🔍 Creating match for round', roundNumber, ':', match.player1.leagueName, 'vs', match.player2.leagueName);
+        
+        matchPromises.push(
+          strapi.documents('api::match.match').create({
+            data: {
+              league: leagueId,
+              leaguePlayer1: match.player1.documentId,
+              leaguePlayer2: match.player2.documentId,
+              leaguePlayer1Score: 0,
+              leaguePlayer2Score: 0,
+              statusMatch: 'upcoming',
+              round: roundNumber
+            }
+          })
+        );
+      }
+    });
   });
 
   try {
@@ -646,4 +651,48 @@ function getColorForGameType(gameType: string) {
       'Mixed': 'gray-500'
     };
     return colorMap[gameType as keyof typeof colorMap] || 'gray-500';
+}
+
+function generateRoundRobinSchedule(players: any[]) {
+  const numPlayers = players.length;
+  const rounds = [];
+  
+  if (numPlayers < 2) return rounds;
+  
+  let playerList = [...players];
+  
+  if (numPlayers % 2 === 1) {
+    playerList.push(null);
+  }
+  
+  const numRounds = playerList.length - 1;
+  const matchesPerRound = playerList.length / 2;
+  
+  for (let round = 0; round < numRounds; round++) {
+    const roundMatches = [];
+    
+    for (let match = 0; match < matchesPerRound; match++) {
+      const player1Index = match;
+      const player2Index = playerList.length - 1 - match;
+      
+      const player1 = playerList[player1Index];
+      const player2 = playerList[player2Index];
+      
+      if (player1 && player2) {
+        roundMatches.push({
+          player1,
+          player2
+        });
+      }
+    }
+    
+    rounds.push(roundMatches);
+    
+    const fixed = playerList[0];
+    const rotating = playerList.slice(1);
+    rotating.unshift(rotating.pop());
+    playerList = [fixed, ...rotating];
+  }
+  
+  return rounds;
 }

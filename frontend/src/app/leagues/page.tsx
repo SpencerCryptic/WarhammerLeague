@@ -31,8 +31,16 @@ const fetchLeagues = async (gameSystem?: string) => {
   const url = `http://localhost:1337/api/leagues${gameSystem ? `?${query}` : ''}`;
   console.log('Fetching:', url); // optional
 
-  const res = await fetch(url);
-  return await res.json();
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to fetch leagues:', error);
+    return { data: [] };
+  }
 };
 
 

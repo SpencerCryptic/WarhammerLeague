@@ -257,13 +257,19 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     if (!leaguePlayer) return ctx.badRequest('No LeaguePlayer found for this user');
     const isPlayerInMatch = [match.leaguePlayer1.id, match.leaguePlayer2.id].includes(leaguePlayer.id);
     if (!isPlayerInMatch) return ctx.unauthorized('You are not a participant in this match');
-    const updateData = action === 'accept'
-    ? { proposalStatus: 'Accepted' as 'Accepted' }
-    : {
-        proposalStatus: 'Rejected' as 'Rejected',
+    let updateData: any;
+    if (action === 'accept') {
+      updateData = { 
+        proposalStatus: 'Accepted'
+      };
+    } else {
+      updateData = {
+        proposalStatus: 'Rejected',
         proposalTimestamp: null,
         proposedBy: null,
       };
+    }
+    
     const updatedMatch = await strapi.documents('api::match.match').update({
       documentId: matchId,
       data: updateData,

@@ -405,7 +405,6 @@ export interface ApiLeaguePlayerLeaguePlayer
     > &
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
-    match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     playList: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
@@ -554,15 +553,8 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'unplayed'>;
     matchUID: Schema.Attribute.UID;
-    proposalStatus: Schema.Attribute.Enumeration<
-      ['Pending', 'Accepted', 'Rejected']
-    >;
-    proposalTimestamp: Schema.Attribute.DateTime;
-    proposedBy: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::league-player.league-player'
-    >;
     publishedAt: Schema.Attribute.DateTime;
+    round: Schema.Attribute.Integer;
     statusMatch: Schema.Attribute.Enumeration<
       ['upcoming', 'planned', 'played', 'abandoned']
     >;

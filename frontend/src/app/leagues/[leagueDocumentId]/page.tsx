@@ -4,18 +4,40 @@ import LeagueAdminControls from '@/components/LeagueAdminControls';
 import JoinLeagueButton from '@/components/JoinLeagueButton';
 
 const getLeague = async (documentId: string) => {
-  const response = await fetch(`http://localhost:1337/api/leagues/${documentId}`);
+  try {
+    const response = await fetch(`http://localhost:1337/api/leagues/${documentId}`);
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch league");
+    if (!response.ok) {
+      console.error(`Failed to fetch league: ${response.status}`);
+      return { data: null };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch league:', error);
+    return { data: null };
   }
-
-  return await response.json();
 };
 
 const League = async ({ params }: { params: any }) => {
   const { leagueDocumentId } = params;
   const league = await getLeague(leagueDocumentId);
+
+  if (!league.data) {
+    return (
+      <div className="w-full">
+        <div className="bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-800 rounded-xl shadow-lg p-8 mb-6">
+          <h2 className="text-2xl font-bold text-red-800 dark:text-red-300 mb-4">League Not Found</h2>
+          <p className="text-red-600 dark:text-red-400">
+            Unable to load league data. This could be because the league doesn't exist or the server is not available.
+          </p>
+          <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+            Please check that the backend server is running and try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

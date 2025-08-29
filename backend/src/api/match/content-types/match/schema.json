@@ -57,23 +57,6 @@
     "leaguePlayer2Result": {
       "type": "integer"
     },
-    "proposedBy": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::league-player.league-player",
-      "mappedBy": "match"
-    },
-    "proposalStatus": {
-      "type": "enumeration",
-      "enum": [
-        "Pending",
-        "Accepted",
-        "Rejected"
-      ]
-    },
-    "proposalTimestamp": {
-      "type": "datetime"
-    },
     "matchUID": {
       "type": "uid"
     },
@@ -101,13 +84,16 @@
     },
     "matchResult": {
       "type": "enumeration",
+      "default": "unplayed",
       "enum": [
         "player1_win",
         "player2_win",
         "draw",
         "unplayed"
-      ],
-      "default": "unplayed"
+      ]
+    },
+    "round": {
+      "type": "integer"
     }
   }
 }
