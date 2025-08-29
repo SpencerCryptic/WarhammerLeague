@@ -15,7 +15,8 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
     format: '',
     startDate: '',
     leaguePassword: '',
-    statusleague: 'upcoming'
+    statusleague: 'upcoming',
+    rulesetType: 'cryptic_cabin_standard'
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,22 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
     { value: 'double_elimination', label: 'Double Elimination' },
     { value: 'group_to_elimination', label: 'Group to Elimination' }
   ];
+
+  const rulesetOptions = [
+    { value: 'cryptic_cabin_standard', label: 'Cryptic Cabin Standard' },
+    { value: 'custom', label: 'Custom Rules' }
+  ];
+
+  const getCrypticCabinScoring = () => ({
+    gameWon: 4,
+    gameDrawn: 2,
+    gameLost: 0,
+    bonusPoints: {
+      lostButScored50Percent: 1,
+      scoredAllPrimaryObjectives: 1
+    },
+    maxPointsPerGame: 5
+  });
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -64,7 +81,20 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
           type: 'paragraph',
           children: [{ type: 'text', text: formData.description }]
         }
-      ] : []
+      ] : [],
+      // Add scoring rules based on ruleset type
+      scoringRules: formData.rulesetType === 'cryptic_cabin_standard' 
+        ? getCrypticCabinScoring() 
+        : {
+            gameWon: 3,
+            gameDrawn: 1,
+            gameLost: 0,
+            bonusPoints: {
+              lostButScored50Percent: 0,
+              scoredAllPrimaryObjectives: 0
+            },
+            maxPointsPerGame: 3
+          }
     };
 
     console.log('🔍 Sending data:', requestData); // Debug log
@@ -92,7 +122,8 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
         format: '',
         startDate: '',
         leaguePassword: '',
-        statusleague: 'planned'
+        statusleague: 'planned',
+        rulesetType: 'cryptic_cabin_standard'
       });
       
       onClose();
@@ -185,6 +216,37 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Scoring Rules *
+            </label>
+            <select
+              name="rulesetType"
+              value={formData.rulesetType}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              {rulesetOptions.map((ruleset) => (
+                <option key={ruleset.value} value={ruleset.value}>
+                  {ruleset.label}
+                </option>
+              ))}
+            </select>
+            {formData.rulesetType === 'cryptic_cabin_standard' && (
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md text-sm text-blue-700 dark:text-blue-300">
+                <strong>Cryptic Cabin Standard:</strong>
+                <ul className="mt-1 space-y-1">
+                  <li>• Win: 4 points</li>
+                  <li>• Draw: 2 points</li>
+                  <li>• Loss: 0 points</li>
+                  <li>• +1 bonus: Lost but scored 50%+ of opponent's points</li>
+                  <li>• +1 bonus: Scored all primary objectives on 3+ turns</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           <div>

@@ -4,6 +4,16 @@ export default {
   routes: [
     {
       method: 'GET',
+      path: '/matches/user',
+      handler: 'match.userMatches',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
+    },
+    {
+      method: 'GET',
       path: '/matches',
       handler: 'match.find',
       config: {
@@ -52,11 +62,6 @@ export default {
       method: 'POST',
       path: '/matches/:id/submit',
       handler: 'match.submit',
-      config: {
-        auth: {
-          required: true,
-        },
-      },
     },
     {
       method: 'POST',

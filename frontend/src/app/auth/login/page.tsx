@@ -58,10 +58,15 @@ const LoginPage = () => {
         >
           Sign In
         </button>
-        <p className="text-sm text-gray-400 text-center">
-          Don't have an account?{' '}
-          <a href="/auth/register" className="text-orange-400 hover:underline">Register</a>
-        </p>
+        <div className="text-center space-y-2">
+          <p className="text-sm text-gray-400">
+            <a href="/auth/forgot-password" className="text-orange-400 hover:underline">Forgot your password?</a>
+          </p>
+          <p className="text-sm text-gray-400">
+            Don't have an account?{' '}
+            <a href="/auth/register" className="text-orange-400 hover:underline">Register</a>
+          </p>
+        </div>
       </form>
     </AuthCard>
   );

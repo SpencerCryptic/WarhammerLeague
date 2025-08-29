@@ -76,6 +76,38 @@
     },
     "matchUID": {
       "type": "uid"
+    },
+    "leaguePlayer1BonusPoints": {
+      "type": "json",
+      "default": {
+        "lostButScored50Percent": false,
+        "scoredAllPrimaryObjectives": false
+      }
+    },
+    "leaguePlayer2BonusPoints": {
+      "type": "json",
+      "default": {
+        "lostButScored50Percent": false,
+        "scoredAllPrimaryObjectives": false
+      }
+    },
+    "leaguePlayer1LeaguePoints": {
+      "type": "integer",
+      "default": 0
+    },
+    "leaguePlayer2LeaguePoints": {
+      "type": "integer",
+      "default": 0
+    },
+    "matchResult": {
+      "type": "enumeration",
+      "enum": [
+        "player1_win",
+        "player2_win",
+        "draw",
+        "unplayed"
+      ],
+      "default": "unplayed"
     }
   }
 }

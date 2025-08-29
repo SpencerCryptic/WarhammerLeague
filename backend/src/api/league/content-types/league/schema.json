@@ -73,6 +73,27 @@
         "double_elimination",
         "group_to_elimination"
       ]
+    },
+    "scoringRules": {
+      "type": "json",
+      "default": {
+        "gameWon": 4,
+        "gameDrawn": 2,
+        "gameLost": 0,
+        "bonusPoints": {
+          "lostButScored50Percent": 1,
+          "scoredAllPrimaryObjectives": 1
+        },
+        "maxPointsPerGame": 5
+      }
+    },
+    "rulesetType": {
+      "type": "enumeration",
+      "enum": [
+        "cryptic_cabin_standard",
+        "custom"
+      ],
+      "default": "custom"
     }
   }
 }
