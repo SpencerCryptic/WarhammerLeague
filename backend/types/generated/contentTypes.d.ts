@@ -107,43 +107,6 @@ export interface AdminApiTokenPermission extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface AdminAuditLog extends Struct.CollectionTypeSchema {
-  collectionName: 'strapi_audit_logs';
-  info: {
-    displayName: 'Audit Log';
-    pluralName: 'audit-logs';
-    singularName: 'audit-log';
-  };
-  options: {
-    draftAndPublish: false;
-    timestamps: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    action: Schema.Attribute.String & Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    date: Schema.Attribute.DateTime & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'admin::audit-log'> &
-      Schema.Attribute.Private;
-    payload: Schema.Attribute.JSON;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<'oneToOne', 'admin::user'>;
-  };
-}
-
 export interface AdminPermission extends Struct.CollectionTypeSchema {
   collectionName: 'admin_permissions';
   info: {
@@ -442,7 +405,6 @@ export interface ApiLeaguePlayerLeaguePlayer
     > &
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
-    match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
     playList: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
@@ -591,15 +553,8 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'unplayed'>;
     matchUID: Schema.Attribute.UID;
-    proposalStatus: Schema.Attribute.Enumeration<
-      ['Pending', 'Accepted', 'Rejected']
-    >;
-    proposalTimestamp: Schema.Attribute.DateTime;
-    proposedBy: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::league-player.league-player'
-    >;
     publishedAt: Schema.Attribute.DateTime;
+    round: Schema.Attribute.Integer;
     statusMatch: Schema.Attribute.Enumeration<
       ['upcoming', 'planned', 'played', 'abandoned']
     >;
@@ -1160,7 +1115,6 @@ declare module '@strapi/strapi' {
     export interface ContentTypeSchemas {
       'admin::api-token': AdminApiToken;
       'admin::api-token-permission': AdminApiTokenPermission;
-      'admin::audit-log': AdminAuditLog;
       'admin::permission': AdminPermission;
       'admin::role': AdminRole;
       'admin::transfer-token': AdminTransferToken;
