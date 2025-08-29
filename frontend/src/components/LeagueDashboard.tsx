@@ -26,40 +26,52 @@ const LeagueDashboard = () => {
     </div>
   }
   return (
-    <div>
-       <h1 className='mb-20 text-6xl'>
-        {league['data']['name']}
-      </h1>
-      <ul className="flex max-w-6xl mt-4 mx-4 bg-white border border-gray-200 rounded-t-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-        <li className={`inline-block rounded-tl-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ease-linear transition-all duration-150 ${ selected==='' ? 'text-orange-500 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
-          <Link href={ '/leagues/' + documentId + '/' }>
-            <div className='p-4'>
+    <div className="mb-8">
+      <div className="max-w-6xl mx-4 mb-6">
+        <h1 className='text-5xl font-bold text-white'>
+          {league['data']['name']}
+        </h1>
+      </div>
+      <div className="max-w-6xl mx-4">
+        <div className="flex border-b border-gray-700">
+          <Link href={'/leagues/' + documentId + '/'}>
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+              selected === '' 
+                ? 'text-orange-400 border-orange-400' 
+                : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
+            }`}>
               Overview
-            </div>
+            </button>
           </Link>
-        </li>
-        <li className={`inline-block hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ease-linear transition-all duration-150 ${ selected==='matches' ? 'text-orange-500 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
-          <Link href={ '/leagues/' + documentId + '/matches'}>
-            <div className='p-4'>
+          <Link href={'/leagues/' + documentId + '/matches'}>
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+              selected === 'matches' 
+                ? 'text-orange-400 border-orange-400' 
+                : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
+            }`}>
               Matches
-            </div>
+            </button>
           </Link>
-        </li>
-        <li className={`inline-block hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ease-linear transition-all duration-150 ${ selected==='table' ? 'text-orange-500 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
-          <Link href={ '/leagues/' + documentId + '/table'}>
-            <div className='p-4'>
+          <Link href={'/leagues/' + documentId + '/table'}>
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+              selected === 'table' 
+                ? 'text-orange-400 border-orange-400' 
+                : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
+            }`}>
               Table
-            </div>
+            </button>
           </Link>
-        </li>
-        <li className={`inline-block hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ease-linear transition-all duration-150 ${ selected==='playerDetails' ? 'text-orange-500 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
-          <Link href={ '/leagues/' + documentId + '/playerDetails'}>
-            <div className='p-4'>
+          <Link href={'/leagues/' + documentId + '/playerDetails'}>
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+              selected === 'playerDetails' 
+                ? 'text-orange-400 border-orange-400' 
+                : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
+            }`}>
               Player Details
-            </div>
+            </button>
           </Link>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
    
   )

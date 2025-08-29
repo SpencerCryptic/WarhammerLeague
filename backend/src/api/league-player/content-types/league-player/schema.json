@@ -41,8 +41,7 @@
     },
     "leagueName": {
       "type": "string",
-      "required": true,
-      "unique": true
+      "required": true
     },
     "goodFaithAccepted": {
       "type": "boolean"
