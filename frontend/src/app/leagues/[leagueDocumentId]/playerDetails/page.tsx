@@ -1,8 +1,11 @@
+import PlayerDetailsComponent from '@/components/PlayerDetails'
 import React from 'react'
 
 const PlayerDetails = () => {
   return (
-    <div>PlayerDetails</div>
+    <div>
+      <PlayerDetailsComponent></PlayerDetailsComponent>
+    </div>
   )
 }
 

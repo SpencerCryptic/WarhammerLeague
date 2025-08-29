@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { use, useEffect, useRef, useState } from 'react'
+import { Match } from './MatchesDashboard';
 
 export interface LeaguePlayer {
   documentId: string,
@@ -17,6 +18,7 @@ export interface LeaguePlayer {
 const TableRow = () => {
   
   const [leaguePlayers, setLeaguePlayers] = useState<LeaguePlayer[]>([])
+  const [matches, setMatches] = useState<Match[]>([])
   const [activeList, setActiveList] = useState({id: '', list: ''})
   const [isLoading, setIsLoading] = useState(true)
   
@@ -25,12 +27,26 @@ const TableRow = () => {
       fetch(`http://localhost:1337/api/leagues/${documentId}`)
       .then((res) => res.json())
       .then((data) => {
+          setMatches(data.data.matches || [])
           const players = data.data.league_players || [];
-          // Sort players by points (wins * 3 + draws) descending
           const sortedPlayers = players.sort((a: LeaguePlayer, b: LeaguePlayer) => {
-            const aPoints = a.wins * 3 + a.draws;
-            const bPoints = b.wins * 3 + b.draws;
-            return bPoints - aPoints;
+            if (b.rankingPoints - a.rankingPoints != 0 ) {
+              return b.rankingPoints - a.rankingPoints;
+            }
+            let aVictoryPoints = 0
+            let bVictoryPoints = 0
+            data.data.matches.forEach((match: Match) => {
+              if (match.leaguePlayer1.documentId === a.documentId) {
+                aVictoryPoints += match.leaguePlayer1Score;
+              } else if (match.leaguePlayer2.documentId === a.documentId) {
+                aVictoryPoints += match.leaguePlayer2Score;
+              } else if (match.leaguePlayer2.documentId === b.documentId) {
+                bVictoryPoints += match.leaguePlayer2Score;
+              } else if (match.leaguePlayer2.documentId === b.documentId) {
+                bVictoryPoints += match.leaguePlayer2Score;
+              }
+            })
+            return bVictoryPoints - aVictoryPoints;
           });
           setLeaguePlayers(sortedPlayers);
           setIsLoading(false);
@@ -65,6 +81,18 @@ const TableRow = () => {
       case 3: return 'text-amber-600 font-bold';
       default: return 'text-gray-600 dark:text-gray-400 font-medium';
     }
+  }
+
+  const getVictoryPoints = (player: LeaguePlayer) => {
+    let victoryPoints = 0;
+    matches.forEach((match: Match) => {
+      if (match.leaguePlayer1.documentId === player.documentId) {
+        victoryPoints += match.leaguePlayer1Score;
+      } else if (match.leaguePlayer2.documentId === player.documentId) {
+        victoryPoints += match.leaguePlayer2Score;
+      }
+    });
+    return victoryPoints;
   }
 
   const getWinRate = (player: LeaguePlayer) => {
@@ -116,7 +144,7 @@ const TableRow = () => {
             {leaguePlayers.map((player: LeaguePlayer, index: number) => {
               const position = index + 1;
               const totalGames = player.wins + player.draws + player.losses;
-              const leaguePoints = player.wins * 3 + player.draws;
+              const victoryPoints = getVictoryPoints(player)
               const winRate = getWinRate(player);
               
               return (
@@ -159,7 +187,7 @@ const TableRow = () => {
                         <div className="text-xs text-gray-500 dark:text-gray-400">LOSSES</div>
                       </div>
                       <div>
-                        <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{player.rankingPoints}</div>
+                        <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{victoryPoints}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">VICTORY PTS</div>
                       </div>
                       <div>
@@ -171,7 +199,7 @@ const TableRow = () => {
                     {/* Right: Points & Actions */}
                     <div className="text-right">
                       <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {leaguePoints}
+                        {player.rankingPoints}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">LEAGUE POINTS</div>
                       <button 

@@ -170,35 +170,6 @@ const MatchesDashboard = () => {
   }
 
   return (
-<<<<<<< HEAD
-    <div>
-      {matches.map((match: Match) => (
-        <div key={match.documentId} className="m-4 p-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 transition-all duration-150">
-          <Link href={'/leagues/' + leagueDocumentId + '/matches/' + match.documentId}>
-            <ul>
-              <li className='pb-4'>
-                <p className='text-sm text-gray-400 capitalize'>{match.statusMatch}</p>
-                <p>{match.proposalTimestamp ? match.proposalTimestamp.toDateString() : ''}</p>
-              </li>
-              <li className='mx-4 pb-4'>
-                <div className='flex'>
-                  <p className='capitalize'>{match.leaguePlayer1.leagueName}</p>
-                  <p className={match.leaguePlayer1Result === 2 ? 'font-bold' : '' + 'ml-auto'}>{match.statusMatch.toString() === 'played' ? match.leaguePlayer1Score : ''}</p>              
-                </div>
-                <p className='text-xs text-gray-400'>{match.leaguePlayer1.faction}</p>
-              </li>
-              <li className='mx-4 pb-4'>
-                <div className='flex'>
-                  <p className='capitalize'>{match.leaguePlayer2.leagueName}</p>
-                  <p className={match.leaguePlayer2Result === 2 ? 'font-bold' : ''}>{match.statusMatch.toString() === 'played' ? match.leaguePlayer2Score: ''}</p>
-                </div>
-                <p className='text-xs text-gray-400'>{match.leaguePlayer2.faction}</p>
-              </li>
-            </ul>
-          </Link>
-        </div>
-      ))}
-=======
     <div className="space-y-8">
       <ScoreReportModal
         isOpen={scoreModalOpen}
@@ -309,7 +280,6 @@ const MatchesDashboard = () => {
           );
         })}
       </div>
->>>>>>> 6bad08262e1b25fd21b15de587143452f3151beb
     </div>
   )
 }
