@@ -3,5 +3,5 @@ export const hasRole = (user, roleName) => {
 };
 
 export const canCreateLeagues = (user) => {
-  return hasRole(user, 'LeagueCreator') || hasRole(user, 'leaguecreator');
+  return hasRole(user, 'Admin') || hasRole(user, 'LeagueCreator') || hasRole(user, 'leaguecreator');
 };

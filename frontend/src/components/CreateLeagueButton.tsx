@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { canCreateLeagues } from '../utils/roleUtils';
 import CreateLeagueModal from './CreateLeagueModal';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function CreateLeagueButton() {
   const [user, setUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -16,7 +18,7 @@ export default function CreateLeagueButton() {
 
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:1337/api/users/me?populate=role', {
+        const response = await fetch(`${API_URL}/api/users/me?populate=role`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         const userData = await response.json();
