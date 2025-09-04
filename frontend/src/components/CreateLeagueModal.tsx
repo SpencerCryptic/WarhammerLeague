@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface CreateLeagueModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -99,7 +101,7 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
 
     console.log('🔍 Sending data:', requestData); // Debug log
 
-    const response = await fetch('http://localhost:1337/api/leagues', {
+    const response = await fetch(`${API_URL}/api/leagues`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

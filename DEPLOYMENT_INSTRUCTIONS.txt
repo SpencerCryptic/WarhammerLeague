@@ -1,0 +1,93 @@
+DEPLOYMENT INSTRUCTIONS FOR WARHAMMER LEAGUE APPLICATION
+==========================================================
+
+This file contains step-by-step instructions to deploy the application to production.
+
+CURRENT PRODUCTION SETUP:
+- Backend: Strapi Cloud (https://accessible-positivity-e213bb2958.strapiapp.com)
+- Frontend: Netlify (https://quiet-jalebi-3957cf.netlify.app)
+- Custom Domain: leagues.crypticcabin.com (configured but SSL pending)
+
+STEP 1: PREPARE FRONTEND FOR DEPLOYMENT
+---------------------------------------
+1. Update frontend environment variable:
+   - Edit: /Users/spencerfagan/WarhammerLeague/frontend/.env
+   - Change: NEXT_PUBLIC_API_URL=http://localhost:1337
+   - To: NEXT_PUBLIC_API_URL=https://accessible-positivity-e213bb2958.strapiapp.com
+
+STEP 2: COMMIT AND PUSH CHANGES
+-------------------------------
+1. Git add and commit all changes:
+   git add .
+   git commit -m "Switch to production API URL for deployment"
+   git push origin main
+
+STEP 3: NETLIFY CONFIGURATION
+-----------------------------
+1. Ensure netlify.toml is present in repo root with:
+   [build]
+     base = "frontend"
+     command = "npm run build"
+   
+   [[plugins]]
+     package = "@netlify/plugin-nextjs"
+   
+   [build.environment]
+     NODE_VERSION = "18"
+
+2. In Netlify Dashboard (https://app.netlify.com):
+   - Site: quiet-jalebi-3957cf
+   - Environment Variables should have:
+     NEXT_PUBLIC_API_URL = https://accessible-positivity-e213bb2958.strapiapp.com
+   - Build settings should show:
+     Base directory: frontend
+     Build command: npm run build
+     Publish directory: (auto-detected by Next.js plugin)
+
+STEP 4: STRAPI BACKEND VERIFICATION
+----------------------------------
+1. Verify Strapi Cloud is running at:
+   https://accessible-positivity-e213bb2958.strapiapp.com/admin
+
+2. Ensure these roles exist with proper permissions:
+   - Admin role: Full CRUD permissions on League, Match, League-player
+   - Authenticated role: Read permissions, basic user functions
+
+STEP 5: CUSTOM DOMAIN SETUP (OPTIONAL)
+--------------------------------------
+1. In your DNS provider for crypticcabin.com:
+   - Add CNAME record: leagues → quiet-jalebi-3957cf.netlify.app
+   
+2. In Netlify Domain settings:
+   - Domain should show: leagues.crypticcabin.com
+   - Wait for SSL certificate provisioning (5-60 minutes)
+   - Enable "Force HTTPS" once SSL is ready
+
+STEP 6: TESTING DEPLOYMENT
+-------------------------
+1. Visit https://quiet-jalebi-3957cf.netlify.app
+2. Test user registration and login
+3. Assign Admin role to test user in Strapi
+4. Test league creation functionality
+5. Verify all API calls are working
+
+STEP 7: SWITCH BACK TO LOCAL DEVELOPMENT
+----------------------------------------
+When done with production testing, switch back to local:
+1. Edit: /Users/spencerfagan/WarhammerLeague/frontend/.env
+2. Change: NEXT_PUBLIC_API_URL=https://accessible-positivity-e213bb2958.strapiapp.com
+3. To: NEXT_PUBLIC_API_URL=http://localhost:1337
+4. Restart local development servers
+
+TROUBLESHOOTING
+--------------
+- If 404 errors: Check netlify.toml is in repo root
+- If API errors: Verify NEXT_PUBLIC_API_URL in Netlify environment variables
+- If auth issues: Check CORS settings in Strapi Cloud
+- If build fails: Check Next.js compatibility (ensure Suspense boundaries)
+
+IMPORTANT FILES:
+- netlify.toml (deployment config)
+- frontend/.env (environment variables)
+- frontend/src/utils/roleUtils.js (role permissions)
+- STRAPI_CLOUD_DEPLOYMENT.md (backend deployment guide)
