@@ -44,8 +44,9 @@ const fetchLeagues = async (gameSystem?: string) => {
 };
 
 
-export default async function Leagues({ searchParams }: { searchParams?: { gameSystem?: string } }) {
-  const gameSystem = searchParams?.gameSystem || '';
+export default async function Leagues({ searchParams }: { searchParams?: Promise<{ gameSystem?: string }> }) {
+  const params = await searchParams;
+  const gameSystem = params?.gameSystem || '';
   const leagues = await fetchLeagues(gameSystem);
 
   return (
