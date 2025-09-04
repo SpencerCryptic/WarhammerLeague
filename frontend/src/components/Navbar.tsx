@@ -45,7 +45,7 @@ const Navbar = () => {
             </li>
           ))}
 
-          {user && (
+          {user ? (
             <li className='relative group'>
               <button
                 onClick={() => setShowMenu((prev) => !prev)}
@@ -68,6 +68,25 @@ const Navbar = () => {
                 </div>
               )}
             </li>
+          ) : (
+            <>
+              <li className='mr-4'>
+                <Link 
+                  href='/auth/login'
+                  className='hover:text-orange-400 transition-all duration-150 px-3 py-1'
+                >
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href='/auth/register'
+                  className='bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-150'
+                >
+                  Register
+                </Link>
+              </li>
+            </>
           )}
         </ul>
       </div>

@@ -61,22 +61,24 @@ const RegisterPage = () => {
       const { jwt, user } = registerRes.data;
       const userId = user.id;
 
-      // Step 2: Update user with extra fields
-      await axios.put(
-        `${API_URL}/api/users/${userId}`,
-        {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth,
-          storeLocation: formData.storeLocation,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      );
+      // Step 2: Update user with extra fields using profile API
+      try {
+        await axios.put(
+          `${API_URL}/api/profile/update`,
+          {
+            userId: userId,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phoneNumber: formData.phoneNumber,
+            dateOfBirth: formData.dateOfBirth,
+            storeLocation: formData.storeLocation,
+          }
+        );
+        console.log('Profile data updated successfully');
+      } catch (profileError) {
+        console.warn('Profile update failed, but registration succeeded:', profileError);
+        // Don't fail registration if profile update fails
+      }
 
       localStorage.setItem('token', jwt);
       localStorage.setItem('user', JSON.stringify(user));

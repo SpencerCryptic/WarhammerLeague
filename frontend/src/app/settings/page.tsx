@@ -84,12 +84,15 @@ const Settings = () => {
     setMessage('');
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/api/users/${profile?.id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      await axios.put(`${API_URL}/api/profile/update-limited`, {
+        userId: profile?.id,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        storeLocation: formData.storeLocation,
       });
       
       setMessage('Profile updated successfully!');
+      await fetchProfile(); // Refresh the profile data
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
       setError(err?.response?.data?.error?.message || 'Failed to update profile');
@@ -212,10 +215,10 @@ const Settings = () => {
                 type="text"
                 name="username"
                 value={formData.username}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                disabled
+                className="w-full px-4 py-2 rounded-lg bg-gray-600 text-gray-400 border border-gray-600 cursor-not-allowed"
               />
+              <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
             </div>
             
             <div>
@@ -240,10 +243,10 @@ const Settings = () => {
                 type="text"
                 name="firstName"
                 value={formData.firstName}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                disabled
+                className="w-full px-4 py-2 rounded-lg bg-gray-600 text-gray-400 border border-gray-600 cursor-not-allowed"
               />
+              <p className="text-xs text-gray-500 mt-1">First name cannot be changed</p>
             </div>
             
             <div>
@@ -254,10 +257,10 @@ const Settings = () => {
                 type="text"
                 name="lastName"
                 value={formData.lastName}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                disabled
+                className="w-full px-4 py-2 rounded-lg bg-gray-600 text-gray-400 border border-gray-600 cursor-not-allowed"
               />
+              <p className="text-xs text-gray-500 mt-1">Last name cannot be changed</p>
             </div>
             
             <div>
@@ -282,10 +285,10 @@ const Settings = () => {
                 type="date"
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                disabled
+                className="w-full px-4 py-2 rounded-lg bg-gray-600 text-gray-400 border border-gray-600 cursor-not-allowed"
               />
+              <p className="text-xs text-gray-500 mt-1">Date of birth cannot be changed</p>
             </div>
             
             <div className="md:col-span-2">

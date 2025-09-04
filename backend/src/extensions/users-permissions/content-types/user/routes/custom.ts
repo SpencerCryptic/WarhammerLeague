@@ -11,8 +11,8 @@ export default {
       },
     },
     {
-      method: 'PUT',
-      path: '/user/profile',
+      method: 'POST',
+      path: '/user/update-profile',
       handler: 'user.updateProfile',
       config: {
         auth: {
