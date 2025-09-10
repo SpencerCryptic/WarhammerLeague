@@ -82,8 +82,11 @@ NEXT_PUBLIC_API_URL=https://your-project-name.strapi.app
 
 - ✅ User registration with profile data
 - ✅ Field-restricted profile updates (email, phone, store location)
-- ✅ League management system
-- ✅ Match tracking
+- ✅ League management system with OTP security
+- ✅ Match tracking with army list viewing
+- ✅ Army list management and viewing for completed games
+- ✅ Admin controls for league management
+- ✅ Modular leagues page with archived leagues section
 - ✅ Store events integration (Mahina API)
 - ✅ Role-based access control
 
