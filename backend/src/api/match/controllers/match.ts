@@ -54,8 +54,6 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     const rawMatch = await strapi.documents('api::match.match').findOne({
       documentId: id,
       fields: [
-        'proposalStatus',
-        'proposalTimestamp',
         'matchUID',
         'createdAt',
         'updatedAt',
@@ -66,7 +64,13 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         'leaguePlayer2Result',
         'statusMatch',
         'leaguePlayer1List',
-        'leaguePlayer2List'
+        'leaguePlayer2List',
+        'leaguePlayer1BonusPoints',
+        'leaguePlayer2BonusPoints',
+        'leaguePlayer1LeaguePoints',
+        'leaguePlayer2LeaguePoints',
+        'matchResult',
+        'round'
       ],
       populate: {
         leaguePlayer1: {
@@ -94,7 +98,9 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       leaguePlayer1Score, 
       leaguePlayer2Score,
       leaguePlayer1BonusPoints = { lostButScored50Percent: false, scoredAllPrimaryObjectives: false },
-      leaguePlayer2BonusPoints = { lostButScored50Percent: false, scoredAllPrimaryObjectives: false }
+      leaguePlayer2BonusPoints = { lostButScored50Percent: false, scoredAllPrimaryObjectives: false },
+      leaguePlayer1ArmyListId,
+      leaguePlayer2ArmyListId
     } = ctx.request.body;
 
     const userId = ctx.state.user?.id;
@@ -197,8 +203,10 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       data: { 
         leaguePlayer1Score,
         leaguePlayer2Score,
-        leaguePlayer1List: match.leaguePlayer1.playList,
-        leaguePlayer2List: match.leaguePlayer2.playList,
+        leaguePlayer1List: '',
+        leaguePlayer2List: '',
+        leaguePlayer1ArmyListId: leaguePlayer1ArmyListId || '',
+        leaguePlayer2ArmyListId: leaguePlayer2ArmyListId || '',
         leaguePlayer1Result: leaguePlayer1Score > leaguePlayer2Score ? 2 : leaguePlayer2Score > leaguePlayer1Score ? 0 : 1,
         leaguePlayer2Result: leaguePlayer2Score > leaguePlayer1Score ? 2 : leaguePlayer1Score > leaguePlayer2Score ? 0 : 1,
         leaguePlayer1BonusPoints,
@@ -231,49 +239,183 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     ctx.body = { message: 'Match result reported successfully', match: updatedMatch };
   },
 
-  async respondToProposal(ctx) {
+  async adminModifyScore(ctx) {
     await this.validateQuery(ctx);
-    const sanitizedQueryParams = await this.sanitizeQuery(ctx);
-    const matchId = ctx.params.documentId;
-    const { action } = ctx.request.body;
-    const userId = ctx.state.user?.documentId;
-    if (!userId) return ctx.unauthorized('You must be logged in.');
-    if (!['accept', 'decline'].includes(action)) {
-      return ctx.badRequest('Invalid action.');
+    const matchId = ctx.params.id;
+    const { 
+      leaguePlayer1Score, 
+      leaguePlayer2Score,
+      leaguePlayer1BonusPoints = { lostButScored50Percent: false, scoredAllPrimaryObjectives: false },
+      leaguePlayer2BonusPoints = { lostButScored50Percent: false, scoredAllPrimaryObjectives: false },
+      adminNote
+    } = ctx.request.body;
+
+    const userId = ctx.state.user?.id;
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in.');
     }
+
+    // Check if user is admin or league creator
+    const user = await strapi.documents('plugin::users-permissions.user').findOne({
+      documentId: userId,
+      populate: ['role']
+    });
+    
+    const isAdmin = user?.role?.name === 'Admin' || user?.role?.name === 'LeagueCreator';
+    if (!isAdmin) {
+      return ctx.forbidden('Only admins can modify match scores.');
+    }
+
     const match = await strapi.documents('api::match.match').findOne({
       documentId: matchId,
-      populate: ['leaguePlayer1', 'leaguePlayer2']
+      populate: ['leaguePlayer1', 'leaguePlayer2', 'league'],
     });
+    
     if (!match) {
       return ctx.notFound('Match not found');
     }
+    
     if (!match.leaguePlayer1 || !match.leaguePlayer2) {
       return ctx.badRequest('Match does not have both players populated.');
     }
-    const [leaguePlayer] = await strapi.documents('api::league-player.league-player').findMany({
-      filters: { player: { user: { id: userId } } },
+
+    // Get league scoring rules
+    const league = await strapi.documents('api::league.league').findOne({
+      documentId: match.league.documentId,
+      fields: ['scoringRules', 'rulesetType']
     });
-    if (!leaguePlayer) return ctx.badRequest('No LeaguePlayer found for this user');
-    const isPlayerInMatch = [match.leaguePlayer1.id, match.leaguePlayer2.id].includes(leaguePlayer.id);
-    if (!isPlayerInMatch) return ctx.unauthorized('You are not a participant in this match');
-    let updateData: any;
-    if (action === 'accept') {
-      updateData = { 
-        proposalStatus: 'Accepted'
-      };
+
+    const defaultRules = {
+      gameWon: 3,
+      gameDrawn: 1,
+      gameLost: 0,
+      bonusPoints: { lostButScored50Percent: 0, scoredAllPrimaryObjectives: 0 },
+      maxPointsPerGame: 3
+    };
+
+    const scoringRules = (league?.scoringRules as any) || defaultRules;
+
+    // Store old values for rollback calculation
+    const oldPlayer1Points = match.leaguePlayer1LeaguePoints || 0;
+    const oldPlayer2Points = match.leaguePlayer2LeaguePoints || 0;
+    const oldMatchResult = match.matchResult;
+
+    // Determine new match result
+    let matchResult;
+    if (leaguePlayer1Score > leaguePlayer2Score) {
+      matchResult = 'player1_win';
+    } else if (leaguePlayer2Score > leaguePlayer1Score) {
+      matchResult = 'player2_win';
     } else {
-      updateData = {
-        proposalStatus: 'Rejected',
-        proposalTimestamp: null,
-        proposedBy: null,
-      };
+      matchResult = 'draw';
     }
-    
+
+    // Calculate new league points
+    let player1LeaguePoints = 0;
+    let player2LeaguePoints = 0;
+
+    // Base points
+    switch (matchResult) {
+      case 'player1_win':
+        player1LeaguePoints += scoringRules.gameWon;
+        player2LeaguePoints += scoringRules.gameLost;
+        break;
+      case 'player2_win':
+        player1LeaguePoints += scoringRules.gameLost;
+        player2LeaguePoints += scoringRules.gameWon;
+        break;
+      case 'draw':
+        player1LeaguePoints += scoringRules.gameDrawn;
+        player2LeaguePoints += scoringRules.gameDrawn;
+        break;
+    }
+
+    // Bonus points
+    if (leaguePlayer1BonusPoints.lostButScored50Percent) {
+      player1LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
+    }
+    if (leaguePlayer1BonusPoints.scoredAllPrimaryObjectives) {
+      player1LeaguePoints += scoringRules.bonusPoints.scoredAllPrimaryObjectives;
+    }
+    if (leaguePlayer2BonusPoints.lostButScored50Percent) {
+      player2LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
+    }
+    if (leaguePlayer2BonusPoints.scoredAllPrimaryObjectives) {
+      player2LeaguePoints += scoringRules.bonusPoints.scoredAllPrimaryObjectives;
+    }
+
+    // Cap at max points per game
+    player1LeaguePoints = Math.min(player1LeaguePoints, scoringRules.maxPointsPerGame);
+    player2LeaguePoints = Math.min(player2LeaguePoints, scoringRules.maxPointsPerGame);
+
+    // Update match
     const updatedMatch = await strapi.documents('api::match.match').update({
       documentId: matchId,
-      data: updateData,
+      data: { 
+        leaguePlayer1Score,
+        leaguePlayer2Score,
+        leaguePlayer1Result: leaguePlayer1Score > leaguePlayer2Score ? 2 : leaguePlayer2Score > leaguePlayer1Score ? 0 : 1,
+        leaguePlayer2Result: leaguePlayer2Score > leaguePlayer1Score ? 2 : leaguePlayer1Score > leaguePlayer2Score ? 0 : 1,
+        leaguePlayer1BonusPoints,
+        leaguePlayer2BonusPoints,
+        leaguePlayer1LeaguePoints: player1LeaguePoints,
+        leaguePlayer2LeaguePoints: player2LeaguePoints,
+        matchResult,
+        statusMatch: 'played'
+      },
     });
-    ctx.body = { message: `Proposal ${action}ed`, match: updatedMatch };
+
+    // Calculate point differences for league player updates
+    const player1PointDiff = player1LeaguePoints - oldPlayer1Points;
+    const player2PointDiff = player2LeaguePoints - oldPlayer2Points;
+
+    // Calculate win/draw/loss adjustments
+    const oldP1Wins = oldMatchResult === 'player1_win' ? 1 : 0;
+    const oldP1Draws = oldMatchResult === 'draw' ? 1 : 0;
+    const oldP1Losses = oldMatchResult === 'player2_win' ? 1 : 0;
+
+    const newP1Wins = matchResult === 'player1_win' ? 1 : 0;
+    const newP1Draws = matchResult === 'draw' ? 1 : 0;
+    const newP1Losses = matchResult === 'player2_win' ? 1 : 0;
+
+    const oldP2Wins = oldMatchResult === 'player2_win' ? 1 : 0;
+    const oldP2Draws = oldMatchResult === 'draw' ? 1 : 0;
+    const oldP2Losses = oldMatchResult === 'player1_win' ? 1 : 0;
+
+    const newP2Wins = matchResult === 'player2_win' ? 1 : 0;
+    const newP2Draws = matchResult === 'draw' ? 1 : 0;
+    const newP2Losses = matchResult === 'player1_win' ? 1 : 0;
+
+    // Update league players with adjusted stats
+    await strapi.documents('api::league-player.league-player').update({
+      documentId: match.leaguePlayer1.documentId,
+      data: {
+        wins: Math.max(0, match.leaguePlayer1.wins - oldP1Wins + newP1Wins),
+        draws: Math.max(0, match.leaguePlayer1.draws - oldP1Draws + newP1Draws),
+        losses: Math.max(0, match.leaguePlayer1.losses - oldP1Losses + newP1Losses),
+        rankingPoints: Math.max(0, match.leaguePlayer1.rankingPoints + player1PointDiff)
+      }
+    });
+    
+    await strapi.documents('api::league-player.league-player').update({
+      documentId: match.leaguePlayer2.documentId,
+      data: {
+        wins: Math.max(0, match.leaguePlayer2.wins - oldP2Wins + newP2Wins),
+        draws: Math.max(0, match.leaguePlayer2.draws - oldP2Draws + newP2Draws),
+        losses: Math.max(0, match.leaguePlayer2.losses - oldP2Losses + newP2Losses),
+        rankingPoints: Math.max(0, match.leaguePlayer2.rankingPoints + player2PointDiff)
+      }
+    });
+
+    ctx.body = { 
+      message: `Match score modified successfully by admin${adminNote ? ` (Note: ${adminNote})` : ''}`, 
+      match: updatedMatch,
+      changes: {
+        player1PointDiff,
+        player2PointDiff,
+        oldMatchResult,
+        newMatchResult: matchResult
+      }
+    };
   }
 }));

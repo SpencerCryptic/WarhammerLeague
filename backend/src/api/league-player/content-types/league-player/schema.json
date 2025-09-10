@@ -46,8 +46,9 @@
     "goodFaithAccepted": {
       "type": "boolean"
     },
-    "playList": {
-      "type": "text"
+    "armyLists": {
+      "type": "json",
+      "default": []
     },
     "firstPlayerMatches": {
       "type": "relation",

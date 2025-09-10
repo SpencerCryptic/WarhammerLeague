@@ -423,6 +423,7 @@ export interface ApiLeaguePlayerLeaguePlayer
     draftAndPublish: true;
   };
   attributes: {
+    armyLists: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -443,7 +444,6 @@ export interface ApiLeaguePlayerLeaguePlayer
       Schema.Attribute.Private;
     losses: Schema.Attribute.Integer;
     player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
-    playList: Schema.Attribute.Text;
     publishedAt: Schema.Attribute.DateTime;
     rankingPoints: Schema.Attribute.Integer;
     secondPlayerMatches: Schema.Attribute.Relation<
@@ -512,6 +512,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String;
+    otps: Schema.Attribute.Relation<'oneToMany', 'api::otp.otp'>;
     publishedAt: Schema.Attribute.DateTime;
     rulesetType: Schema.Attribute.Enumeration<
       ['cryptic_cabin_standard', 'custom']
@@ -535,6 +536,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    useOTP: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -558,6 +560,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer1ArmyListId: Schema.Attribute.String;
     leaguePlayer1BonusPoints: Schema.Attribute.JSON &
       Schema.Attribute.DefaultTo<{
         lostButScored50Percent: false;
@@ -572,6 +575,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::league-player.league-player'
     >;
+    leaguePlayer2ArmyListId: Schema.Attribute.String;
     leaguePlayer2BonusPoints: Schema.Attribute.JSON &
       Schema.Attribute.DefaultTo<{
         lostButScored50Percent: false;
@@ -598,6 +602,42 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiOtpOtp extends Struct.CollectionTypeSchema {
+  collectionName: 'otps';
+  info: {
+    description: 'One-Time Passwords for league access';
+    displayName: 'OTP';
+    pluralName: 'otps';
+    singularName: 'otp';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expiresAt: Schema.Attribute.DateTime;
+    isUsed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::otp.otp'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    usedAt: Schema.Attribute.DateTime;
+    usedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -1161,6 +1201,7 @@ declare module '@strapi/strapi' {
       'api::league-player.league-player': ApiLeaguePlayerLeaguePlayer;
       'api::league.league': ApiLeagueLeague;
       'api::match.match': ApiMatchMatch;
+      'api::otp.otp': ApiOtpOtp;
       'api::player.player': ApiPlayerPlayer;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

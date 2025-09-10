@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "otps",
+  "info": {
+    "singularName": "otp",
+    "pluralName": "otps",
+    "displayName": "OTP",
+    "description": "One-Time Passwords for league access"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "league": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::league.league",
+      "inversedBy": "otps"
+    },
+    "isUsed": {
+      "type": "boolean",
+      "default": false
+    },
+    "usedBy": {
+      "type": "relation",
+      "relation": "manyToOne", 
+      "target": "plugin::users-permissions.user"
+    },
+    "usedAt": {
+      "type": "datetime"
+    },
+    "expiresAt": {
+      "type": "datetime"
+    }
+  }
+}

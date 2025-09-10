@@ -35,6 +35,10 @@
     "leaguePassword": {
       "type": "string"
     },
+    "useOTP": {
+      "type": "boolean",
+      "default": false
+    },
     "league_players": {
       "type": "relation",
       "relation": "oneToMany",
@@ -94,6 +98,12 @@
         "custom"
       ],
       "default": "custom"
+    },
+    "otps": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::otp.otp",
+      "mappedBy": "league"
     }
   }
 }

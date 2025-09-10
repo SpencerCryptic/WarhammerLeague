@@ -64,9 +64,9 @@ export default {
       handler: 'match.submit',
     },
     {
-      method: 'POST',
-      path: '/matches/:id/respond-proposal',
-      handler: 'match.respondToProposal',
+      method: 'PUT',
+      path: '/matches/:id/admin-modify-score',
+      handler: 'match.adminModifyScore',
       config: {
         auth: {
           required: true,

@@ -72,7 +72,14 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
 
     try {
-      const requestData = ctx.request.body;
+      const requestBody = ctx.request.body;
+      
+      console.log('🔍 CREATE LEAGUE - Full request body:', JSON.stringify(requestBody, null, 2));
+      console.log('🔍 CREATE LEAGUE - User ID:', userId);
+
+      // Extract data from the nested structure if it exists
+      const requestData = requestBody.data || requestBody;
+      console.log('🔍 CREATE LEAGUE - Extracted data:', JSON.stringify(requestData, null, 2));
 
       const data = {
         ...requestData,
@@ -107,13 +114,38 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     const league = await strapi.documents('api::league.league').findOne({
       documentId: leagueId,
-      fields: ['leaguePassword'],
+      fields: ['leaguePassword', 'useOTP'],
     });
     
     if (!league) {
       return ctx.badRequest('League not found');
     }
-    if (league.leaguePassword && league.leaguePassword !== password) {
+
+    // Handle password validation based on league type
+    if (league.useOTP) {
+      // For OTP-enabled leagues, check if the provided password is a valid OTP
+      const [validOTP] = await strapi.documents('api::otp.otp').findMany({
+        filters: {
+          $and: [
+            { league: { documentId: leagueId } },
+            { code: password },
+            { isUsed: false }
+          ]
+        }
+      });
+      
+      if (!validOTP) {
+        return ctx.unauthorized('Invalid or already used OTP');
+      }
+      
+      // Mark the OTP as used
+      await strapi.documents('api::otp.otp').update({
+        documentId: validOTP.documentId,
+        data: { isUsed: true }
+      });
+      
+    } else if (league.leaguePassword && league.leaguePassword !== password) {
+      // For regular leagues, check against the league password
       return ctx.unauthorized('Incorrect password');
     }
 
@@ -196,6 +228,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
           'statusleague',
           'description',
           'leaguePassword',
+          'useOTP',
           'startDate',
           'gameSystem',
           'format'
@@ -203,9 +236,14 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {
-            fields: ['leagueName', 'faction', 'wins', 'draws', 'losses', 'rankingPoints', 'playList'],
+            fields: ['leagueName', 'faction', 'wins', 'draws', 'losses', 'rankingPoints', 'armyLists'],
             populate: {
-              player: { fields: ['id', 'name', 'email'] },
+              player: { 
+                fields: ['id', 'name', 'email'],
+                populate: {
+                  user: { fields: ['id', 'username'] }
+                }
+              },
               league: { fields: ['id'] },
             },
           },
@@ -218,14 +256,17 @@ export default factories.createCoreController('api::league.league', ({ strapi })
               'leaguePlayer2Score',
               'leaguePlayer1Result',
               'leaguePlayer2Result',
-              'proposalStatus',
-              'proposalTimestamp',
-              'matchUID'
+              'matchUID',
+              'leaguePlayer1BonusPoints',
+              'leaguePlayer2BonusPoints',
+              'leaguePlayer1LeaguePoints',
+              'leaguePlayer2LeaguePoints',
+              'matchResult',
+              'round'
             ],
             populate: {
               leaguePlayer1 : { fields: ['id', 'leagueName', 'faction'] },
-              leaguePlayer2 : { fields: ['id', 'leagueName', 'faction'] },
-              proposedBy : { fields: ['id', 'leagueName', 'faction'] },
+              leaguePlayer2 : { fields: ['id', 'leagueName', 'faction'] }
             }
           }
         },
@@ -259,7 +300,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const rawLeagues = await strapi.documents('api::league.league').findMany({
       filters,
       ...( {
-        fields: ['name', 'statusleague', 'description', 'leaguePassword', 'startDate', 'gameSystem'],
+        fields: ['name', 'statusleague', 'description', 'leaguePassword', 'useOTP', 'startDate', 'gameSystem'],
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {

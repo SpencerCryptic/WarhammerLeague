@@ -50,6 +50,7 @@ export default {
           auth: {
             required: true,
           },
+          policies: [],
         },
       },
       {
@@ -80,6 +81,7 @@ export default {
           auth: {
             required: true,
           },
+          policies: ['global::isAuthenticated'],
         },
       },
       {
@@ -90,6 +92,7 @@ export default {
           auth: {
             required: true,
           },
+          policies: [],
         },
       },
     ],

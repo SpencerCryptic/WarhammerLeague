@@ -94,6 +94,12 @@
     },
     "round": {
       "type": "integer"
+    },
+    "leaguePlayer1ArmyListId": {
+      "type": "string"
+    },
+    "leaguePlayer2ArmyListId": {
+      "type": "string"
     }
   }
 }
