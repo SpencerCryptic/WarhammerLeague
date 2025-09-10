@@ -9,7 +9,7 @@ const LeagueDashboard = () => {
 
   const getLeague = async (documentId: string) => {
     useEffect(() => {
-      fetch(`http://localhost:1337/api/leagues/${documentId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`)
       .then((res) => res.json())
       .then((data) => {
           setLeague(data);

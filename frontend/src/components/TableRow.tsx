@@ -29,7 +29,7 @@ const TableRow = () => {
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
-      fetch(`http://localhost:1337/api/leagues/${documentId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`)
       .then((res) => res.json())
       .then((data) => {
           setMatches(data.data.matches || [])
@@ -113,7 +113,7 @@ const TableRow = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await fetch('http://localhost:1337/api/users/me?populate=player', {
+        const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/users/me?populate=player', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         

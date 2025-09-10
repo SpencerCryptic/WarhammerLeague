@@ -37,7 +37,7 @@ export default function JoinLeagueButton({
         }
 
         // Get current user info
-        const userResponse = await fetch(`http://localhost:1337/api/users/me?populate[player]=*`, {
+        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me?populate[player]=*`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -53,7 +53,7 @@ export default function JoinLeagueButton({
         }
 
         // Get league details with league_players populated
-        const leagueResponse = await fetch(`http://localhost:1337/api/leagues/${leagueId}?populate[league_players][populate]=player`);
+        const leagueResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${leagueId}?populate[league_players][populate]=player`);
 
         if (!leagueResponse.ok) {
           setLoading(false);

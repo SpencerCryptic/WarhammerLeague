@@ -5,7 +5,7 @@ import JoinLeagueButton from '@/components/JoinLeagueButton';
 
 const getLeague = async (documentId: string) => {
   try {
-    const response = await fetch(`http://localhost:1337/api/leagues/${documentId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`);
 
     if (!response.ok) {
       console.error(`Failed to fetch league: ${response.status}`);
