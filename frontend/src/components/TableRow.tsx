@@ -62,7 +62,7 @@ const TableRow = () => {
   const toggleExpand = (event: React.MouseEvent<HTMLButtonElement>, documentId: string) => {
     setActiveList({
       id: documentId, 
-      list: documentId === '' ? '' : leaguePlayers.find((player: LeaguePlayer) => player.documentId === documentId)!.playList
+      list: documentId === '' ? '' : JSON.stringify(leaguePlayers.find((player: LeaguePlayer) => player.documentId === documentId)?.armyLists || [])
     })
   }
   
