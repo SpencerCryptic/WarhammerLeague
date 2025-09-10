@@ -58,6 +58,14 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
     setGenerating(true);
     try {
       const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      console.log('🔍 OTP Generation Debug:');
+      console.log('- League ID:', leagueId);
+      console.log('- Token exists:', !!token);
+      console.log('- Stored user:', storedUser ? JSON.parse(storedUser) : 'None');
+      console.log('- API URL:', API_URL);
+      
       const response = await fetch(`${API_URL}/api/otps/generate`, {
         method: 'POST',
         headers: {
@@ -70,13 +78,23 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
         }),
       });
 
+      console.log('- Response status:', response.status);
+      console.log('- Response headers:', response.headers);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ OTPs generated successfully:', result);
         await fetchOTPs(); // Refresh the list
       } else {
-        console.error('Failed to generate OTPs');
+        const errorText = await response.text();
+        console.error('❌ Failed to generate OTPs:', response.status, errorText);
+        
+        // Show user-friendly error
+        alert(`Failed to generate OTPs: ${response.status} - ${errorText.substring(0, 100)}`);
       }
     } catch (error) {
-      console.error('Error generating OTPs:', error);
+      console.error('💥 Error generating OTPs:', error);
+      alert(`Error generating OTPs: ${error}`);
     } finally {
       setGenerating(false);
     }
