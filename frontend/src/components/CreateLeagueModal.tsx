@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
+const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
 interface CreateLeagueModalProps {
   isOpen: boolean;
