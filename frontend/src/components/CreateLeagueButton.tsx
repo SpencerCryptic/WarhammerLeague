@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { canCreateLeagues } from '../utils/roleUtils';
 import CreateLeagueModal from './CreateLeagueModal';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
 export default function CreateLeagueButton() {
   const [user, setUser] = useState(null);
