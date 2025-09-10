@@ -240,7 +240,6 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4" onSubmitCapture={(e) => console.log('🔍 Form onSubmitCapture triggered', e)}>
-          {console.log('🔍 Form element rendered with handleSubmit:', handleSubmit)}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               League Name *
