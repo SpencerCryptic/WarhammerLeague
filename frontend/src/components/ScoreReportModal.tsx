@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Match } from './MatchesDashboard';
 
 interface ScoreReportModalProps {
@@ -28,12 +28,72 @@ export default function ScoreReportModal({
     leaguePlayer2BonusPoints: {
       lostButScored50Percent: false,
       scoredAllPrimaryObjectives: false
-    }
+    },
+    leaguePlayer1ArmyListId: '',
+    leaguePlayer2ArmyListId: ''
   });
 
   const [loading, setLoading] = useState(false);
+  const [player1Lists, setPlayer1Lists] = useState<any[]>([]);
+  const [player2Lists, setPlayer2Lists] = useState<any[]>([]);
 
   const isCrypticCabinScoring = league?.rulesetType === 'cryptic_cabin_standard';
+
+  // Fetch army lists for both players when modal opens
+  useEffect(() => {
+    if (isOpen && match) {
+      fetchPlayerLists();
+    }
+  }, [isOpen, match]);
+
+  const fetchPlayerLists = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Determine which player is the current user
+      const isPlayer1 = match?.leaguePlayer1?.leagueName === userLeaguePlayerName;
+      const isPlayer2 = match?.leaguePlayer2?.leagueName === userLeaguePlayerName;
+
+      // Fetch player 1 lists
+      if (match?.leaguePlayer1?.documentId) {
+        const response1 = await fetch(`http://localhost:1337/api/league-players/${match.leaguePlayer1.documentId}?populate=*`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response1.ok) {
+          const data1 = await response1.json();
+          const lists1 = data1.data?.armyLists || [];
+          setPlayer1Lists(lists1);
+          
+          // Auto-select active list
+          const activeList1 = lists1.find((list: any) => list.isActive);
+          if (activeList1) {
+            setFormData(prev => ({ ...prev, leaguePlayer1ArmyListId: activeList1.id }));
+          }
+        }
+      }
+
+      // Fetch player 2 lists
+      if (match?.leaguePlayer2?.documentId) {
+        const response2 = await fetch(`http://localhost:1337/api/league-players/${match.leaguePlayer2.documentId}?populate=*`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response2.ok) {
+          const data2 = await response2.json();
+          const lists2 = data2.data?.armyLists || [];
+          setPlayer2Lists(lists2);
+          
+          // Auto-select active list
+          const activeList2 = lists2.find((list: any) => list.isActive);
+          if (activeList2) {
+            setFormData(prev => ({ ...prev, leaguePlayer2ArmyListId: activeList2.id }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching army lists:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +116,9 @@ export default function ScoreReportModal({
           leaguePlayer1Score: parseInt(formData.leaguePlayer1Score),
           leaguePlayer2Score: parseInt(formData.leaguePlayer2Score),
           leaguePlayer1BonusPoints: formData.leaguePlayer1BonusPoints,
-          leaguePlayer2BonusPoints: formData.leaguePlayer2BonusPoints
+          leaguePlayer2BonusPoints: formData.leaguePlayer2BonusPoints,
+          leaguePlayer1ArmyListId: formData.leaguePlayer1ArmyListId,
+          leaguePlayer2ArmyListId: formData.leaguePlayer2ArmyListId
         }),
       });
 
@@ -74,8 +136,9 @@ export default function ScoreReportModal({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? e.target.checked : false;
     
     if (name.includes('BonusPoints')) {
       const [player, bonusType] = name.split('.');
@@ -148,6 +211,114 @@ export default function ScoreReportModal({
                 min="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
+            </div>
+          </div>
+
+          {/* Army List Selection */}
+          <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-3">Army Lists Used</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                Select your army list. Your opponent's active list will be automatically used.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Player 1 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {match.leaguePlayer1?.leagueName} Army List
+                    {match.leaguePlayer1?.leagueName === userLeaguePlayerName && <span className="text-orange-600 dark:text-orange-400 ml-1">(You)</span>}
+                  </label>
+                  
+                  {match.leaguePlayer1?.leagueName === userLeaguePlayerName ? (
+                    // Current user - allow selection
+                    <>
+                      <select
+                        name="leaguePlayer1ArmyListId"
+                        value={formData.leaguePlayer1ArmyListId}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      >
+                        <option value="">Select your list...</option>
+                        {player1Lists.map((list) => (
+                          <option key={list.id} value={list.id}>
+                            {list.name} {list.isActive ? '(Active)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {player1Lists.length === 0 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          You need to create an army list first.
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    // Opponent - show their active list
+                    <>
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-600 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+                        {(() => {
+                          const activeList = player1Lists.find((list) => list.isActive);
+                          return activeList ? `${activeList.name} (Active List)` : 'No active list';
+                        })()}
+                      </div>
+                      {player1Lists.find((list) => list.isActive) ? null : (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          Opponent has no active army list.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Player 2 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {match.leaguePlayer2?.leagueName} Army List
+                    {match.leaguePlayer2?.leagueName === userLeaguePlayerName && <span className="text-orange-600 dark:text-orange-400 ml-1">(You)</span>}
+                  </label>
+                  
+                  {match.leaguePlayer2?.leagueName === userLeaguePlayerName ? (
+                    // Current user - allow selection
+                    <>
+                      <select
+                        name="leaguePlayer2ArmyListId"
+                        value={formData.leaguePlayer2ArmyListId}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      >
+                        <option value="">Select your list...</option>
+                        {player2Lists.map((list) => (
+                          <option key={list.id} value={list.id}>
+                            {list.name} {list.isActive ? '(Active)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {player2Lists.length === 0 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          You need to create an army list first.
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    // Opponent - show their active list
+                    <>
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 dark:bg-gray-600 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+                        {(() => {
+                          const activeList = player2Lists.find((list) => list.isActive);
+                          return activeList ? `${activeList.name} (Active List)` : 'No active list';
+                        })()}
+                      </div>
+                      {player2Lists.find((list) => list.isActive) ? null : (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          Opponent has no active army list.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

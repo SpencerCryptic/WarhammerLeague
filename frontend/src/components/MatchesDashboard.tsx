@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { LeaguePlayer } from './TableRow';
 import ScoreReportModal from './ScoreReportModal';
+import AdminScoreModifyModal from './AdminScoreModifyModal';
+import GameDetailsModal from './GameDetailsModal';
 
 export enum StatusMatch {
   upcoming,
@@ -29,9 +31,21 @@ export interface Match {
   leaguePlayer2Score: number,
   leaguePlayer1Result: number,
   leaguePlayer2Result: number,
-  proposedBy: LeaguePlayer,
-  proposalStatus: ProposalStatus,
-  proposalTimestamp: Date,
+  leaguePlayer1BonusPoints?: {
+    lostButScored50Percent: boolean,
+    scoredAllPrimaryObjectives: boolean
+  },
+  leaguePlayer2BonusPoints?: {
+    lostButScored50Percent: boolean,
+    scoredAllPrimaryObjectives: boolean
+  },
+  leaguePlayer1LeaguePoints?: number,
+  leaguePlayer2LeaguePoints?: number,
+  matchResult?: string,
+  round?: number,
+  proposedBy?: LeaguePlayer,
+  proposalStatus?: ProposalStatus,
+  proposalTimestamp?: Date,
 }
 
 const MatchesDashboard = () => {
@@ -41,18 +55,22 @@ const MatchesDashboard = () => {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [userLeaguePlayerName, setUserLeaguePlayerName] = useState<string | null>(null)
   const [scoreModalOpen, setScoreModalOpen] = useState(false)
+  const [adminModalOpen, setAdminModalOpen] = useState(false)
+  const [gameDetailsModalOpen, setGameDetailsModalOpen] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   
   const getLeague = async (documentId: string) => {
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (token) {
-        fetch(`http://localhost:1337/api/users/me?populate=player`, {
+        fetch(`http://localhost:1337/api/users/me?populate[player]=*&populate[role]=*`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())
         .then(userData => {
           setCurrentUser(userData);
+          setIsAdmin(userData?.role?.name === 'Admin' || userData?.role?.name === 'LeagueCreator');
           
           fetch(`http://localhost:1337/api/leagues/${documentId}?populate[matches][populate]=*&populate[league_players][populate]=*`)
           .then((res) => res.json())
@@ -80,6 +98,10 @@ const MatchesDashboard = () => {
             
             setIsLoading(false);
           });
+        })
+        .catch(error => {
+          console.error('Error fetching user:', error);
+          setIsLoading(false);
         });
       } else {
         fetch(`http://localhost:1337/api/leagues/${documentId}?populate[matches][populate]=*`)
@@ -169,6 +191,24 @@ const MatchesDashboard = () => {
     );
   }
 
+  // Group matches by round
+  const groupedMatches = matches.reduce((acc: { [key: string]: Match[] }, match: Match) => {
+    const round = match.round || 1;
+    const roundKey = `Round ${round}`;
+    if (!acc[roundKey]) {
+      acc[roundKey] = [];
+    }
+    acc[roundKey].push(match);
+    return acc;
+  }, {});
+
+  // Sort rounds numerically
+  const sortedRounds = Object.keys(groupedMatches).sort((a, b) => {
+    const roundA = parseInt(a.replace('Round ', ''));
+    const roundB = parseInt(b.replace('Round ', ''));
+    return roundA - roundB;
+  });
+
   return (
     <div className="space-y-8">
       <ScoreReportModal
@@ -181,29 +221,71 @@ const MatchesDashboard = () => {
         userLeaguePlayerName={userLeaguePlayerName || ''}
         league={league}
       />
+      
+      <AdminScoreModifyModal
+        isOpen={adminModalOpen}
+        onClose={() => {
+          setAdminModalOpen(false);
+          setSelectedMatch(null);
+        }}
+        match={selectedMatch}
+        league={league}
+      />
+      
+      <GameDetailsModal
+        isOpen={gameDetailsModalOpen}
+        onClose={() => {
+          setGameDetailsModalOpen(false);
+          setSelectedMatch(null);
+        }}
+        match={selectedMatch}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {matches.map((match: Match) => {
+      {sortedRounds.map((roundName) => (
+        <div key={roundName} className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              {roundName}
+            </h2>
+            <div className="flex-1 h-px bg-gradient-to-r from-orange-500/50 to-transparent"></div>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {groupedMatches[roundName].map((match: Match) => {
           const isUserMatch = isUserInMatch(match, userLeaguePlayerName || undefined);
-          console.log('Match:', match.leaguePlayer1?.leagueName, 'vs', match.leaguePlayer2?.leagueName, 'User match?', isUserMatch, 'User name:', userLeaguePlayerName);
+          console.log('=== MATCH DEBUG ===');
+          console.log('Current user:', currentUser);
+          console.log('User league player name:', userLeaguePlayerName);
+          console.log('Match:', match.leaguePlayer1?.leagueName, 'vs', match.leaguePlayer2?.leagueName);
+          console.log('Match object:', match);
+          console.log('Is user match?', isUserMatch);
+          console.log('===================');
           const matchStatus = match.statusMatch?.toString() || 'upcoming';
           const isPlayed = matchStatus === 'played';
           
           return (
             <div
               key={match.documentId}
-              className={`relative overflow-hidden rounded-xl shadow-lg p-6 border transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer ${getMatchCardStyle(isUserMatch)}`}
+              className={`relative overflow-hidden rounded-xl shadow-lg p-6 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${getMatchCardStyle(isUserMatch)} ${(isUserMatch && !isPlayed) || isPlayed ? 'cursor-pointer' : ''}`}
               onClick={() => {
-                if (isUserMatch && !isPlayed) {
+                if (isPlayed) {
+                  setSelectedMatch(match);
+                  setGameDetailsModalOpen(true);
+                } else if (isUserMatch && !isPlayed) {
                   setSelectedMatch(match);
                   setScoreModalOpen(true);
-                } else {
-                  console.log('Match clicked:', match);
                 }
               }}
             >
               {isUserMatch && (
-                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl"></div>
+                <>
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl"></div>
+                  {!isPlayed && (
+                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      Click to Report
+                    </div>
+                  )}
+                </>
               )}
               
               <div className="relative">
@@ -258,28 +340,55 @@ const MatchesDashboard = () => {
 
                 {isPlayed && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                    <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                       {match.leaguePlayer1Result === 2 ? `${match.leaguePlayer1.leagueName} Victory` :
                        match.leaguePlayer2Result === 2 ? `${match.leaguePlayer2.leagueName} Victory` :
                        'Draw'}
                     </div>
-                  </div>
-                )}
-
-                {isUserMatch && !isPlayed && (
-                  <div className="mt-4 pt-4 border-t border-orange-200 dark:border-orange-700">
                     <div className="text-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                        📝 Click to Report Score
+                      <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        🔍 Click to view army lists
                       </span>
                     </div>
                   </div>
                 )}
+
+                {/* Action buttons */}
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  {isUserMatch && !isPlayed && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMatch(match);
+                        setScoreModalOpen(true);
+                      }}
+                      className="w-full px-3 py-2 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
+                    >
+                      📝 Report Score
+                    </button>
+                  )}
+                  
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMatch(match);
+                        setAdminModalOpen(true);
+                      }}
+                      className="w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>🔧</span>
+                      <span>Admin: Modify Score</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
-        })}
-      </div>
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

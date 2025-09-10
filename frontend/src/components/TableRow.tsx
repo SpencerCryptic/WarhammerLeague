@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { use, useEffect, useRef, useState } from 'react'
 import { Match } from './MatchesDashboard';
+import ArmyListManager from './ArmyListManager';
 
 export interface LeaguePlayer {
   documentId: string,
@@ -12,7 +13,7 @@ export interface LeaguePlayer {
   draws: number,
   losses: number,
   rankingPoints: number,
-  playList: string
+  armyLists: any[]
 }
 
 const TableRow = () => {
@@ -20,7 +21,11 @@ const TableRow = () => {
   const [leaguePlayers, setLeaguePlayers] = useState<LeaguePlayer[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [activeList, setActiveList] = useState({id: '', list: ''})
+  const [showArmyListManager, setShowArmyListManager] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState('')
+  const [selectedPlayerFaction, setSelectedPlayerFaction] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
@@ -101,6 +106,29 @@ const TableRow = () => {
     return Math.round((player.wins / total) * 100);
   }
 
+  // Fetch current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch('http://localhost:1337/api/users/me?populate=player', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setCurrentUser(userData);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
+
   const pathName: string[] = usePathname().split('/')
   const documentId = pathName[2]
   getLeague(documentId)
@@ -139,105 +167,124 @@ const TableRow = () => {
             </p>
           </div>
 
-          {/* Players Cards */}
-          <div className="space-y-3">
-            {leaguePlayers.map((player: LeaguePlayer, index: number) => {
-              const position = index + 1;
-              const totalGames = player.wins + player.draws + player.losses;
-              const victoryPoints = getVictoryPoints(player)
-              const winRate = getWinRate(player);
-              
-              return (
-                <div 
-                  key={player.documentId}
-                  className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="flex items-center justify-between">
-                    {/* Left: Rank & Player Info */}
-                    <div className="flex items-center space-x-4 w-80">
-                      <div className={`text-2xl min-w-[60px] text-center ${getRankStyle(position)}`}>
-                        {getRankIcon(position)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white capitalize truncate">
-                          {player.leagueName}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {player.faction}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Center: Stats Grid */}
-                    <div className="hidden md:grid grid-cols-6 gap-6 text-right">
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 dark:text-white">{totalGames}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">PLAYED</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-green-600 dark:text-green-400">{player.wins}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">WINS</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{player.draws}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">DRAWS</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-red-600 dark:text-red-400">{player.losses}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">LOSSES</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{victoryPoints}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">VICTORY PTS</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{winRate}%</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">WIN RATE</div>
-                      </div>
-                    </div>
-
-                    {/* Right: Points & Actions */}
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {player.rankingPoints}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">LEAGUE POINTS</div>
-                      <button 
-                        type='button' 
-                        onClick={(e) => toggleExpand(e, player.documentId)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+          {/* League Table */}
+          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Pos
+                    </th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Player
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Pl
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      W
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      D
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      L
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      VP
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      WR
+                    </th>
+                    <th className="text-center py-4 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Pts
+                    </th>
+                    <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {leaguePlayers.map((player: LeaguePlayer, index: number) => {
+                    const position = index + 1;
+                    const totalGames = player.wins + player.draws + player.losses;
+                    const victoryPoints = getVictoryPoints(player);
+                    const winRate = getWinRate(player);
+                    
+                    return (
+                      <tr 
+                        key={player.documentId}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
                       >
-                        View List
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Mobile Stats */}
-                  <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="grid grid-cols-3 gap-4 text-right">
-                      <div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {player.wins}-{player.draws}-{player.losses}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">W-D-L</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                          {player.rankingPoints}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">VICTORY PTS</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                        <td className="py-4 px-6">
+                          <div className={`text-lg font-bold ${getRankStyle(position)}`}>
+                            {position}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div>
+                            <div className="text-base font-semibold text-gray-900 dark:text-white capitalize">
+                              {player.leagueName}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {player.faction}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-3 text-center text-gray-900 dark:text-white font-medium">
+                          {totalGames}
+                        </td>
+                        <td className="py-4 px-3 text-center text-green-600 dark:text-green-400 font-medium">
+                          {player.wins}
+                        </td>
+                        <td className="py-4 px-3 text-center text-yellow-600 dark:text-yellow-400 font-medium">
+                          {player.draws}
+                        </td>
+                        <td className="py-4 px-3 text-center text-red-600 dark:text-red-400 font-medium">
+                          {player.losses}
+                        </td>
+                        <td className="py-4 px-3 text-center text-blue-600 dark:text-blue-400 font-medium">
+                          {victoryPoints}
+                        </td>
+                        <td className="py-4 px-3 text-center text-purple-600 dark:text-purple-400 font-medium">
                           {winRate}%
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">WIN RATE</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                        </td>
+                        <td className="py-4 px-3 text-center">
+                          <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                            {player.rankingPoints}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex space-x-2 justify-end">
+                            <button 
+                              type='button' 
+                              onClick={(e) => toggleExpand(e, player.documentId)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
+                            >
+                              View List
+                            </button>
+                            {currentUser?.player?.documentId === player.documentId && (
+                              <button 
+                                type='button' 
+                                onClick={() => {
+                                  setSelectedPlayerId(player.documentId);
+                                  setSelectedPlayerFaction(player.faction);
+                                  setShowArmyListManager(true);
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
+                              >
+                                Manage Lists
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (
@@ -282,12 +329,60 @@ const TableRow = () => {
               </h3>
             </div>
             <div className="p-6">
-              <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                {leaguePlayers.find((player: LeaguePlayer) => player.documentId === activeList.id)!.playList}
-              </pre>
+              {(() => {
+                const player = leaguePlayers.find((player: LeaguePlayer) => player.documentId === activeList.id);
+                const armyLists = player?.armyLists || [];
+                
+                if (armyLists.length === 0) {
+                  return (
+                    <div className="text-gray-500 dark:text-gray-400 text-center py-8">
+                      No army lists added yet. Click "Manage Lists" to add your first list!
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="space-y-6">
+                    {armyLists.map((list: any, index: number) => (
+                      <div key={list.id || index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{list.name}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{list.faction}</p>
+                            {list.isActive && (
+                              <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full mt-1">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Created: {new Date(list.createdDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 leading-relaxed bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                          {list.listContent}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Army List Manager Modal */}
+      {showArmyListManager && (
+        <ArmyListManager
+          leaguePlayerId={selectedPlayerId}
+          currentFaction={selectedPlayerFaction}
+          onClose={() => {
+            setShowArmyListManager(false);
+            setSelectedPlayerId('');
+            setSelectedPlayerFaction('');
+          }}
+        />
       )}
     </div>
   )
