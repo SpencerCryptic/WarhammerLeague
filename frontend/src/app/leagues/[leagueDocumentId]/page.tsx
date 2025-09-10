@@ -5,7 +5,7 @@ import JoinLeagueButton from '@/components/JoinLeagueButton';
 
 const getLeague = async (documentId: string) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`);
+    const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`);
 
     if (!response.ok) {
       console.error(`Failed to fetch league: ${response.status}`);

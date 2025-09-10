@@ -9,7 +9,7 @@ const LeagueDashboard = () => {
 
   const getLeague = async (documentId: string) => {
     useEffect(() => {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`)
+      fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`)
       .then((res) => res.json())
       .then((data) => {
           setLeague(data);

@@ -64,7 +64,7 @@ const MatchesDashboard = () => {
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (token) {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me?populate[player]=*&populate[role]=*`, {
+        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/users/me?populate[player]=*&populate[role]=*`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())
@@ -72,7 +72,7 @@ const MatchesDashboard = () => {
           setCurrentUser(userData);
           setIsAdmin(userData?.role?.name === 'Admin' || userData?.role?.name === 'LeagueCreator');
           
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}?populate[matches][populate]=*&populate[league_players][populate]=*`)
+          fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate]=*&populate[league_players][populate]=*`)
           .then((res) => res.json())
           .then((data) => {
             setLeague(data.data);
@@ -104,7 +104,7 @@ const MatchesDashboard = () => {
           setIsLoading(false);
         });
       } else {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}?populate[matches][populate]=*`)
+        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate]=*`)
         .then((res) => res.json())
         .then((data) => {
           setLeague(data.data);

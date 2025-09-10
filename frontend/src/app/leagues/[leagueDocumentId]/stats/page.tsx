@@ -18,7 +18,7 @@ export default function StatsPage() {
   useEffect(() => {
     const fetchLeagueData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`);
+        const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch league data');

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import Footer from '@/components/Footer';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
 interface League {
   documentId: string;

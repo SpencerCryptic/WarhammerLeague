@@ -29,7 +29,7 @@ const TableRow = () => {
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}`)
+      fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`)
       .then((res) => res.json())
       .then((data) => {
           setMatches(data.data.matches || [])
@@ -113,7 +113,7 @@ const TableRow = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/users/me?populate=player', {
+        const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/users/me?populate=player', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         

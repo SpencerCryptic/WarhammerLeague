@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
 type UserProfile = {
   id: string;

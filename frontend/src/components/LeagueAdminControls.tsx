@@ -40,7 +40,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
 
     const fetchUser = async () => {
       try {
-        const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/users/me', {
+        const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/users/me', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (response.ok) {
@@ -69,7 +69,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     setMessage('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leagues/${documentId}/start`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}/start`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -100,7 +100,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     setOtpLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/otps/league/${documentId}`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/otps/league/${documentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -126,7 +126,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     setGeneratingOTP(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/otps/generate', {
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/otps/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
