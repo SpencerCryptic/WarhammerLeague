@@ -12,40 +12,19 @@ export default function CreateLeagueButton() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    console.log("CreateLeagueButton: Token found:", !!token);
-    console.log("CreateLeagueButton: Stored user found:", !!storedUser);
-    
-    if (!token) {
-      console.log("CreateLeagueButton: No token, not loading user");
-      setLoading(false);
-      return;
-    }
-
-    // TEMPORARY: Use stored user data instead of API call due to Strapi permissions issue
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        console.log("CreateLeagueButton: Using stored user:", userData);
-        
-        // For admin testing, assume role is Admin if user exists
-        const userWithRole = {
-          ...userData,
-          role: { name: 'Admin', type: 'admin' }
-        };
-        
-        setUser(userWithRole);
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      console.log("CreateLeagueButton: Token found:", !!token);
+      console.log("CreateLeagueButton: Stored user found:", !!storedUser);
+      
+      if (!token) {
+        console.log("CreateLeagueButton: No token, not loading user");
         setLoading(false);
         return;
-      } catch (error) {
-        console.error("CreateLeagueButton: Error parsing stored user:", error);
       }
-    }
 
-    // Fallback: try API call but don't clear tokens if it fails
-    const fetchUser = async () => {
       try {
         console.log("CreateLeagueButton: Attempting API call...");
         const response = await fetch(`${API_URL}/api/users/me?populate=role`, {
@@ -59,11 +38,37 @@ export default function CreateLeagueButton() {
           console.log("CreateLeagueButton: User data from API:", userData);
           setUser(userData);
         } else {
-          console.log("CreateLeagueButton: API failed, permissions issue - using fallback");
-          // Don't clear tokens, just show temp message
+          console.log("CreateLeagueButton: API failed, using stored user without admin privileges");
+          // Fallback to stored user but without automatic admin role assignment
+          if (storedUser) {
+            try {
+              const userData = JSON.parse(storedUser);
+              // Use the user but with their actual role (likely "Authenticated" for regular users)
+              setUser({
+                ...userData,
+                role: { name: 'Authenticated', type: 'authenticated' }
+              });
+            } catch (error) {
+              console.error("CreateLeagueButton: Error parsing stored user:", error);
+              setUser(null);
+            }
+          }
         }
       } catch (error) {
         console.error("CreateLeagueButton: Error fetching user:", error);
+        // Fallback to stored user with default role
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser({
+              ...userData,
+              role: { name: 'Authenticated', type: 'authenticated' }
+            });
+          } catch (error) {
+            console.error("CreateLeagueButton: Error parsing stored user:", error);
+            setUser(null);
+          }
+        }
       } finally {
         setLoading(false);
       }
@@ -76,22 +81,9 @@ export default function CreateLeagueButton() {
 
   const canCreate = canCreateLeagues(user);
   
-  // Debug info for troubleshooting
-  if (!user) {
-    return (
-      <div className="p-2 bg-yellow-100 text-yellow-800 rounded text-sm">
-        No user logged in. <a href="/auth/login" className="underline">Login here</a>
-      </div>
-    );
-  }
-  
-  if (!canCreate) {
-    return (
-      <div className="p-2 bg-red-100 text-red-800 rounded text-sm">
-        User {user.username} with role "{user?.role?.name}" cannot create leagues.
-        <br />Expected: Admin or LeagueCreator
-      </div>
-    );
+  // Only show the button if user can create leagues
+  if (!user || !canCreate) {
+    return null; // Hide button completely for regular users
   }
 
   return (
