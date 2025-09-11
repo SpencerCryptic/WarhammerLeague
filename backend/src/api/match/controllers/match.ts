@@ -169,8 +169,7 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       if (leaguePlayer1ArmyListId) {
         console.log('Fetching player 1 army list...');
         const armyList1 = await (strapi.documents as any)('api::army-list.army-list').findOne({
-          documentId: leaguePlayer1ArmyListId,
-          fields: ['listContent']
+          documentId: leaguePlayer1ArmyListId
         });
         console.log('Player 1 army list result:', armyList1);
         leaguePlayer1List = (armyList1 as any)?.listContent || '';
