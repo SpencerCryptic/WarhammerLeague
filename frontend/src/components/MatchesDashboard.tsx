@@ -78,22 +78,13 @@ const MatchesDashboard = () => {
             setLeague(data.data);
             setMatches(data.data.matches || []);
             
-            console.log('User data:', userData);
-            console.log('League players:', data.data.league_players);
-            
             if (userData?.player && data.data.league_players) {
               const userLeaguePlayer = data.data.league_players.find(
                 (lp: any) => lp.player?.id === userData.player.id
               );
-              console.log('Found user league player:', userLeaguePlayer);
               if (userLeaguePlayer) {
                 setUserLeaguePlayerName(userLeaguePlayer.leagueName);
-                console.log('User league player name set to:', userLeaguePlayer.leagueName);
-              } else {
-                console.log('No league player found for user');
               }
-            } else {
-              console.log('Missing userData.player or league_players');
             }
             
             setIsLoading(false);
@@ -253,13 +244,6 @@ const MatchesDashboard = () => {
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {groupedMatches[roundName].map((match: Match) => {
           const isUserMatch = isUserInMatch(match, userLeaguePlayerName || undefined);
-          console.log('=== MATCH DEBUG ===');
-          console.log('Current user:', currentUser);
-          console.log('User league player name:', userLeaguePlayerName);
-          console.log('Match:', match.leaguePlayer1?.leagueName, 'vs', match.leaguePlayer2?.leagueName);
-          console.log('Match object:', match);
-          console.log('Is user match?', isUserMatch);
-          console.log('===================');
           const matchStatus = match.statusMatch?.toString() || 'upcoming';
           const isPlayed = matchStatus === 'played';
           

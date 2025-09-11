@@ -161,26 +161,38 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     let leaguePlayer1List = '';
     let leaguePlayer2List = '';
     
+    console.log('🔧 DEBUG: Fetching army lists for match submission');
+    console.log('Player 1 army list ID:', leaguePlayer1ArmyListId);
+    console.log('Player 2 army list ID:', leaguePlayer2ArmyListId);
+    
     try {
       if (leaguePlayer1ArmyListId) {
+        console.log('Fetching player 1 army list...');
         const armyList1 = await (strapi.documents as any)('api::army-list.army-list').findOne({
           documentId: leaguePlayer1ArmyListId,
           fields: ['listContent']
         });
+        console.log('Player 1 army list result:', armyList1);
         leaguePlayer1List = (armyList1 as any)?.listContent || '';
+        console.log('Player 1 list content length:', leaguePlayer1List?.length || 0);
       }
       
       if (leaguePlayer2ArmyListId) {
+        console.log('Fetching player 2 army list...');
         const armyList2 = await (strapi.documents as any)('api::army-list.army-list').findOne({
           documentId: leaguePlayer2ArmyListId,
           fields: ['listContent']
         });
+        console.log('Player 2 army list result:', armyList2);
         leaguePlayer2List = (armyList2 as any)?.listContent || '';
+        console.log('Player 2 list content length:', leaguePlayer2List?.length || 0);
       }
     } catch (error) {
-      console.error('Error fetching army lists:', error);
+      console.error('ERROR fetching army lists:', error);
       // Continue with empty lists if fetch fails
     }
+    
+    console.log('Final army list lengths - P1:', leaguePlayer1List?.length || 0, 'P2:', leaguePlayer2List?.length || 0);
 
     // Determine match result
     let matchResult;
