@@ -33,7 +33,7 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
   const fetchLists = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:1337/api/league-players/${leaguePlayerId}?populate=*`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}?populate=*`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -71,7 +71,7 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
 
       const updatedLists = [...deactivatedLists, newListItem];
 
-      const response = await fetch(`http://localhost:1337/api/league-players/${leaguePlayerId}`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
         }
       });
 
-      const response = await fetch(`http://localhost:1337/api/league-players/${leaguePlayerId}`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
       const token = localStorage.getItem('token');
       const updatedLists = lists.filter(list => list.id !== listId);
 
-      const response = await fetch(`http://localhost:1337/api/league-players/${leaguePlayerId}`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

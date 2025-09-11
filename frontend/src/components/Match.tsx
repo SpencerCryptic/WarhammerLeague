@@ -11,7 +11,7 @@ const MatchComponent = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch(`http://localhost:1337/api/matches/${match.documentId}/submit`, {
+      const res = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/matches/${match.documentId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ const MatchComponent = () => {
 
   const fetchMatch = (matchId: string) => {
     useEffect(() => {
-      fetch(`http://localhost:1337/api/matches/${matchId}`)
+      fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/matches/${matchId}`)
       .then((res) => res.json())
       .then((data) => {
         setMatch(data.data);

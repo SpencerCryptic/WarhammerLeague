@@ -44,7 +44,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues and their players
-      const leaguesResponse = await fetch('http://localhost:1337/api/leagues?populate=league_players.faction,matches');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate=league_players.faction,matches');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {

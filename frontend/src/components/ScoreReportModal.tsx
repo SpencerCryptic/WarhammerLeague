@@ -57,7 +57,7 @@ export default function ScoreReportModal({
 
       // Fetch player 1 lists
       if (match?.leaguePlayer1?.documentId) {
-        const response1 = await fetch(`http://localhost:1337/api/league-players/${match.leaguePlayer1.documentId}?populate=*`, {
+        const response1 = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${match.leaguePlayer1.documentId}?populate=*`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response1.ok) {
@@ -75,7 +75,7 @@ export default function ScoreReportModal({
 
       // Fetch player 2 lists
       if (match?.leaguePlayer2?.documentId) {
-        const response2 = await fetch(`http://localhost:1337/api/league-players/${match.leaguePlayer2.documentId}?populate=*`, {
+        const response2 = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${match.leaguePlayer2.documentId}?populate=*`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response2.ok) {
@@ -106,7 +106,7 @@ export default function ScoreReportModal({
         return;
       }
 
-      const response = await fetch(`http://localhost:1337/api/matches/${match?.documentId}/submit`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/matches/${match?.documentId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

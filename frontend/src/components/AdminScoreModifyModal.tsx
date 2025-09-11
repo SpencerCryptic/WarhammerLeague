@@ -64,7 +64,7 @@ export default function AdminScoreModifyModal({
         return;
       }
 
-      const response = await fetch(`http://localhost:1337/api/matches/${match?.documentId}/admin-modify-score`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/matches/${match?.documentId}/admin-modify-score`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

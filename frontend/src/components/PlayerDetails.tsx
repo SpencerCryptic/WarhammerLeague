@@ -25,7 +25,7 @@ const PlayerDetailsComponent = () => {
   useEffect(() => {
     if (!leagueDocumentId) return;
     
-    fetch(`http://localhost:1337/api/leagues/${leagueDocumentId}`)
+    fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${leagueDocumentId}`)
       .then((res) => res.json())
       .then((data) => {
         const currentLeaguePlayer = data.data.league_players.find((lp: any) => {

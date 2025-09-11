@@ -64,7 +64,7 @@ export default function JoinLeagueModal({
         return;
       }
 
-      const response = await fetch(`http://localhost:1337/api/leagues/${leagueId}/join`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${leagueId}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

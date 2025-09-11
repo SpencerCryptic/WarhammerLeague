@@ -64,7 +64,7 @@ export default function JoinWithCodeModal({ isOpen, onClose }: JoinWithCodeModal
     setError('');
 
     try {
-      const response = await fetch('http://localhost:1337/api/leagues/validate-code', {
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/validate-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code.trim() })
@@ -113,7 +113,7 @@ export default function JoinWithCodeModal({ isOpen, onClose }: JoinWithCodeModal
         return;
       }
 
-      const response = await fetch('http://localhost:1337/api/leagues/join-with-code', {
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/join-with-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
