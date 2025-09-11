@@ -261,7 +261,13 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       populate: ['role']
     });
     
-    const isAdmin = user?.role?.name === 'Admin' || user?.role?.name === 'LeagueCreator';
+    console.log('=== ADMIN CHECK DEBUG ===');
+    console.log('User:', JSON.stringify(user, null, 2));
+    console.log('User role:', user?.role);
+    console.log('Role name:', user?.role?.name);
+    console.log('=========================');
+    
+    const isAdmin = user?.role?.name === 'Admin';
     if (!isAdmin) {
       return ctx.forbidden('Only admins can modify match scores.');
     }
