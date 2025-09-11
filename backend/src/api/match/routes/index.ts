@@ -74,5 +74,14 @@ export default {
         },
       },
     },
+    {
+      // Update army lists for existing matches
+      method: 'POST',
+      path: '/matches/update-army-lists',
+      handler: 'update-army-lists.updateArmyLists',
+      config: {
+        auth: false, // Temporary for testing - should require admin auth in production
+      },
+    },
   ],
 };
