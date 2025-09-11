@@ -151,7 +151,7 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     const scoringRules = (league?.scoringRules as any) || defaultRules;
 
     // Validate 40K score cap (100 points max)
-    if (league?.gameSystem === 'Warhammer: 40,000') {
+    if ((league as any)?.gameSystem === 'Warhammer: 40,000') {
       if (leaguePlayer1Score > 100 || leaguePlayer2Score > 100) {
         return ctx.badRequest('Warhammer 40,000 scores cannot exceed 100 points');
       }
