@@ -67,20 +67,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8 lg:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-extrabold text-white sm:text-5xl md:text-6xl">
+        <div className="text-center mb-8 sm:mb-16">
+          <h2 className="text-2xl font-extrabold text-white sm:text-4xl md:text-5xl lg:text-6xl">
             Welcome to <span className="text-orange-500">Cryptic Cabin</span> Leagues
           </h2>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-400">
+          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-400">
             Join tabletop games and TCG leagues at Cryptic Cabin stores and track your progress
           </p>
           {!isAuthenticated && (
-            <div className="mt-10">
+            <div className="mt-6 sm:mt-10">
               <Link 
                 href="/auth/register"
-                className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+                className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-lg text-base sm:text-lg"
               >
                 Get Started
               </Link>
@@ -89,59 +89,59 @@ export default function HomePage() {
         </div>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-          <div className="bg-gray-800 rounded-lg p-6 text-center border border-gray-700 hover:border-orange-500 transition-colors duration-300 shadow-lg">
-            <div className="text-4xl font-bold text-orange-400 mb-2">{stats.totalLeagues}</div>
-            <div className="text-gray-300 text-sm font-medium uppercase tracking-wide">Total Leagues</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-orange-500 transition-colors duration-300 shadow-lg">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-400 mb-1 sm:mb-2">{stats.totalLeagues}</div>
+            <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Total Leagues</div>
           </div>
-          <div className="bg-gray-800 rounded-lg p-6 text-center border border-gray-700 hover:border-green-500 transition-colors duration-300 shadow-lg">
-            <div className="text-4xl font-bold text-green-400 mb-2">{stats.activeLeagues}</div>
-            <div className="text-gray-300 text-sm font-medium uppercase tracking-wide">Active Now</div>
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-green-500 transition-colors duration-300 shadow-lg">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">{stats.activeLeagues}</div>
+            <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Active Now</div>
           </div>
-          <div className="bg-gray-800 rounded-lg p-6 text-center border border-gray-700 hover:border-blue-500 transition-colors duration-300 shadow-lg">
-            <div className="text-4xl font-bold text-blue-400 mb-2">{stats.totalPlayers}</div>
-            <div className="text-gray-300 text-sm font-medium uppercase tracking-wide">Total Players</div>
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-blue-500 transition-colors duration-300 shadow-lg">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 mb-1 sm:mb-2">{stats.totalPlayers}</div>
+            <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Total Players</div>
           </div>
         </div>
 
         {/* Main Content Container */}
-        <div className="bg-gray-800/50 rounded-2xl p-8 border border-gray-700 shadow-2xl">
+        <div className="bg-gray-800/50 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-2xl">
           {/* About Section - Full Width */}
-          <div className="mb-12">
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
-              <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-8 sm:mb-12">
+            <div className="bg-gray-800 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-bold text-white">About Our Leagues</h3>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">About Our Leagues</h3>
               </div>
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                 <div>
-                  <p className="text-gray-300 mb-6 text-lg leading-relaxed">
+                  <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg leading-relaxed">
                     Cryptic Cabin Leagues offer tabletop games and TCG leagues across multiple systems. 
                     Whether you're into board games, miniatures, or trading card games, we have a league for you.
                   </p>
-                  <ul className="text-gray-300 space-y-3">
+                  <ul className="text-gray-300 space-y-2 sm:space-y-3">
                     <li className="flex items-center">
-                      <span className="w-3 h-3 bg-orange-500 rounded-full mr-4"></span>
-                      <span className="text-lg">Multiple game types supported</span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Multiple game types supported</span>
                     </li>
                     <li className="flex items-center">
-                      <span className="w-3 h-3 bg-orange-500 rounded-full mr-4"></span>
-                      <span className="text-lg">Skill-based matchmaking</span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Skill-based matchmaking</span>
                     </li>
                     <li className="flex items-center">
-                      <span className="w-3 h-3 bg-orange-500 rounded-full mr-4"></span>
-                      <span className="text-lg">Bristol and Bracknell locations</span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Bristol and Bracknell locations</span>
                     </li>
                   </ul>
                 </div>
                 <div className="flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-                      <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                      <svg className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
