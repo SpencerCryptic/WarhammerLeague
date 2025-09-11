@@ -21,8 +21,8 @@ export default ({ env }) => ({
         // service: env('SMTP_SERVICE', 'gmail'), // Uncomment to use Gmail
       },
       settings: {
-        defaultFrom: env('SMTP_FROM', 'noreply@warhammerleague.com'),
-        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@warhammerleague.com'),
+        defaultFrom: env('SMTP_FROM', 'noreply@crypticcabin.com'),
+        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@crypticcabin.com'),
       },
     },
   },

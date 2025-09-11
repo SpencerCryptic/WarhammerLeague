@@ -110,7 +110,15 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
 
     const match = await strapi.documents('api::match.match').findOne({
       documentId: matchId,
-      populate: ['leaguePlayer1', 'leaguePlayer2', 'league'],
+      populate: {
+        leaguePlayer1: {
+          populate: ['armyLists']
+        },
+        leaguePlayer2: {
+          populate: ['armyLists']
+        },
+        league: true
+      }
     })
     if (!match) {
       return ctx.notFound('Match not found')
@@ -149,6 +157,37 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     };
 
     const scoringRules = (league?.scoringRules as any) || defaultRules;
+
+    // Validate 40K score cap (100 points max)
+    if (league?.rulesetType === 'Warhammer: 40,000') {
+      if (leaguePlayer1Score > 100 || leaguePlayer2Score > 100) {
+        return ctx.badRequest('Warhammer 40,000 scores cannot exceed 100 points');
+      }
+    }
+
+    // Get army list content for display
+    let leaguePlayer1List = '';
+    let leaguePlayer2List = '';
+    
+    if (leaguePlayer1ArmyListId) {
+      try {
+        const player1ArmyLists = match.leaguePlayer1.armyLists || [];
+        const player1List = player1ArmyLists.find((list: any) => list.id === leaguePlayer1ArmyListId);
+        leaguePlayer1List = player1List?.listContent || '';
+      } catch (error) {
+        console.log('Could not find player 1 army list:', error);
+      }
+    }
+    
+    if (leaguePlayer2ArmyListId) {
+      try {
+        const player2ArmyLists = match.leaguePlayer2.armyLists || [];
+        const player2List = player2ArmyLists.find((list: any) => list.id === leaguePlayer2ArmyListId);
+        leaguePlayer2List = player2List?.listContent || '';
+      } catch (error) {
+        console.log('Could not find player 2 army list:', error);
+      }
+    }
 
     // Determine match result
     let matchResult;
@@ -203,8 +242,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       data: { 
         leaguePlayer1Score,
         leaguePlayer2Score,
-        leaguePlayer1List: '',
-        leaguePlayer2List: '',
+        leaguePlayer1List,
+        leaguePlayer2List,
         leaguePlayer1ArmyListId: leaguePlayer1ArmyListId || '',
         leaguePlayer2ArmyListId: leaguePlayer2ArmyListId || '',
         leaguePlayer1Result: leaguePlayer1Score > leaguePlayer2Score ? 2 : leaguePlayer2Score > leaguePlayer1Score ? 0 : 1,
@@ -261,21 +300,26 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       populate: ['role']
     });
     
-    console.log('=== ADMIN CHECK DEBUG ===');
-    console.log('User:', JSON.stringify(user, null, 2));
-    console.log('User role:', user?.role);
-    console.log('Role name:', user?.role?.name);
-    console.log('=========================');
+    // Admin check - verify user has admin role or is the league creator
+    const isAdmin = user?.role?.name === 'Admin' || 
+                    user?.role?.type === 'admin' || 
+                    user?.email === 'spencer@crypticcabin.com'; // Fallback for main admin
     
-    // TEMPORARY: Skip admin check for testing
-    // const isAdmin = user?.role?.name === 'Admin';
-    // if (!isAdmin) {
-    //   return ctx.forbidden('Only admins can modify match scores.');
-    // }
+    if (!isAdmin) {
+      return ctx.forbidden('Only admins can modify match scores.');
+    }
 
     const match = await strapi.documents('api::match.match').findOne({
       documentId: matchId,
-      populate: ['leaguePlayer1', 'leaguePlayer2', 'league'],
+      populate: {
+        leaguePlayer1: {
+          populate: ['armyLists']
+        },
+        leaguePlayer2: {
+          populate: ['armyLists']
+        },
+        league: true
+      }
     });
     
     if (!match) {
@@ -284,6 +328,37 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     
     if (!match.leaguePlayer1 || !match.leaguePlayer2) {
       return ctx.badRequest('Match does not have both players populated.');
+    }
+
+    // Validate 40K score cap (100 points max) for admin modifications
+    if (match.league?.rulesetType === 'Warhammer: 40,000') {
+      if (leaguePlayer1Score > 100 || leaguePlayer2Score > 100) {
+        return ctx.badRequest('Warhammer 40,000 scores cannot exceed 100 points');
+      }
+    }
+
+    // Get army list content if army list IDs are present
+    let leaguePlayer1List = match.leaguePlayer1List || '';
+    let leaguePlayer2List = match.leaguePlayer2List || '';
+    
+    if (match.leaguePlayer1ArmyListId && !leaguePlayer1List) {
+      try {
+        const player1ArmyLists = match.leaguePlayer1.armyLists || [];
+        const player1List = player1ArmyLists.find((list: any) => list.id === match.leaguePlayer1ArmyListId);
+        leaguePlayer1List = player1List?.listContent || '';
+      } catch (error) {
+        console.log('Could not find player 1 army list:', error);
+      }
+    }
+    
+    if (match.leaguePlayer2ArmyListId && !leaguePlayer2List) {
+      try {
+        const player2ArmyLists = match.leaguePlayer2.armyLists || [];
+        const player2List = player2ArmyLists.find((list: any) => list.id === match.leaguePlayer2ArmyListId);
+        leaguePlayer2List = player2List?.listContent || '';
+      } catch (error) {
+        console.log('Could not find player 2 army list:', error);
+      }
     }
 
     // Get league scoring rules
@@ -361,6 +436,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       data: { 
         leaguePlayer1Score,
         leaguePlayer2Score,
+        leaguePlayer1List,
+        leaguePlayer2List,
         leaguePlayer1Result: leaguePlayer1Score > leaguePlayer2Score ? 2 : leaguePlayer2Score > leaguePlayer1Score ? 0 : 1,
         leaguePlayer2Result: leaguePlayer2Score > leaguePlayer1Score ? 2 : leaguePlayer1Score > leaguePlayer2Score ? 0 : 1,
         leaguePlayer1BonusPoints,
