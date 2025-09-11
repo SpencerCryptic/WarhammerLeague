@@ -32,16 +32,16 @@ const Navbar = () => {
   };
 
   return (
-    <nav>
-      <div className='mx-3 my-4 sm:m-5 flex flex-col sm:flex-row items-start sm:items-center relative'>
-        <Link href='/' className='mb-3 sm:mb-0'>
-          <Image width={48} height={48} src='/cabin-logo.png' alt='logo' className='sm:w-[60px] sm:h-[60px]' />
+    <nav className="bg-gradient-to-r from-gray-900 to-gray-800 shadow-lg border-b border-gray-700">
+      <div className='mx-3 py-3 sm:m-5 sm:py-4 flex items-center justify-between'>
+        <Link href='/' className='flex-shrink-0'>
+          <Image width={40} height={40} src='/cabin-logo.png' alt='logo' className='sm:w-[48px] sm:h-[48px]' />
         </Link>
 
-        <ul className='flex flex-col sm:flex-row ml-0 sm:ml-auto w-full sm:w-auto'>
+        <ul className='flex items-center space-x-4 sm:space-x-6 ml-4'>
           {links.map((link) => (
-            <li key={link.href} className='mb-2 sm:mb-0 sm:mr-4 hover:text-orange-400 transition-all duration-150'>
-              <Link href={link.href} className='text-sm sm:text-base'>{link.text}</Link>
+            <li key={link.href} className='hover:text-orange-400 transition-all duration-150'>
+              <Link href={link.href} className='text-sm sm:text-base font-medium'>{link.text}</Link>
             </li>
           ))}
 
@@ -49,19 +49,19 @@ const Navbar = () => {
             <li className='relative group'>
               <button
                 onClick={() => setShowMenu((prev) => !prev)}
-                className='hover:text-orange-400 font-semibold transition-all duration-150 text-sm sm:text-base'
+                className='hover:text-orange-400 font-semibold transition-all duration-150 text-sm sm:text-base px-2 py-1 rounded'
               >
                 {user.username} ⌄
               </button>
 
               {showMenu && (
-                <div className='absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 bg-gray-800 text-white rounded shadow-lg w-full sm:w-40 z-50 max-w-xs'>
-                  <Link href='/settings' className='block px-3 py-2 text-sm hover:bg-gray-700'>
+                <div className='absolute right-0 mt-2 bg-gray-800 text-white rounded-lg shadow-xl w-36 sm:w-40 z-50 border border-gray-600'>
+                  <Link href='/settings' className='block px-4 py-2 text-sm hover:bg-gray-700 rounded-t-lg'>
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className='w-full text-left px-3 py-2 text-sm hover:bg-red-600'
+                    className='w-full text-left px-4 py-2 text-sm hover:bg-red-600 rounded-b-lg'
                   >
                     Logout
                   </button>
@@ -69,11 +69,11 @@ const Navbar = () => {
               )}
             </li>
           ) : (
-            <div className='flex flex-col sm:flex-row w-full sm:w-auto'>
-              <li className='mb-2 sm:mb-0 sm:mr-4'>
+            <div className='flex items-center space-x-2 sm:space-x-4'>
+              <li>
                 <Link 
                   href='/auth/login'
-                  className='hover:text-orange-400 transition-all duration-150 px-3 py-1 text-sm sm:text-base'
+                  className='hover:text-orange-400 transition-all duration-150 px-2 py-1 text-sm sm:text-base font-medium'
                 >
                   Login
                 </Link>
@@ -81,7 +81,7 @@ const Navbar = () => {
               <li>
                 <Link 
                   href='/auth/register'
-                  className='bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-150 text-sm sm:text-base inline-block text-center'
+                  className='bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-150 text-sm sm:text-base'
                 >
                   Register
                 </Link>

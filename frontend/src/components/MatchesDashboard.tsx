@@ -250,7 +250,7 @@ const MatchesDashboard = () => {
             <div className="flex-1 h-px bg-gradient-to-r from-orange-500/50 to-transparent"></div>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {groupedMatches[roundName].map((match: Match) => {
           const isUserMatch = isUserInMatch(match, userLeaguePlayerName || undefined);
           console.log('=== MATCH DEBUG ===');
@@ -266,7 +266,7 @@ const MatchesDashboard = () => {
           return (
             <div
               key={match.documentId}
-              className={`relative overflow-hidden rounded-xl shadow-lg p-6 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${getMatchCardStyle(isUserMatch)} ${(isUserMatch && !isPlayed) || isPlayed ? 'cursor-pointer' : ''}`}
+              className={`relative overflow-hidden rounded-lg shadow-lg p-3 sm:p-4 lg:p-6 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${getMatchCardStyle(isUserMatch)} ${(isUserMatch && !isPlayed) || isPlayed ? 'cursor-pointer' : ''}`}
               onClick={() => {
                 if (isPlayed) {
                   setSelectedMatch(match);
@@ -289,8 +289,8 @@ const MatchesDashboard = () => {
               )}
               
               <div className="relative">
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(matchStatus)}`}>
+                <div className="flex justify-between items-start mb-2 sm:mb-4">
+                  <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(matchStatus)}`}>
                     {matchStatus}
                   </span>
                   {match.proposalTimestamp && (
@@ -300,8 +300,8 @@ const MatchesDashboard = () => {
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-lg ${isUserMatch && match.leaguePlayer1?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
+                <div className="space-y-2 sm:space-y-4">
+                  <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer1?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
                         {match.leaguePlayer1?.leagueName || 'TBD'}
@@ -321,7 +321,7 @@ const MatchesDashboard = () => {
                     <span className="text-gray-500 dark:text-gray-400 font-medium">VS</span>
                   </div>
 
-                  <div className={`p-4 rounded-lg ${isUserMatch && match.leaguePlayer2?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
+                  <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer2?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
                         {match.leaguePlayer2?.leagueName || 'TBD'}

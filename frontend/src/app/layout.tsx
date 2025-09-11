@@ -38,7 +38,7 @@ export default function RootLayout({
         className={`${montserrat.className} ${montserrat.className} antialiased`}
       >
         <Navbar />
-        <main className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8">
+        <main className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 pt-4 sm:pt-6">
           {children}
         </main>
       </body>
