@@ -64,6 +64,7 @@ export default {
       handler: 'match.submit',
     },
     {
+      // Admin score modification route - force deployment
       method: 'PUT',
       path: '/matches/:id/admin-modify-score',
       handler: 'match.adminModifyScore',
