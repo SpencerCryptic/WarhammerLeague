@@ -163,19 +163,19 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     
     try {
       if (leaguePlayer1ArmyListId) {
-        const armyList1 = await strapi.documents('api::army-list.army-list').findOne({
+        const armyList1 = await (strapi.documents as any)('api::army-list.army-list').findOne({
           documentId: leaguePlayer1ArmyListId,
           fields: ['listContent']
-        } as any);
-        leaguePlayer1List = armyList1?.listContent || '';
+        });
+        leaguePlayer1List = (armyList1 as any)?.listContent || '';
       }
       
       if (leaguePlayer2ArmyListId) {
-        const armyList2 = await strapi.documents('api::army-list.army-list').findOne({
+        const armyList2 = await (strapi.documents as any)('api::army-list.army-list').findOne({
           documentId: leaguePlayer2ArmyListId,
           fields: ['listContent']
-        } as any);
-        leaguePlayer2List = armyList2?.listContent || '';
+        });
+        leaguePlayer2List = (armyList2 as any)?.listContent || '';
       }
     } catch (error) {
       console.error('Error fetching army lists:', error);
