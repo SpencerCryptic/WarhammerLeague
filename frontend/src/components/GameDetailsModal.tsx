@@ -14,7 +14,6 @@ export default function GameDetailsModal({
   onClose, 
   match 
 }: GameDetailsModalProps) {
-  // No need for separate state or API calls since army lists are stored directly in match data
   
   const renderArmyList = (armyListContent: string | null, playerName: string, faction?: string) => {
     if (!armyListContent) {

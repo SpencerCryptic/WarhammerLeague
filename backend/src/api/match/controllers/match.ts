@@ -157,9 +157,30 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       }
     }
 
-    // Get army list content for display - temporarily disabled for TypeScript compatibility
+    // Get army list content for display
     let leaguePlayer1List = '';
     let leaguePlayer2List = '';
+    
+    try {
+      if (leaguePlayer1ArmyListId) {
+        const armyList1 = await strapi.documents('api::army-list.army-list').findOne({
+          documentId: leaguePlayer1ArmyListId,
+          fields: ['listContent']
+        } as any);
+        leaguePlayer1List = armyList1?.listContent || '';
+      }
+      
+      if (leaguePlayer2ArmyListId) {
+        const armyList2 = await strapi.documents('api::army-list.army-list').findOne({
+          documentId: leaguePlayer2ArmyListId,
+          fields: ['listContent']
+        } as any);
+        leaguePlayer2List = armyList2?.listContent || '';
+      }
+    } catch (error) {
+      console.error('Error fetching army lists:', error);
+      // Continue with empty lists if fetch fails
+    }
 
     // Determine match result
     let matchResult;

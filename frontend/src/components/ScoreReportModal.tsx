@@ -36,6 +36,7 @@ export default function ScoreReportModal({
   const [loading, setLoading] = useState(false);
   const [player1Lists, setPlayer1Lists] = useState<any[]>([]);
   const [player2Lists, setPlayer2Lists] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const isCrypticCabinScoring = league?.rulesetType === 'cryptic_cabin_standard';
 
@@ -98,11 +99,13 @@ export default function ScoreReportModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('You must be logged in to report scores');
+        setError('You must be logged in to report scores');
+        setLoading(false);
         return;
       }
 
@@ -126,11 +129,24 @@ export default function ScoreReportModal({
         onClose();
         window.location.reload();
       } else {
-        const errorText = await response.text();
-        alert(`Failed to report score: ${errorText}`);
+        let errorMessage = 'Failed to report score';
+        try {
+          const errorData = await response.json();
+          if (errorData.error?.message) {
+            errorMessage = errorData.error.message;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        }
+        setError(errorMessage);
       }
     } catch (error) {
-      alert('Error reporting score');
+      setError('Error reporting score. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -181,6 +197,38 @@ export default function ScoreReportModal({
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                  Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                  {error}
+                </div>
+              </div>
+              <div className="ml-auto pl-3">
+                <div className="-mx-1.5 -my-1.5">
+                  <button
+                    onClick={() => setError(null)}
+                    className="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
