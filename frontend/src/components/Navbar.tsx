@@ -75,7 +75,7 @@ const Navbar = () => {
                   href='/auth/login'
                   className='hover:text-orange-400 transition-all duration-150 px-2 py-1 text-sm sm:text-base font-medium'
                 >
-                  Login
+                  login
                 </Link>
               </li>
               <li>

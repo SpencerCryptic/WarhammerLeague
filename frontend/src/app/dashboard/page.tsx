@@ -142,11 +142,11 @@ export default function DashboardPage() {
       });
       const userMatches = matchesResponse.data.data || [];
       const upcoming = userMatches.filter((match: any) => 
-        match.statusMatch === 'upcoming' || match.statusMatch === 'proposed'
+        match.statusMatch === 'upcoming' || match.statusMatch === 'planned'
       );
       
       const completed = userMatches.filter((match: any) => 
-        match.statusMatch === 'completed'
+        match.statusMatch === 'played'
       );
 
       setUpcomingMatches(upcoming);

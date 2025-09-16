@@ -17,6 +17,7 @@ export default function Leagues() {
   const [archivedLeagues, setArchivedLeagues] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalLeagues: 0, activeLeagues: 0, totalPlayers: 0 });
   const [gameFilter, setGameFilter] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -55,8 +56,11 @@ export default function Leagues() {
       const token = localStorage.getItem('token');
       if (!token) {
         setUserLeagues([]);
+        setIsLoggedIn(false);
         return;
       }
+
+      setIsLoggedIn(true);
 
       // First get current user info
       const userResponse = await axios.get(`${API_URL}/api/users/me?populate[player]=*`, {
@@ -277,8 +281,12 @@ export default function Leagues() {
                     <svg className="w-12 h-12 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <h4 className="text-lg font-semibold text-gray-400 mb-2">No leagues joined</h4>
-                    <p className="text-gray-500 text-sm">Join a league to see your progress here</p>
+                    <h4 className="text-lg font-semibold text-gray-400 mb-2">
+                      {isLoggedIn ? 'No leagues joined' : 'login to see your leagues'}
+                    </h4>
+                    <p className="text-gray-500 text-sm">
+                      {isLoggedIn ? 'Join a league to see your progress here' : 'Sign in to view and track your league participation'}
+                    </p>
                   </div>
                 )}
               </div>
