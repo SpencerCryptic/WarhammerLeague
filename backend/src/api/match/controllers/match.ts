@@ -74,11 +74,11 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       ],
       populate: {
         leaguePlayer1: {
-          fields: ['leagueName', 'faction', 'playList'],
+          fields: ['leagueName', 'faction'],
           populate: ['player']
         },
         leaguePlayer2: {
-          fields: ['leagueName', 'faction', 'playList'],
+          fields: ['leagueName', 'faction'],
           populate: ['player']
         }
       }
@@ -168,21 +168,29 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     try {
       if (leaguePlayer1ArmyListId) {
         console.log('Fetching player 1 army list...');
-        const armyList1 = await (strapi.documents as any)('api::army-list.army-list').findOne({
-          documentId: leaguePlayer1ArmyListId
+        const leaguePlayer1 = await strapi.documents('api::league-player.league-player').findOne({
+          documentId: match.leaguePlayer1.documentId,
+          fields: ['armyLists']
         });
-        console.log('Player 1 army list result:', armyList1);
-        leaguePlayer1List = (armyList1 as any)?.listContent || '';
+        console.log('Player 1 league player result:', leaguePlayer1);
+        if (leaguePlayer1?.armyLists) {
+          const armyList = leaguePlayer1.armyLists.find((list: any) => list.id === leaguePlayer1ArmyListId);
+          leaguePlayer1List = armyList?.listContent || '';
+        }
         console.log('Player 1 list content length:', leaguePlayer1List?.length || 0);
       }
       
       if (leaguePlayer2ArmyListId) {
         console.log('Fetching player 2 army list...');
-        const armyList2 = await (strapi.documents as any)('api::army-list.army-list').findOne({
-          documentId: leaguePlayer2ArmyListId
+        const leaguePlayer2 = await strapi.documents('api::league-player.league-player').findOne({
+          documentId: match.leaguePlayer2.documentId,
+          fields: ['armyLists']
         });
-        console.log('Player 2 army list result:', armyList2);
-        leaguePlayer2List = (armyList2 as any)?.listContent || '';
+        console.log('Player 2 league player result:', leaguePlayer2);
+        if (leaguePlayer2?.armyLists) {
+          const armyList = leaguePlayer2.armyLists.find((list: any) => list.id === leaguePlayer2ArmyListId);
+          leaguePlayer2List = armyList?.listContent || '';
+        }
         console.log('Player 2 list content length:', leaguePlayer2List?.length || 0);
       }
     } catch (error) {

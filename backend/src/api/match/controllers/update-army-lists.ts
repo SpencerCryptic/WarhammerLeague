@@ -37,6 +37,10 @@ export default {
               ]
             }
           ]
+        },
+        populate: {
+          leaguePlayer1: { fields: ['documentId'] },
+          leaguePlayer2: { fields: ['documentId'] }
         }
       } as any);
 
@@ -61,16 +65,26 @@ export default {
         // Update player 1 army list if needed
         if (match.leaguePlayer1ArmyListId && (!leaguePlayer1List || leaguePlayer1List === '')) {
           try {
-            const armyList1 = await (strapi.documents as any)('api::army-list.army-list').findOne({
-              documentId: match.leaguePlayer1ArmyListId
+            // Get the league player with populated army lists
+            const leaguePlayer1 = await strapi.documents('api::league-player.league-player').findOne({
+              documentId: match.leaguePlayer1.documentId,
+              fields: ['armyLists']
             });
-            if (armyList1?.listContent) {
-              leaguePlayer1List = armyList1.listContent;
-              needsUpdate = true;
-              matchResult.player1Updated = true;
-              console.log(`  ✅ Found army list content for player 1: ${armyList1.listContent.substring(0, 50)}...`);
+            
+            if (leaguePlayer1?.armyLists) {
+              const armyList = leaguePlayer1.armyLists.find((list: any) => list.id === match.leaguePlayer1ArmyListId);
+              if (armyList?.listContent) {
+                leaguePlayer1List = armyList.listContent;
+                needsUpdate = true;
+                matchResult.player1Updated = true;
+                console.log(`  ✅ Found army list content for player 1: ${armyList.listContent.substring(0, 50)}...`);
+              } else {
+                const error = `Could not find army list with ID ${match.leaguePlayer1ArmyListId} for player 1`;
+                matchResult.errors.push(error);
+                console.log(`  ❌ ${error}`);
+              }
             } else {
-              const error = `Could not find army list content for player 1 ID: ${match.leaguePlayer1ArmyListId}`;
+              const error = `No army lists found for player 1`;
               matchResult.errors.push(error);
               console.log(`  ❌ ${error}`);
             }
@@ -84,16 +98,26 @@ export default {
         // Update player 2 army list if needed
         if (match.leaguePlayer2ArmyListId && (!leaguePlayer2List || leaguePlayer2List === '')) {
           try {
-            const armyList2 = await (strapi.documents as any)('api::army-list.army-list').findOne({
-              documentId: match.leaguePlayer2ArmyListId
+            // Get the league player with populated army lists
+            const leaguePlayer2 = await strapi.documents('api::league-player.league-player').findOne({
+              documentId: match.leaguePlayer2.documentId,
+              fields: ['armyLists']
             });
-            if (armyList2?.listContent) {
-              leaguePlayer2List = armyList2.listContent;
-              needsUpdate = true;
-              matchResult.player2Updated = true;
-              console.log(`  ✅ Found army list content for player 2: ${armyList2.listContent.substring(0, 50)}...`);
+            
+            if (leaguePlayer2?.armyLists) {
+              const armyList = leaguePlayer2.armyLists.find((list: any) => list.id === match.leaguePlayer2ArmyListId);
+              if (armyList?.listContent) {
+                leaguePlayer2List = armyList.listContent;
+                needsUpdate = true;
+                matchResult.player2Updated = true;
+                console.log(`  ✅ Found army list content for player 2: ${armyList.listContent.substring(0, 50)}...`);
+              } else {
+                const error = `Could not find army list with ID ${match.leaguePlayer2ArmyListId} for player 2`;
+                matchResult.errors.push(error);
+                console.log(`  ❌ ${error}`);
+              }
             } else {
-              const error = `Could not find army list content for player 2 ID: ${match.leaguePlayer2ArmyListId}`;
+              const error = `No army lists found for player 2`;
               matchResult.errors.push(error);
               console.log(`  ❌ ${error}`);
             }
