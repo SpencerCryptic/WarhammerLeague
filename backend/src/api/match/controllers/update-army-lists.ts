@@ -67,12 +67,12 @@ export default {
           try {
             // Get the league player with populated army lists
             const leaguePlayer1 = await strapi.documents('api::league-player.league-player').findOne({
-              documentId: match.leaguePlayer1.documentId,
+              documentId: (match as any).leaguePlayer1.documentId,
               fields: ['armyLists']
             });
             
-            if (leaguePlayer1?.armyLists) {
-              const armyList = leaguePlayer1.armyLists.find((list: any) => list.id === match.leaguePlayer1ArmyListId);
+            if (leaguePlayer1?.armyLists && Array.isArray(leaguePlayer1.armyLists)) {
+              const armyList = (leaguePlayer1.armyLists as any[]).find((list: any) => list.id === match.leaguePlayer1ArmyListId);
               if (armyList?.listContent) {
                 leaguePlayer1List = armyList.listContent;
                 needsUpdate = true;
@@ -100,12 +100,12 @@ export default {
           try {
             // Get the league player with populated army lists
             const leaguePlayer2 = await strapi.documents('api::league-player.league-player').findOne({
-              documentId: match.leaguePlayer2.documentId,
+              documentId: (match as any).leaguePlayer2.documentId,
               fields: ['armyLists']
             });
             
-            if (leaguePlayer2?.armyLists) {
-              const armyList = leaguePlayer2.armyLists.find((list: any) => list.id === match.leaguePlayer2ArmyListId);
+            if (leaguePlayer2?.armyLists && Array.isArray(leaguePlayer2.armyLists)) {
+              const armyList = (leaguePlayer2.armyLists as any[]).find((list: any) => list.id === match.leaguePlayer2ArmyListId);
               if (armyList?.listContent) {
                 leaguePlayer2List = armyList.listContent;
                 needsUpdate = true;

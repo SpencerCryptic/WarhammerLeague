@@ -173,8 +173,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
           fields: ['armyLists']
         });
         console.log('Player 1 league player result:', leaguePlayer1);
-        if (leaguePlayer1?.armyLists) {
-          const armyList = leaguePlayer1.armyLists.find((list: any) => list.id === leaguePlayer1ArmyListId);
+        if (leaguePlayer1?.armyLists && Array.isArray(leaguePlayer1.armyLists)) {
+          const armyList = (leaguePlayer1.armyLists as any[]).find((list: any) => list.id === leaguePlayer1ArmyListId);
           leaguePlayer1List = armyList?.listContent || '';
         }
         console.log('Player 1 list content length:', leaguePlayer1List?.length || 0);
@@ -187,8 +187,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
           fields: ['armyLists']
         });
         console.log('Player 2 league player result:', leaguePlayer2);
-        if (leaguePlayer2?.armyLists) {
-          const armyList = leaguePlayer2.armyLists.find((list: any) => list.id === leaguePlayer2ArmyListId);
+        if (leaguePlayer2?.armyLists && Array.isArray(leaguePlayer2.armyLists)) {
+          const armyList = (leaguePlayer2.armyLists as any[]).find((list: any) => list.id === leaguePlayer2ArmyListId);
           leaguePlayer2List = armyList?.listContent || '';
         }
         console.log('Player 2 list content length:', leaguePlayer2List?.length || 0);
