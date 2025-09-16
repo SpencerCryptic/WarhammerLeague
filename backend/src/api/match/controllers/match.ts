@@ -306,8 +306,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     }
 
     // Check if user is admin or league creator
-    const user = await strapi.documents('plugin::users-permissions.user').findOne({
-      documentId: userId,
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: userId },
       populate: ['role']
     });
     
