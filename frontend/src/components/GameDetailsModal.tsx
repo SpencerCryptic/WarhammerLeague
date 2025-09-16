@@ -14,8 +14,21 @@ export default function GameDetailsModal({
   onClose, 
   match 
 }: GameDetailsModalProps) {
+  const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
+
+  const copyToClipboard = async (text: string, playerId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedStates(prev => ({ ...prev, [playerId]: true }));
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [playerId]: false }));
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
   
-  const renderArmyList = (armyListContent: string | null, playerName: string, faction?: string) => {
+  const renderArmyList = (armyListContent: string | null, playerName: string, faction?: string, playerId?: string) => {
     if (!armyListContent) {
       return (
         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
@@ -23,6 +36,9 @@ export default function GameDetailsModal({
         </div>
       );
     }
+
+    const playerKey = playerId || playerName;
+    const isCopied = copiedStates[playerKey];
 
     return (
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
@@ -34,7 +50,19 @@ export default function GameDetailsModal({
         </div>
         
         <div className="space-y-2">
-          <h5 className="font-semibold text-gray-900 dark:text-white">Army List:</h5>
+          <div className="flex justify-between items-center">
+            <h5 className="font-semibold text-gray-900 dark:text-white">Army List:</h5>
+            <button
+              onClick={() => copyToClipboard(armyListContent, playerKey)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                isCopied
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+              }`}
+            >
+              {isCopied ? 'Copied!' : 'Copy List'}
+            </button>
+          </div>
           <div className="bg-white dark:bg-gray-900 rounded-md p-3 max-h-96 overflow-y-auto">
             <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono">
               {armyListContent}
@@ -125,7 +153,8 @@ export default function GameDetailsModal({
                 {renderArmyList(
                   match?.leaguePlayer1List || null, 
                   match?.leaguePlayer1?.leagueName || 'Player 1',
-                  match?.leaguePlayer1?.faction
+                  match?.leaguePlayer1?.faction,
+                  'player1'
                 )}
               </div>
 
@@ -136,7 +165,8 @@ export default function GameDetailsModal({
                 {renderArmyList(
                   match?.leaguePlayer2List || null, 
                   match?.leaguePlayer2?.leagueName || 'Player 2',
-                  match?.leaguePlayer2?.faction
+                  match?.leaguePlayer2?.faction,
+                  'player2'
                 )}
               </div>
             </div>
