@@ -311,10 +311,21 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       populate: ['role']
     });
     
+    console.log('Admin check - User data:', JSON.stringify({
+      userId,
+      userEmail: user?.email,
+      roleName: user?.role?.name,
+      roleType: user?.role?.type,
+      fullRole: user?.role
+    }, null, 2));
+    
     // Admin check - verify user has admin role or is the league creator
     const isAdmin = user?.role?.name === 'Admin' || 
+                    user?.role?.name === 'admin' ||
                     user?.role?.type === 'admin' || 
                     user?.email === 'spencer@crypticcabin.com'; // Fallback for main admin
+    
+    console.log('Admin check result:', isAdmin);
     
     if (!isAdmin) {
       return ctx.forbidden('Only admins can modify match scores.');
