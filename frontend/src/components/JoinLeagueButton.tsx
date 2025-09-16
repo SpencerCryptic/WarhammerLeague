@@ -20,6 +20,7 @@ export default function JoinLeagueButton({
   const [isUserMember, setIsUserMember] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userLeagueName, setUserLeagueName] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Don't show join button if league is not planned
   if (status !== 'planned') {
@@ -32,9 +33,12 @@ export default function JoinLeagueButton({
       try {
         const token = localStorage.getItem('token');
         if (!token) {
+          setIsLoggedIn(false);
           setLoading(false);
           return;
         }
+
+        setIsLoggedIn(true);
 
         // Get current user info
         const userResponse = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/users/me?populate[player]=*`, {
@@ -113,7 +117,27 @@ export default function JoinLeagueButton({
     );
   }
 
-  // Show join button for non-members
+  // Show "Login to join" message if user is not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="max-w-6xl m-4 p-6 bg-orange-50 border border-orange-200 rounded-lg shadow-sm dark:bg-orange-900/20 dark:border-orange-700">
+        <h3 className="text-lg font-semibold mb-2 text-orange-800 dark:text-orange-200">
+          Login to Join League
+        </h3>
+        <p className="text-orange-600 dark:text-orange-300 mb-4">
+          You need to be logged in to join this league. Sign up or log in to participate!
+        </p>
+        <a
+          href="/auth/login"
+          className="inline-block px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md font-semibold transition-colors"
+        >
+          Login to Join
+        </a>
+      </div>
+    );
+  }
+
+  // Show join button for logged-in non-members
   return (
     <>
       <div className="max-w-6xl m-4 p-6 bg-blue-50 border border-blue-200 rounded-lg shadow-sm dark:bg-blue-900/20 dark:border-blue-700">
