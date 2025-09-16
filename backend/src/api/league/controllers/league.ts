@@ -45,7 +45,23 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       const activeLeagues = await strapi.documents('api::league.league').count({
         filters: { statusleague: 'ongoing' }
       });
-      const totalPlayers = await strapi.documents('api::league-player.league-player').count({});
+      
+      // Count unique users by getting all league players and extracting unique player IDs
+      const allLeaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
+        fields: [],
+        populate: {
+          player: { fields: ['id'] }
+        }
+      });
+      
+      const uniquePlayerIds = new Set();
+      allLeaguePlayers.forEach((lp: any) => {
+        if (lp.player?.id) {
+          uniquePlayerIds.add(lp.player.id);
+        }
+      });
+      
+      const totalPlayers = uniquePlayerIds.size;
 
       ctx.body = {
         data: {
