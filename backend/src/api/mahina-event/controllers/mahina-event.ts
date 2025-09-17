@@ -32,8 +32,8 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
 
     // Sort events by date (earliest first)
     transformedEvents.sort((a, b) => {
-      const dateA = new Date(a.date || '9999-12-31');
-      const dateB = new Date(b.date || '9999-12-31');
+      const dateA = new Date(a.startDate || '9999-12-31');
+      const dateB = new Date(b.startDate || '9999-12-31');
       return dateA.getTime() - dateB.getTime();
     });
 
@@ -56,25 +56,25 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
 
 function transformMahinaEvents(mahinaData: any): any[] {
   // Transform Mahina data to your preferred format
-  if (!mahinaData || !Array.isArray(mahinaData)) {
+  if (!mahinaData || !mahinaData.events || !Array.isArray(mahinaData.events)) {
     return [];
   }
 
-  return mahinaData.map(event => ({
+  return mahinaData.events.map(event => ({
     id: event.id,
-    title: event.title || event.name,
-    date: event.date || event.start_date,
-    time: event.time || event.start_time,
+    title: event.title,
+    startDate: event.startDate,
+    endDate: event.endDate,
     description: event.description,
-    location: event.location,
+    location: event.location?.name || event.location,
     image: event.image,
-    ticketUrl: event.ticket_url || event.url,
-    price: event.price,
-    capacity: event.capacity,
-    attendees: event.attendees,
-    status: event.status,
+    tickets: event.tickets,
+    timezone: event.timezone,
     tags: event.tags || [],
-    // Add any other fields you need
+    isRecurring: event.isRecurring,
+    sessions: event.sessions,
+    rsvp: event.rsvp,
+    organisers: event.organisers
   }));
 }
 
