@@ -5,6 +5,7 @@ export default ({ env }) => ({
       jwt: {
         expiresIn: '7d',
       },
+      resetPasswordUrl: 'https://leagues.crypticcabin.com/auth/reset-password',
     },
   },
   email: {
