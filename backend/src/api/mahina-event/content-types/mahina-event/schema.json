@@ -2,7 +2,7 @@
   "kind": "collectionType",
   "collectionName": "mahina_events_cache",
   "info": {
-    "singularName": "mahina-events",
+    "singularName": "mahina-event",
     "pluralName": "mahina-events",
     "displayName": "Mahina Events Cache",
     "description": "Cached events from Mahina API for Shopify integration"

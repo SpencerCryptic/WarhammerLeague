@@ -6,9 +6,9 @@ export default {
     try {
       console.log('🕐 Cron: Starting hourly Mahina events refresh...');
       
-      // Call the controller method to refresh events
-      const controller = strapi.controller('api::mahina-events.mahina-events');
-      await controller.fetchAndCacheMahinaEvents();
+      // Fetch and cache Mahina events directly
+      const { fetchAndCacheMahinaEvents } = require('../src/api/mahina-event/controllers/mahina-event');
+      await fetchAndCacheMahinaEvents(strapi);
       
       console.log('✅ Cron: Mahina events refreshed successfully');
     } catch (error) {

@@ -540,6 +540,36 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiMahinaEventMahinaEvent extends Struct.CollectionTypeSchema {
+  collectionName: 'mahina_events_cache';
+  info: {
+    description: 'Cached events from Mahina API for Shopify integration';
+    displayName: 'Mahina Events Cache';
+    pluralName: 'mahina-events';
+    singularName: 'mahina-event';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    events: Schema.Attribute.JSON & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::mahina-event.mahina-event'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rawData: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
@@ -1200,6 +1230,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::league-player.league-player': ApiLeaguePlayerLeaguePlayer;
       'api::league.league': ApiLeagueLeague;
+      'api::mahina-event.mahina-event': ApiMahinaEventMahinaEvent;
       'api::match.match': ApiMatchMatch;
       'api::otp.otp': ApiOtpOtp;
       'api::player.player': ApiPlayerPlayer;
