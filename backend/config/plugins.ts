@@ -6,6 +6,7 @@ export default ({ env }) => ({
         expiresIn: '7d',
       },
       resetPasswordUrl: 'https://leagues.crypticcabin.com/auth/reset-password',
+      confirmationUrl: 'https://leagues.crypticcabin.com/auth/email-confirmation',
     },
   },
   email: {
