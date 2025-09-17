@@ -348,7 +348,7 @@ const MatchesDashboard = () => {
                       }}
                       className="w-full px-3 py-2 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
                     >
-                      📝 Report Score
+                      Report Score
                     </button>
                   )}
                   
@@ -361,7 +361,6 @@ const MatchesDashboard = () => {
                       }}
                       className="w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                     >
-                      <span>🔧</span>
                       <span>Admin: Modify Score</span>
                     </button>
                   )}
