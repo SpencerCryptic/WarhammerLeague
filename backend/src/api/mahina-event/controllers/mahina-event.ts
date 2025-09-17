@@ -28,7 +28,7 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
       throw new Error(`Mahina API returned ${firstResponse.status}: ${firstResponse.statusText}`);
     }
 
-    const firstPageData = await firstResponse.json();
+    const firstPageData = await firstResponse.json() as any;
     const totalPages = firstPageData.settings?.noOfPages || 1;
     console.log(`📄 Found ${totalPages} pages of events to fetch`);
     
@@ -62,7 +62,7 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
         continue; // Skip this page but continue with others
       }
 
-      const pageData = await response.json();
+      const pageData = await response.json() as any;
       if (pageData.events && Array.isArray(pageData.events)) {
         allEvents.push(...pageData.events);
       }
@@ -84,7 +84,7 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
     await strapi.documents('api::mahina-event.mahina-event').create({
       data: {
         events: transformedEvents as any,
-        rawData: mahinaData as any
+        rawData: firstPageData as any
       }
     });
 
