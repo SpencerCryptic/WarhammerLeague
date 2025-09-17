@@ -241,7 +241,7 @@ const MatchesDashboard = () => {
             <div className="flex-1 h-px bg-gradient-to-r from-orange-500/50 to-transparent"></div>
           </div>
           
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {groupedMatches[roundName].map((match: Match) => {
           const isUserMatch = isUserInMatch(match, userLeaguePlayerName || undefined);
           const matchStatus = match.statusMatch?.toString() || 'upcoming';

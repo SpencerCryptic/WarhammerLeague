@@ -246,7 +246,7 @@ export default function Leagues() {
                 <h3 className="text-2xl font-bold text-white">Your Leagues</h3>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {userLeagues.length > 0 ? (
                   userLeagues.map((league: any) => (
                     <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
