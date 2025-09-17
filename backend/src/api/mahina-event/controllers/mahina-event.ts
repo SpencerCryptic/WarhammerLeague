@@ -5,7 +5,8 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
   try {
     console.log('🔍 Fetching from Mahina API...');
     
-    const response = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
+    // First, get page 1 to find out how many total pages there are
+    const firstResponse = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -23,12 +24,54 @@ export async function fetchAndCacheMahinaEvents(strapi: any): Promise<any[]> {
       signal: AbortSignal.timeout(10000) // 10 second timeout
     });
 
-    if (!response.ok) {
-      throw new Error(`Mahina API returned ${response.status}: ${response.statusText}`);
+    if (!firstResponse.ok) {
+      throw new Error(`Mahina API returned ${firstResponse.status}: ${firstResponse.statusText}`);
     }
 
-    const mahinaData = await response.json();
-    const transformedEvents = transformMahinaEvents(mahinaData);
+    const firstPageData = await firstResponse.json();
+    const totalPages = firstPageData.settings?.noOfPages || 1;
+    console.log(`📄 Found ${totalPages} pages of events to fetch`);
+    
+    // Collect all events starting with page 1
+    let allEvents = [...(firstPageData.events || [])];
+    
+    // Fetch remaining pages if there are more than 1
+    for (let page = 2; page <= totalPages; page++) {
+      console.log(`📄 Fetching page ${page}/${totalPages}...`);
+      
+      const response = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': 'https://crypticcabin.com/',
+          'Origin': 'https://crypticcabin.com',
+        },
+        body: JSON.stringify({
+          "shop": "cryptic-cabin.myshopify.com",
+          "selectedEventId": null,
+          "selectedRecurringDate": null,
+          "page": page
+        }),
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+
+      if (!response.ok) {
+        console.warn(`⚠️ Failed to fetch page ${page}: ${response.status}`);
+        continue; // Skip this page but continue with others
+      }
+
+      const pageData = await response.json();
+      if (pageData.events && Array.isArray(pageData.events)) {
+        allEvents.push(...pageData.events);
+      }
+    }
+
+    console.log(`✅ Fetched ${allEvents.length} total events from ${totalPages} pages`);
+    
+    // Transform all collected events
+    const transformedEvents = transformMahinaEvents({ events: allEvents });
 
     // Sort events by date (earliest first)
     transformedEvents.sort((a, b) => {
