@@ -21,6 +21,7 @@
     "@strapi/strapi": "^5.14.0",
     "@strapi/types": "^4.25.22",
     "@types/bcryptjs": "^3.0.0",
+    "bad-words": "^4.0.0",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^11.3.0",
     "react": "^18.3.1",

@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { validateLeagueName, validateUsername } from '../../../utils/profanity-filter';
 
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
 
@@ -97,6 +98,14 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       const requestData = requestBody.data || requestBody;
       console.log('🔍 CREATE LEAGUE - Extracted data:', JSON.stringify(requestData, null, 2));
 
+      // Validate league name for profanity
+      if (requestData.name) {
+        const nameValidation = await validateLeagueName(requestData.name);
+        if (!nameValidation.isValid) {
+          return ctx.badRequest(nameValidation.message);
+        }
+      }
+
       const data = {
         ...requestData,
         createdByUser: userId,
@@ -124,6 +133,13 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     if (!leagueName || typeof leagueName !== "string") {
       return ctx.badRequest("League name is required and must be a string.");
     }
+    
+    // Validate league name for profanity
+    const leagueNameValidation = await validateLeagueName(leagueName);
+    if (!leagueNameValidation.isValid) {
+      return ctx.badRequest(leagueNameValidation.message);
+    }
+    
     if (goodFaithAccepted !== true) {
       return ctx.badRequest("You must agree to the good faith commitment.");
     }
