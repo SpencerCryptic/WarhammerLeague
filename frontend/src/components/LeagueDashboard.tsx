@@ -67,7 +67,7 @@ const LeagueDashboard = () => {
                 ? 'text-orange-400 border-orange-400' 
                 : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
             }`}>
-              Lists
+              My Lists
             </button>
           </Link>
         </div>
