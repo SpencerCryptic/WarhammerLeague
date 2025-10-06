@@ -25,7 +25,20 @@
       "inversedBy": "league_players"
     },
     "faction": {
-      "type": "string"
+      "type": "enumeration",
+      "enum": [
+        "Stark",
+        "Lannister",
+        "Free Folk",
+        "Nights Watch",
+        "Baratheon",
+        "Targaryen",
+        "Greyjoy",
+        "Martell",
+        "Bolton",
+        "Brotherhood Without Banners",
+        "Neutral"
+      ]
     },
     "wins": {
       "type": "integer"
