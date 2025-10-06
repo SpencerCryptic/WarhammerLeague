@@ -33,9 +33,9 @@ const LeagueDashboard = () => {
         </h1>
       </div>
       <div className="max-w-6xl mx-4">
-        <div className="flex border-b border-gray-700">
+        <div className="flex border-b border-gray-700 overflow-x-auto scrollbar-hide">
           <Link href={'/leagues/' + documentId + '/'}>
-            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 flex-shrink-0 whitespace-nowrap ${
               selected === '' 
                 ? 'text-orange-400 border-orange-400' 
                 : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
@@ -44,7 +44,7 @@ const LeagueDashboard = () => {
             </button>
           </Link>
           <Link href={'/leagues/' + documentId + '/matches'}>
-            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 flex-shrink-0 whitespace-nowrap ${
               selected === 'matches' 
                 ? 'text-orange-400 border-orange-400' 
                 : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
@@ -53,7 +53,7 @@ const LeagueDashboard = () => {
             </button>
           </Link>
           <Link href={'/leagues/' + documentId + '/table'}>
-            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 flex-shrink-0 whitespace-nowrap ${
               selected === 'table' 
                 ? 'text-orange-400 border-orange-400' 
                 : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
@@ -61,13 +61,13 @@ const LeagueDashboard = () => {
               Table
             </button>
           </Link>
-          <Link href={'/leagues/' + documentId + '/playerDetails'}>
-            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 ${
-              selected === 'playerDetails' 
+          <Link href={'/leagues/' + documentId + '/lists'}>
+            <button className={`px-6 py-3 font-medium transition-all duration-200 border-b-2 flex-shrink-0 whitespace-nowrap ${
+              selected === 'lists' 
                 ? 'text-orange-400 border-orange-400' 
                 : 'text-gray-400 border-transparent hover:text-white hover:border-gray-600'
             }`}>
-              Player Details
+              Lists
             </button>
           </Link>
         </div>
