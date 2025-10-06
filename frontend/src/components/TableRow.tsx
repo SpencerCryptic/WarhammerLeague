@@ -380,6 +380,7 @@ const TableRow = () => {
           leaguePlayerId={selectedPlayerId}
           currentFaction={selectedPlayerFaction}
           onClose={() => {
+            console.log('Army list modal closing, refreshing page...');
             setShowArmyListManager(false);
             setSelectedPlayerId('');
             setSelectedPlayerFaction('');
