@@ -47,7 +47,7 @@ const Tabgroup = () => {
         <Link href={`${pathname}/lists`}>
           <button
           id="lists"
-          onClick={() => switchTab("lists"))
+          onClick={() => switchTab("lists")}
           className={`inline-block p-4 rounded-ss-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ${tab === 'lists' ? 'text-orange-600 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
             Lists
           </button>

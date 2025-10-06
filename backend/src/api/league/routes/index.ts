@@ -95,6 +95,17 @@ export default {
           policies: [],
         },
       },
+      {
+        method: 'POST',
+        path: '/leagues/transfer-player',
+        handler: 'league.transferPlayer',
+        config: {
+          auth: {
+            required: true,
+          },
+          policies: [],
+        },
+      },
     ],
   };
   

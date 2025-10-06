@@ -550,6 +550,98 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
   },
 
+  async transferPlayer(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+      if (!userId) {
+        return ctx.unauthorized('You must be logged in to transfer players');
+      }
+
+      const { leaguePlayerId, targetLeagueId } = ctx.request.body;
+
+      if (!leaguePlayerId || !targetLeagueId) {
+        return ctx.badRequest('League player ID and target league ID are required');
+      }
+
+      // Get the league player to transfer
+      const leaguePlayer = await strapi.documents('api::league-player.league-player').findOne({
+        documentId: leaguePlayerId,
+        populate: ['league', 'player']
+      });
+
+      if (!leaguePlayer) {
+        return ctx.notFound('League player not found');
+      }
+
+      // Get the target league with createdByUser populated
+      const targetLeague = await strapi.documents('api::league.league').findOne({
+        documentId: targetLeagueId,
+        populate: ['createdByUser']
+      });
+
+      if (!targetLeague) {
+        return ctx.notFound('Target league not found');
+      }
+
+      // Get source league details
+      const sourceLeague = await strapi.documents('api::league.league').findOne({
+        documentId: typeof leaguePlayer.league === 'string' ? leaguePlayer.league : leaguePlayer.league.documentId,
+        populate: ['createdByUser']
+      });
+
+      // Check if user is admin of the source league
+      const isSourceLeagueAdmin = sourceLeague?.createdByUser?.id === userId;
+      // Check if user is admin of the target league  
+      const isTargetLeagueAdmin = targetLeague?.createdByUser?.id === userId;
+
+      if (!isSourceLeagueAdmin && !isTargetLeagueAdmin) {
+        return ctx.forbidden('You must be admin of either the source or target league');
+      }
+
+      // Check if player is already in target league
+      const playerId = typeof leaguePlayer.player === 'string' ? leaguePlayer.player : leaguePlayer.player.documentId;
+      const existingPlayerInTarget = await strapi.documents('api::league-player.league-player').findMany({
+        filters: {
+          $and: [
+            { league: { documentId: targetLeagueId } },
+            { player: { documentId: playerId } }
+          ]
+        }
+      });
+
+      if (existingPlayerInTarget.length > 0) {
+        return ctx.badRequest('Player is already in the target league');
+      }
+
+      // Update the league player's league reference
+      await strapi.documents('api::league-player.league-player').update({
+        documentId: leaguePlayerId,
+        data: {
+          league: targetLeagueId
+        }
+      });
+
+      // Get player and league names for response
+      const playerDoc = await strapi.documents('api::player.player').findOne({
+        documentId: playerId
+      });
+
+      return ctx.send({
+        message: `Successfully transferred ${playerDoc?.name || 'Player'} from ${sourceLeague?.name || 'Source League'} to ${targetLeague?.name || 'Target League'}`,
+        data: {
+          leaguePlayer: leaguePlayerId,
+          sourceLeague: sourceLeague?.name,
+          targetLeague: targetLeague?.name,
+          playerName: playerDoc?.name
+        }
+      });
+
+    } catch (error) {
+      console.error('Error transferring player:', error);
+      return ctx.badRequest(`Failed to transfer player: ${error.message}`);
+    }
+  },
+
 }));
 
 // Helper functions outside the controller

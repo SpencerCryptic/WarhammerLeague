@@ -15,6 +15,11 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
   const [otps, setOtps] = useState<any[]>([]);
   const [otpLoading, setOtpLoading] = useState(false);
   const [generatingOTP, setGeneratingOTP] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [availableLeagues, setAvailableLeagues] = useState<any[]>([]);
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+  const [selectedTargetLeague, setSelectedTargetLeague] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
 
   // Check if current user is logged in and get user info
   useEffect(() => {
@@ -160,6 +165,69 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     }
   }, [showOTPModal, documentId]);
 
+  // Fetch available leagues for transfer
+  const fetchAvailableLeagues = async () => {
+    try {
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues');
+      if (response.ok) {
+        const data = await response.json();
+        // Filter out the current league
+        const otherLeagues = data.data.filter((l: any) => l.documentId !== documentId);
+        setAvailableLeagues(otherLeagues);
+      }
+    } catch (error) {
+      console.error('Error fetching leagues:', error);
+    }
+  };
+
+  // Handle player transfer
+  const handlePlayerTransfer = async () => {
+    if (!selectedPlayer || !selectedTargetLeague) return;
+
+    setTransferLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/transfer-player', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          leaguePlayerId: selectedPlayer.documentId,
+          targetLeagueId: selectedTargetLeague
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setMessage(result.message);
+        setShowTransferModal(false);
+        setSelectedPlayer(null);
+        setSelectedTargetLeague('');
+        // Refresh the page to show updated player list
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.error?.message || 'Failed to transfer player');
+      }
+    } catch (error) {
+      console.error('Error transferring player:', error);
+      setMessage('Error transferring player');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
+  // Open transfer modal for a specific player
+  const openTransferModal = (player: any) => {
+    setSelectedPlayer(player);
+    setShowTransferModal(true);
+    fetchAvailableLeagues();
+  };
+
   // Don't show controls if user is not the league owner
   if (!isLeagueOwner) {
     return null;
@@ -216,6 +284,16 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition-colors"
             >
               Manage OTPs
+            </button>
+          )}
+
+          {/* Transfer Players Button - show if league has players */}
+          {league?.league_players?.length > 0 && (
+            <button
+              onClick={() => setShowTransferModal(true)}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors"
+            >
+              Transfer Players
             </button>
           )}
         </div>
@@ -356,6 +434,92 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Player Transfer Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Transfer Player
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTransferModal(false);
+                  setSelectedPlayer(null);
+                  setSelectedTargetLeague('');
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Player Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Player to Transfer
+                </label>
+                <select
+                  value={selectedPlayer?.documentId || ''}
+                  onChange={(e) => {
+                    const player = league?.league_players?.find((p: any) => p.documentId === e.target.value);
+                    setSelectedPlayer(player);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Choose a player...</option>
+                  {league?.league_players?.map((player: any) => (
+                    <option key={player.documentId} value={player.documentId}>
+                      {player.player?.name || `Player ${player.documentId}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Target League Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Target League
+                </label>
+                <select
+                  value={selectedTargetLeague}
+                  onChange={(e) => setSelectedTargetLeague(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  disabled={!selectedPlayer}
+                >
+                  <option value="">Choose target league...</option>
+                  {availableLeagues.map((league: any) => (
+                    <option key={league.documentId} value={league.documentId}>
+                      {league.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Transfer Button */}
+              <button
+                onClick={handlePlayerTransfer}
+                disabled={!selectedPlayer || !selectedTargetLeague || transferLoading}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {transferLoading ? 'Transferring...' : 'Transfer Player'}
+              </button>
+
+              {selectedPlayer && selectedTargetLeague && (
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Warning:</strong> This will move {selectedPlayer.player?.name || 'the selected player'} from this league to the target league. This action cannot be undone.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
