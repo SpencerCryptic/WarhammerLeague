@@ -291,32 +291,34 @@ const TableRow = () => {
         // Individual Player List View
         <div className="space-y-6">
           {/* Header */}
-          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-4 md:p-6">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
               <button 
                 type='button' 
                 onClick={(e) => toggleExpand(e, '')}
-                className="flex items-center text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium transition-colors duration-200"
+                className="flex items-center text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium transition-colors duration-200 self-start text-sm md:text-base"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to Standings
+                <span className="hidden sm:inline">Back to Standings</span>
+                <span className="sm:hidden">Back</span>
               </button>
               
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white capitalize text-center md:flex-1 md:mx-4">
                 {leaguePlayers.find((player: LeaguePlayer) => player.documentId === activeList.id)!.leagueName}'s List
               </h1>
               
               <button 
                 type='button' 
                 onClick={(e) => copylist(e, activeList.list)}
-                className="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                className="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-2 rounded-lg font-medium transition-colors duration-200 self-end md:self-auto"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                Copy List
+                <span className="hidden sm:inline">Copy List</span>
+                <span className="sm:hidden">Copy</span>
               </button>
             </div>
           </div>
