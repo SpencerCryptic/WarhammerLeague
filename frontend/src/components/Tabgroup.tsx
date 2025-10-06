@@ -44,12 +44,12 @@ const Tabgroup = () => {
         </Link>
       </li>
       <li className="me-2">
-        <Link href={`${pathname}/playerDetails`}>
+        <Link href={`${pathname}/lists`}>
           <button
-          id="playerDetails"
-          onClick={() => switchTab("playerDetails")}
-          className={`inline-block p-4 rounded-ss-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ${tab === 'playerDetails' ? 'text-orange-600 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
-            Player Details
+          id="lists"
+          onClick={() => switchTab("lists"))
+          className={`inline-block p-4 rounded-ss-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 ${tab === 'lists' ? 'text-orange-600 dark:text-orange-400' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
+            Lists
           </button>
         </Link>
       </li>
