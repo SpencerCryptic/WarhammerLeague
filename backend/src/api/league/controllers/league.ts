@@ -10,7 +10,13 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         limit: 3,
         fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem'],
         populate: {
-          createdByUser: { fields: ['username'] }
+          createdByUser: { fields: ['username'] },
+          league_players: {
+            fields: ['leagueName'],
+            populate: {
+              player: { fields: ['name'] }
+            }
+          }
         }
       });
 
