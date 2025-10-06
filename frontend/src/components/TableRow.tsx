@@ -383,6 +383,7 @@ const TableRow = () => {
             setShowArmyListManager(false);
             setSelectedPlayerId('');
             setSelectedPlayerFaction('');
+            window.location.reload();
           }}
         />
       )}
