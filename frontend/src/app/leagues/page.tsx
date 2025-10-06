@@ -213,13 +213,12 @@ export default function Leagues() {
                             year: 'numeric'
                           })}
                         </div>
-                        <div className="flex items-center text-gray-400 text-sm mb-3">
+                        <div className="flex items-center text-gray-400 text-sm">
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                           {league.gameSystem}
                         </div>
-                        <p className="text-gray-300 text-sm">{league.league_players?.length || 0} players joined</p>
                       </div>
                     </Link>
                   ))
