@@ -11,13 +11,18 @@ export default ({ env }) => ({
   },
   email: {
     config: {
-      provider: 'strapi-provider-email-strapi-cloud',
+      provider: 'nodemailer',
       providerOptions: {
-        // Strapi Cloud email provider options
+        host: env('SMTP_HOST', 'smtp.gmail.com'),
+        port: env('SMTP_PORT', 587),
+        auth: {
+          user: env('SMTP_USER'),
+          pass: env('SMTP_PASS'),
+        },
       },
       settings: {
-        defaultFrom: 'noreply@crypticcabin.com',
-        defaultReplyTo: 'noreply@crypticcabin.com',
+        defaultFrom: env('SMTP_FROM', 'noreply@crypticcabin.com'),
+        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@crypticcabin.com'),
       },
     },
   },
