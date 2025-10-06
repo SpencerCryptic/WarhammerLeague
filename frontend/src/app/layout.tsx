@@ -22,6 +22,12 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "Cryptic Cabin Leagues",
   description: "Web App for playing and maintaining Cabin Leagues",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', type: 'image/x-icon' }
+    ]
+  },
   openGraph: {
     siteName: "Cryptic Cabin Leagues",
   }
