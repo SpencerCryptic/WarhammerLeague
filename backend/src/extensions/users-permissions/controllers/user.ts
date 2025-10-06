@@ -48,4 +48,12 @@ export default {
       ctx.badRequest('Failed to update profile');
     }
   },
+
+  async count(ctx) {
+    const { query } = ctx;
+    const count = await strapi.entityService.count('plugin::users-permissions.user', {
+      ...query,
+    });
+    ctx.send({ count });
+  },
 };
