@@ -1,5 +1,5 @@
 'use client';
-
+// Force deployment - OTP email functionality
 import { useState, useEffect } from 'react';
 
 const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';

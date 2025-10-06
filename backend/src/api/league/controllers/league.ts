@@ -590,9 +590,9 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       });
 
       // Check if user is admin of the source league
-      const isSourceLeagueAdmin = sourceLeague?.createdByUser?.id === userId;
+      const isSourceLeagueAdmin = sourceLeague?.createdByUser?.id === ctx.state.user?.id;
       // Check if user is admin of the target league  
-      const isTargetLeagueAdmin = targetLeague?.createdByUser?.id === userId;
+      const isTargetLeagueAdmin = targetLeague?.createdByUser?.id === ctx.state.user?.id;
 
       if (!isSourceLeagueAdmin && !isTargetLeagueAdmin) {
         return ctx.forbidden('You must be admin of either the source or target league');

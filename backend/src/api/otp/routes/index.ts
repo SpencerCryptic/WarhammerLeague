@@ -33,5 +33,16 @@ export default {
         policies: [],
       },
     },
+    {
+      method: 'POST',
+      path: '/otps/send-email',
+      handler: 'otp.sendEmail',
+      config: {
+        auth: {
+          required: true,
+        },
+        policies: [],
+      },
+    },
   ],
 };

@@ -428,7 +428,21 @@ export interface ApiLeaguePlayerLeaguePlayer
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     draws: Schema.Attribute.Integer;
-    faction: Schema.Attribute.String;
+    faction: Schema.Attribute.Enumeration<
+      [
+        'Stark',
+        'Lannister',
+        'Free Folk',
+        'Nights Watch',
+        'Baratheon',
+        'Targaryen',
+        'Greyjoy',
+        'Martell',
+        'Bolton',
+        'Brotherhood Without Banners',
+        'Neutral',
+      ]
+    >;
     firstPlayerMatches: Schema.Attribute.Relation<
       'oneToMany',
       'api::match.match'
