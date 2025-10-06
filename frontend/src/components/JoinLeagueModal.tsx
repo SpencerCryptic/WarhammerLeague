@@ -43,6 +43,10 @@ export default function JoinLeagueModal({
         'Adeptus Astartes', 'Death Korps of Krieg', 'Ork Kommandos', 
         'Tau Pathfinders', 'Tyranid Genestealers', 'Chaos Cultists'
       ],
+      'A Song of Ice and Fire': [
+        'Stark', 'Lannister', 'Free Folk', 'Nights Watch', 'Baratheon', 
+        'Targaryen', 'Greyjoy', 'Martell', 'Bolton', 'Brotherhood Without Banners', 'Neutral'
+      ],
       // Add more as needed
     };
 

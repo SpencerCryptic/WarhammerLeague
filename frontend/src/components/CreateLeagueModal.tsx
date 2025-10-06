@@ -319,7 +319,6 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
                   <li>• Draw: 2 points</li>
                   <li>• Loss: 0 points</li>
                   <li>• +1 bonus: Lost but scored 50%+ of opponent's points</li>
-                  <li>• +1 bonus: Scored all primary objectives on 3+ turns</li>
                 </ul>
               </div>
             )}
