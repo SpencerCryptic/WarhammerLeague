@@ -16,8 +16,8 @@ export default ({ env }) => ({
         // Strapi Cloud email provider options
       },
       settings: {
-        defaultFrom: env('SMTP_FROM', 'noreply@crypticcabin.com'),
-        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@crypticcabin.com'),
+        defaultFrom: 'noreply@crypticcabin.com',
+        defaultReplyTo: 'noreply@crypticcabin.com',
       },
     },
   },
