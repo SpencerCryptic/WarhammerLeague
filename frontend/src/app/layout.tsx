@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description: "Web App for playing and maintaining Cabin Leagues",
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
       { url: '/favicon.ico', type: 'image/x-icon' }
     ]
   },
