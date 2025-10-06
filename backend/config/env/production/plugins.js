@@ -13,16 +13,17 @@ module.exports = ({ env }) => ({
     config: {
       provider: 'nodemailer',
       providerOptions: {
-        host: env('SMTP_HOST', 'smtp.gmail.com'),
-        port: env('SMTP_PORT', 587),
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
         },
       },
       settings: {
-        defaultFrom: env('SMTP_FROM', 'noreply@crypticcabin.com'),
-        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@crypticcabin.com'),
+        defaultFrom: 'noreply@crypticcabin.com',
+        defaultReplyTo: 'noreply@crypticcabin.com',
       },
     },
   },
