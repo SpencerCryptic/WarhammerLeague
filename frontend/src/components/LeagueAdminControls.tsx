@@ -171,9 +171,13 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
       const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues');
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched leagues:', data); // Debug log
         // Filter out the current league
         const otherLeagues = data.data.filter((l: any) => l.documentId !== documentId);
+        console.log('Other leagues after filtering:', otherLeagues); // Debug log
         setAvailableLeagues(otherLeagues);
+      } else {
+        console.error('Failed to fetch leagues:', response.status);
       }
     } catch (error) {
       console.error('Error fetching leagues:', error);
@@ -222,8 +226,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
   };
 
   // Open transfer modal for a specific player
-  const openTransferModal = (player: any) => {
-    setSelectedPlayer(player);
+  const openTransferModal = () => {
     setShowTransferModal(true);
     fetchAvailableLeagues();
   };
@@ -290,7 +293,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
           {/* Transfer Players Button - show if league has players */}
           {league?.league_players?.length > 0 && (
             <button
-              onClick={() => setShowTransferModal(true)}
+              onClick={openTransferModal}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors"
             >
               Transfer Players
@@ -496,11 +499,15 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
                   disabled={!selectedPlayer}
                 >
                   <option value="">Choose target league...</option>
-                  {availableLeagues.map((league: any) => (
-                    <option key={league.documentId} value={league.documentId}>
-                      {league.name}
-                    </option>
-                  ))}
+                  {availableLeagues.length === 0 ? (
+                    <option disabled>Loading leagues...</option>
+                  ) : (
+                    availableLeagues.map((league: any) => (
+                      <option key={league.documentId} value={league.documentId}>
+                        {league.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
