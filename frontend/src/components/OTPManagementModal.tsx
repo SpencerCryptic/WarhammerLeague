@@ -30,6 +30,9 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [copiedOTP, setCopiedOTP] = useState<string | null>(null);
+  const [emailToSend, setEmailToSend] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const fetchOTPs = async () => {
     setLoading(true);
@@ -110,6 +113,46 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
     }
   };
 
+  const sendOTPEmail = async () => {
+    if (!emailToSend || !emailToSend.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/otps/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: emailToSend,
+          leagueId,
+          leagueName
+        }),
+      });
+
+      if (response.ok) {
+        setEmailSent(true);
+        setEmailToSend('');
+        setTimeout(() => setEmailSent(false), 3000);
+        await fetchOTPs(); // Refresh OTPs to show the newly generated one
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to send OTP email:', response.status, errorText);
+        alert(`Failed to send email: ${response.status} - ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error sending OTP email:', error);
+      alert(`Error sending email: ${error}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && leagueId) {
       fetchOTPs();
@@ -134,11 +177,53 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
           </button>
         </div>
 
+        {/* Email OTP Section */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Send OTP via Email</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+            Enter a player's email address to send them an OTP and league invitation link
+          </p>
+          <div className="flex gap-3">
+            <input
+              type="email"
+              value={emailToSend}
+              onChange={(e) => setEmailToSend(e.target.value)}
+              placeholder="player@example.com"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              disabled={sendingEmail}
+            />
+            <button
+              onClick={sendOTPEmail}
+              disabled={sendingEmail || !emailToSend}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {sendingEmail ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Send OTP
+                </>
+              )}
+            </button>
+          </div>
+          {emailSent && (
+            <div className="mt-3 p-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-sm rounded">
+              ✅ OTP email sent successfully!
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">One-Time Passwords</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Generated OTPs</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Share these codes with players to grant secure access to the league
+              Share these codes manually with players to grant secure access to the league
             </p>
           </div>
           <button
