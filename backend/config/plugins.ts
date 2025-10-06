@@ -16,8 +16,8 @@ export default ({ env }) => ({
         host: env('SMTP_HOST', 'localhost'),
         port: env('SMTP_PORT', 587),
         auth: {
-          user: env('SMTP_USERNAME'),
-          pass: env('SMTP_PASSWORD'),
+          user: env('SMTP_USER'),
+          pass: env('SMTP_PASS'),
         },
       },
       settings: {
