@@ -191,7 +191,7 @@ export default factories.createCoreController('api::otp.otp', ({ strapi }) => ({
       const leagueLink = `${process.env.FRONTEND_URL || 'https://warhammerleague.vercel.app'}/leagues/${leagueId}`;
 
       // Send email using Strapi's email plugin
-      await strapi.plugins.email.services.email.send({
+      await strapi.plugin('email').service('email').send({
         to: email,
         subject: `Invitation to join ${leagueName} - Warhammer League`,
         html: `
