@@ -464,34 +464,78 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     try {
       let storeEvents = [];
-      
+
       try {
         console.log('🔍 Attempting to fetch from Mahina API...');
 
-        // Fetch without pagination to get all events
-        const response = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
+        // First request to get total number of pages
+        const firstResponse = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Referer': 'https://crypticcabin.com/',
-            'Origin': 'https://crypticcabin.com',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
+            'Referer': 'https://mahina.app/preview',
+            'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Brave";v="138"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"'
           },
           body: JSON.stringify({
             "shop": "cryptic-cabin.myshopify.com",
             "selectedEventId": null,
-            "selectedRecurringDate": null
+            "selectedRecurringDate": null,
+            "page": 1
           }),
-          signal: AbortSignal.timeout(15000) // 15 second timeout for larger responses
+          signal: AbortSignal.timeout(15000)
         });
 
-        console.log(`🔍 Mahina API Response: ${response.status} ${response.statusText}`);
+        console.log(`🔍 Mahina API Response: ${firstResponse.status} ${firstResponse.statusText}`);
 
-        if (response.ok) {
-          const mahinaData = await response.json();
-          storeEvents = transformMahinaEvents(mahinaData);
-          console.log(`✅ Successfully processed ${storeEvents.length} events from Mahina`);
+        if (firstResponse.ok) {
+          const firstData = await firstResponse.json() as any;
+          const totalPages = firstData.settings?.noOfPages || 1;
+          console.log(`🔍 Total pages: ${totalPages}`);
+
+          // Add events from first page
+          let allEvents = transformMahinaEvents(firstData);
+
+          // Fetch remaining pages if there are any
+          if (totalPages > 1) {
+            const pagePromises = [];
+            for (let page = 2; page <= totalPages; page++) {
+              console.log(`🔍 Fetching page ${page}/${totalPages}...`);
+              pagePromises.push(
+                fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
+                    'Referer': 'https://mahina.app/preview',
+                    'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Brave";v="138"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"macOS"'
+                  },
+                  body: JSON.stringify({
+                    "shop": "cryptic-cabin.myshopify.com",
+                    "selectedEventId": null,
+                    "selectedRecurringDate": null,
+                    "page": page
+                  }),
+                  signal: AbortSignal.timeout(15000)
+                }).then(res => res.json())
+              );
+            }
+
+            const additionalPages = await Promise.all(pagePromises);
+            additionalPages.forEach(pageData => {
+              const pageEvents = transformMahinaEvents(pageData);
+              allEvents = allEvents.concat(pageEvents);
+            });
+          }
+
+          storeEvents = allEvents;
+          console.log(`✅ Successfully processed ${storeEvents.length} events from Mahina (${totalPages} pages)`);
 
           // Sort events by date (earliest first)
           storeEvents.sort((a, b) => {
@@ -500,10 +544,10 @@ export default factories.createCoreController('api::league.league', ({ strapi })
             return dateA.getTime() - dateB.getTime();
           });
         } else {
-          const errorText = await response.text();
-          console.warn(`❌ Mahina API failed: ${response.status} ${response.statusText}`);
+          const errorText = await firstResponse.text();
+          console.warn(`❌ Mahina API failed: ${firstResponse.status} ${firstResponse.statusText}`);
           console.warn(`❌ Response: ${errorText.substring(0, 200)}${errorText.length > 200 ? '...' : ''}`);
-          throw new Error(`Mahina API returned ${response.status}: ${response.statusText}`);
+          throw new Error(`Mahina API returned ${firstResponse.status}: ${firstResponse.statusText}`);
         }
       } catch (apiError) {
         if (apiError.name === 'AbortError') {
@@ -513,7 +557,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         } else {
           console.warn('❌ Mahina API error:', apiError.message);
         }
-        
+
         // Return empty array with proper success response
         storeEvents = [];
       }
@@ -702,8 +746,7 @@ function transformMahinaEvents(mahinaData: any) {
           const date = formatEventDate(rawDate);
           
           // Try multiple location field patterns
-          const locationName = event.location?.name || event.venue?.name || event.venue || event.location || '';
-          const location = determineLocation(locationName);
+          const location = determineLocation(event.location || event.venue || '');
           
           // Use tags from Mahina API for more accurate categorization
           const gameType = determineGameTypeFromTags(event.tags, title, description);
@@ -783,8 +826,10 @@ function determineGameType(title: string, description: string) {
     return 'Mixed';
 }
 
-function determineLocation(venue: string) {
-    const venueText = venue.toLowerCase();
+function determineLocation(venue: string | { name?: string } | any) {
+    // Handle different venue types
+    const venueName = typeof venue === 'string' ? venue : (venue?.name || '');
+    const venueText = venueName.toLowerCase();
     if (venueText.includes('bristol')) return 'Bristol';
     if (venueText.includes('bracknell')) return 'Bracknell';
     return 'Bristol'; // Default to Bristol
