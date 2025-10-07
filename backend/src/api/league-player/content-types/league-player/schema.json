@@ -63,6 +63,12 @@
       "type": "json",
       "default": []
     },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
     "firstPlayerMatches": {
       "type": "relation",
       "relation": "oneToMany",

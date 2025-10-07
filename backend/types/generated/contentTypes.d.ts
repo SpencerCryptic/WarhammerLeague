@@ -443,11 +443,13 @@ export interface ApiLeaguePlayerLeaguePlayer
         'Neutral',
       ]
     >;
+    firstName: Schema.Attribute.String;
     firstPlayerMatches: Schema.Attribute.Relation<
       'oneToMany',
       'api::match.match'
     >;
     goodFaithAccepted: Schema.Attribute.Boolean;
+    lastName: Schema.Attribute.String;
     league: Schema.Attribute.Relation<'manyToOne', 'api::league.league'>;
     leagueName: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
