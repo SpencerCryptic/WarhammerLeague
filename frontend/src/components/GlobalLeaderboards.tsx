@@ -16,6 +16,8 @@ interface LeaderboardEntry {
   victoryPoints: number;
   winRate: number;
   totalGames: number;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface GlobalStats {
@@ -44,7 +46,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues and their players
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate=league_players.faction,matches');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate=league_players.faction,league_players.player.user,matches');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -86,7 +88,9 @@ export default function GlobalLeaderboards() {
             rankingPoints: player.rankingPoints || 0,
             victoryPoints,
             winRate,
-            totalGames
+            totalGames,
+            firstName: player.player?.user?.firstName,
+            lastName: player.player?.user?.lastName
           });
 
           // Count factions
@@ -160,6 +164,14 @@ export default function GlobalLeaderboards() {
       case 3: return 'text-amber-600 font-bold';
       default: return 'text-gray-600 dark:text-gray-400 font-medium';
     }
+  };
+
+  const getDisplayName = (player: LeaderboardEntry) => {
+    if (player.firstName && player.lastName) {
+      const lastInitial = player.lastName.charAt(0).toUpperCase();
+      return `${player.firstName} ${lastInitial}.`;
+    }
+    return '';
   };
 
   if (loading) {
@@ -310,9 +322,16 @@ export default function GlobalLeaderboards() {
                     {getRankIcon(index + 1)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
-                      {player.leagueName}
-                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
+                        {player.leagueName}
+                      </h3>
+                      {getDisplayName(player) && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                          {getDisplayName(player)}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                       <Link 
                         href={`/leagues/${player.leagueId}`}
