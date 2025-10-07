@@ -1,8 +1,37 @@
 export default [
   'strapi::logger',
   'strapi::errors',
-  'strapi::security',
-  'strapi::cors',
+  {
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ["'self'", 'https:'],
+          'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+          'media-src': ["'self'", 'data:', 'blob:', 'https:'],
+          upgradeInsecureRequests: null,
+        },
+      },
+    },
+  },
+  {
+    name: 'strapi::cors',
+    config: {
+      enabled: true,
+      origin: [
+        'http://localhost:3000',
+        'https://crypticcabin.com',
+        'https://www.crypticcabin.com',
+        'https://cryptic-cabin.myshopify.com',
+        'https://admin.shopify.com',
+        'https://*.myshopify.com',
+      ],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+      headers: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-API-Key'],
+      keepHeaderOnError: true,
+    },
+  },
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',

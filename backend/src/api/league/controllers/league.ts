@@ -444,7 +444,24 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
   async storeEvents(ctx) {
     console.log('🔍 Store events endpoint called');
-    
+
+    // Optional API key validation for Shopify
+    const apiKey = ctx.request.headers['x-api-key'];
+    const expectedKey = process.env.SHOPIFY_API_KEY;
+
+    // Log API key attempt (for debugging)
+    if (apiKey) {
+      console.log('🔍 API key provided:', apiKey === expectedKey ? 'Valid' : 'Invalid');
+    } else {
+      console.log('🔍 No API key provided (public access)');
+    }
+
+    // For now, we allow access without API key, but you can uncomment this to require it:
+    // if (expectedKey && apiKey !== expectedKey) {
+    //   console.warn('❌ Invalid API key provided');
+    //   return ctx.unauthorized('Invalid API key');
+    // }
+
     try {
       let storeEvents = [];
       
