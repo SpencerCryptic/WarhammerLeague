@@ -309,9 +309,8 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
                     </div>
                   </div>
                   <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded p-3">
-                    <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-32 overflow-y-auto">
-                      {list.listContent.substring(0, 300)}
-                      {list.listContent.length > 300 && '...'}
+                    <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      {list.listContent}
                     </pre>
                   </div>
                 </div>
