@@ -1,0 +1,264 @@
+[
+  {
+    "id": 100,
+    "documentId": "test-league-1-mock",
+    "name": "Imperium League - Test League 1",
+    "statusleague": "completed",
+    "gameSystem": "Warhammer: 40,000",
+    "format": "round_robin",
+    "league_players": [
+      {
+        "id": 100,
+        "documentId": "player-100",
+        "leagueName": "Captain Titus",
+        "faction": "Ultramarines",
+        "wins": 4,
+        "draws": 1,
+        "losses": 0,
+        "rankingPoints": 1,
+        "player": {
+          "id": 17,
+          "documentId": "doc-17",
+          "name": "ultramarines_captain"
+        }
+      },
+      {
+        "id": 101,
+        "documentId": "player-101",
+        "leagueName": "Sergeant Dante",
+        "faction": "Blood Angels",
+        "wins": 1,
+        "draws": 1,
+        "losses": 0,
+        "rankingPoints": 15,
+        "player": {
+          "id": 18,
+          "documentId": "doc-18",
+          "name": "blood_angels_sergeant"
+        }
+      },
+      {
+        "id": 102,
+        "documentId": "player-102",
+        "leagueName": "Librarian Ezekiel",
+        "faction": "Dark Angels",
+        "wins": 0,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 9,
+        "player": {
+          "id": 19,
+          "documentId": "doc-19",
+          "name": "dark_angels_librarian"
+        }
+      },
+      {
+        "id": 103,
+        "documentId": "player-103",
+        "leagueName": "Champion Dorn",
+        "faction": "Imperial Fists",
+        "wins": 0,
+        "draws": 0,
+        "losses": 2,
+        "rankingPoints": 1,
+        "player": {
+          "id": 20,
+          "documentId": "doc-20",
+          "name": "imperial_fists_champion"
+        }
+      },
+      {
+        "id": 104,
+        "documentId": "player-104",
+        "leagueName": "Wolf Hunter Ragnar",
+        "faction": "Space Wolves",
+        "wins": 4,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 6,
+        "player": {
+          "id": 21,
+          "documentId": "doc-21",
+          "name": "space_wolves_hunter"
+        }
+      },
+      {
+        "id": 105,
+        "documentId": "player-105",
+        "leagueName": "Forgemaster Vulkan",
+        "faction": "Salamanders",
+        "wins": 0,
+        "draws": 0,
+        "losses": 1,
+        "rankingPoints": 7,
+        "player": {
+          "id": 22,
+          "documentId": "doc-22",
+          "name": "salamanders_forgemaster"
+        }
+      },
+      {
+        "id": 106,
+        "documentId": "player-106",
+        "leagueName": "Scout Corax",
+        "faction": "Raven Guard",
+        "wins": 0,
+        "draws": 0,
+        "losses": 1,
+        "rankingPoints": 17,
+        "player": {
+          "id": 23,
+          "documentId": "doc-23",
+          "name": "raven_guard_scout"
+        }
+      },
+      {
+        "id": 107,
+        "documentId": "player-107",
+        "leagueName": "Biker Khan",
+        "faction": "White Scars",
+        "wins": 3,
+        "draws": 0,
+        "losses": 0,
+        "rankingPoints": 8,
+        "player": {
+          "id": 24,
+          "documentId": "doc-24",
+          "name": "white_scars_biker"
+        }
+      }
+    ],
+    "playerCount": 8
+  },
+  {
+    "id": 200,
+    "documentId": "test-league-2-mock",
+    "name": "Chaos & Xenos League - Test League 2",
+    "statusleague": "completed",
+    "gameSystem": "Warhammer: 40,000",
+    "format": "round_robin",
+    "league_players": [
+      {
+        "id": 200,
+        "documentId": "player-200",
+        "leagueName": "Lord of Khorne",
+        "faction": "Chaos Space Marines",
+        "wins": 3,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 0,
+        "player": {
+          "id": 25,
+          "documentId": "doc-25",
+          "name": "chaos_lord_khorne"
+        }
+      },
+      {
+        "id": 201,
+        "documentId": "player-201",
+        "leagueName": "Sorcerer Magnus",
+        "faction": "Thousand Sons",
+        "wins": 4,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 16,
+        "player": {
+          "id": 26,
+          "documentId": "doc-26",
+          "name": "thousand_sons_sorcerer"
+        }
+      },
+      {
+        "id": 202,
+        "documentId": "player-202",
+        "leagueName": "Plague Marine",
+        "faction": "Death Guard",
+        "wins": 1,
+        "draws": 0,
+        "losses": 0,
+        "rankingPoints": 2,
+        "player": {
+          "id": 27,
+          "documentId": "doc-27",
+          "name": "death_guard_plague"
+        }
+      },
+      {
+        "id": 203,
+        "documentId": "player-203",
+        "leagueName": "Noise Marine",
+        "faction": "Emperor's Children",
+        "wins": 0,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 10,
+        "player": {
+          "id": 28,
+          "documentId": "doc-28",
+          "name": "emperors_children_noise"
+        }
+      },
+      {
+        "id": 204,
+        "documentId": "player-204",
+        "leagueName": "Overlord Szarekh",
+        "faction": "Necrons",
+        "wins": 0,
+        "draws": 1,
+        "losses": 0,
+        "rankingPoints": 9,
+        "player": {
+          "id": 29,
+          "documentId": "doc-29",
+          "name": "necron_overlord"
+        }
+      },
+      {
+        "id": 205,
+        "documentId": "player-205",
+        "leagueName": "Commander Farsight",
+        "faction": "T'au Empire",
+        "wins": 0,
+        "draws": 1,
+        "losses": 1,
+        "rankingPoints": 3,
+        "player": {
+          "id": 30,
+          "documentId": "doc-30",
+          "name": "tau_commander"
+        }
+      },
+      {
+        "id": 206,
+        "documentId": "player-206",
+        "leagueName": "Warboss Ghazghkull",
+        "faction": "Orks",
+        "wins": 4,
+        "draws": 0,
+        "losses": 1,
+        "rankingPoints": 19,
+        "player": {
+          "id": 31,
+          "documentId": "doc-31",
+          "name": "ork_warboss"
+        }
+      },
+      {
+        "id": 207,
+        "documentId": "player-207",
+        "leagueName": "Hive Tyrant",
+        "faction": "Tyranids",
+        "wins": 0,
+        "draws": 1,
+        "losses": 2,
+        "rankingPoints": 15,
+        "player": {
+          "id": 32,
+          "documentId": "doc-32",
+          "name": "tyranid_hive_tyrant"
+        }
+      }
+    ],
+    "playerCount": 8
+  }
+]

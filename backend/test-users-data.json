@@ -1,0 +1,130 @@
+[
+  {
+    "id": 17,
+    "username": "ultramarines_captain",
+    "email": "ultramarines_captain@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImlhdCI6MTc1OTc4MDQwMSwiZXhwIjoxNzYwMzg1MjAxfQ.-ZQZSpSKjMt99lEf8BYjJ58Rmg0GBvMJ9rfbSs5wiac",
+    "leagueName": "Captain Titus",
+    "faction": "Ultramarines"
+  },
+  {
+    "id": 18,
+    "username": "blood_angels_sergeant",
+    "email": "blood_angels_sergeant@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsImlhdCI6MTc1OTc4MDQwMSwiZXhwIjoxNzYwMzg1MjAxfQ.QTFH4ktZCb8Cji5JfCAegEGT15klWZ-p_JBVwLqlrmc",
+    "leagueName": "Sergeant Dante",
+    "faction": "Blood Angels"
+  },
+  {
+    "id": 19,
+    "username": "dark_angels_librarian",
+    "email": "dark_angels_librarian@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksImlhdCI6MTc1OTc4MDQwMSwiZXhwIjoxNzYwMzg1MjAxfQ.fO3L3e7neFW8pms7kTfEYCe_LxM0uA4e1jkSvOes3WQ",
+    "leagueName": "Librarian Ezekiel",
+    "faction": "Dark Angels"
+  },
+  {
+    "id": 20,
+    "username": "imperial_fists_champion",
+    "email": "imperial_fists_champion@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsImlhdCI6MTc1OTc4MDQwMSwiZXhwIjoxNzYwMzg1MjAxfQ.8qXZtUIoOm6mgWqa4UPenNj11q5zZNioF5IanFL2v0k",
+    "leagueName": "Champion Dorn",
+    "faction": "Imperial Fists"
+  },
+  {
+    "id": 21,
+    "username": "space_wolves_hunter",
+    "email": "space_wolves_hunter@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjEsImlhdCI6MTc1OTc4MDQwMSwiZXhwIjoxNzYwMzg1MjAxfQ.ACD3w39kNEVhdIbL8E-oLQthMbAVm1BVfNvnBftJeiQ",
+    "leagueName": "Wolf Hunter Ragnar",
+    "faction": "Space Wolves"
+  },
+  {
+    "id": 22,
+    "username": "salamanders_forgemaster",
+    "email": "salamanders_forgemaster@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.RDvkAhIiWSEHzc3pH6TgsSwF8nlXuZfvtCZsx8WoK2o",
+    "leagueName": "Forgemaster Vulkan",
+    "faction": "Salamanders"
+  },
+  {
+    "id": 23,
+    "username": "raven_guard_scout",
+    "email": "raven_guard_scout@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjMsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.fag0NB9PLgJ0L01mGrA2x3GVqTkFwoZlrWu48dGGbWQ",
+    "leagueName": "Scout Corax",
+    "faction": "Raven Guard"
+  },
+  {
+    "id": 24,
+    "username": "white_scars_biker",
+    "email": "white_scars_biker@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjQsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.SCFtGuc60ZCMQ7avlz_cyu3Sb-2BLZzJKDlCf3vF_KY",
+    "leagueName": "Biker Khan",
+    "faction": "White Scars"
+  },
+  {
+    "id": 25,
+    "username": "chaos_lord_khorne",
+    "email": "chaos_lord_khorne@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjUsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.zA_ONZQGkp9EEtpiY4nCGfU--S4VpnbYOUv7NbKFuog",
+    "leagueName": "Lord of Khorne",
+    "faction": "Chaos Space Marines"
+  },
+  {
+    "id": 26,
+    "username": "thousand_sons_sorcerer",
+    "email": "thousand_sons_sorcerer@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjYsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.9_fzuSuhL9GUdbo8bWw9nNG5m4nIdynhXVtX_CIB0EM",
+    "leagueName": "Sorcerer Magnus",
+    "faction": "Thousand Sons"
+  },
+  {
+    "id": 27,
+    "username": "death_guard_plague",
+    "email": "death_guard_plague@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjcsImlhdCI6MTc1OTc4MDQwMiwiZXhwIjoxNzYwMzg1MjAyfQ.QAkS1vzjBWR3VRGnbLxrAKuiHlraoiwwmEtCuaeSsIU",
+    "leagueName": "Plague Marine",
+    "faction": "Death Guard"
+  },
+  {
+    "id": 28,
+    "username": "emperors_children_noise",
+    "email": "emperors_children_noise@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImlhdCI6MTc1OTc4MDQwMywiZXhwIjoxNzYwMzg1MjAzfQ.Gtw8ftvP7tEalnq4Lzaz2fDha1RCbFjlabRR42WQKew",
+    "leagueName": "Noise Marine",
+    "faction": "Emperor's Children"
+  },
+  {
+    "id": 29,
+    "username": "necron_overlord",
+    "email": "necron_overlord@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjksImlhdCI6MTc1OTc4MDQwMywiZXhwIjoxNzYwMzg1MjAzfQ.g9afwt3GJwdtLmVaX-hTPcHgEEOEe_9lmoBB_U2DLqM",
+    "leagueName": "Overlord Szarekh",
+    "faction": "Necrons"
+  },
+  {
+    "id": 30,
+    "username": "tau_commander",
+    "email": "tau_commander@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAsImlhdCI6MTc1OTc4MDQwMywiZXhwIjoxNzYwMzg1MjAzfQ._ZkULoG2nCCv5yUxUF1nPsUXPxs9s17-m0O1jDoV1lQ",
+    "leagueName": "Commander Farsight",
+    "faction": "T'au Empire"
+  },
+  {
+    "id": 31,
+    "username": "ork_warboss",
+    "email": "ork_warboss@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzEsImlhdCI6MTc1OTc4MDQwMywiZXhwIjoxNzYwMzg1MjAzfQ.SYRezWg3SE8DXRwL8JPHDp6RuVztdMjxi7IITYYLke4",
+    "leagueName": "Warboss Ghazghkull",
+    "faction": "Orks"
+  },
+  {
+    "id": 32,
+    "username": "tyranid_hive_tyrant",
+    "email": "tyranid_hive_tyrant@test.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzIsImlhdCI6MTc1OTc4MDQwMywiZXhwIjoxNzYwMzg1MjAzfQ.okKikuEkEMFitg5Z9azO6Arnd-VTi42pfcGOF5heyyQ",
+    "leagueName": "Hive Tyrant",
+    "faction": "Tyranids"
+  }
+]
