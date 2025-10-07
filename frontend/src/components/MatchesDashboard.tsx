@@ -152,6 +152,16 @@ const MatchesDashboard = () => {
     return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-gray-200 dark:border-gray-700';
   };
 
+  const getDisplayName = (leaguePlayer: LeaguePlayer) => {
+    // Only use the database firstName/lastName fields
+    if (leaguePlayer?.player?.user?.firstName && leaguePlayer?.player?.user?.lastName) {
+      const lastInitial = leaguePlayer.player.user.lastName.charAt(0).toUpperCase();
+      return `${leaguePlayer.player.user.firstName} ${lastInitial}.`;
+    }
+    
+    return '';
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -288,7 +298,14 @@ const MatchesDashboard = () => {
                   <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer1?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        {match.leaguePlayer1?.leagueName || 'TBD'}
+                        <div className="flex items-center gap-2">
+                          <span>{match.leaguePlayer1?.leagueName || 'TBD'}</span>
+                          {getDisplayName(match.leaguePlayer1) && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                              {getDisplayName(match.leaguePlayer1)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {isPlayed && (
                         <div className={`text-2xl font-bold ${match.leaguePlayer1Result === 2 ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
@@ -308,7 +325,14 @@ const MatchesDashboard = () => {
                   <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer2?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        {match.leaguePlayer2?.leagueName || 'TBD'}
+                        <div className="flex items-center gap-2">
+                          <span>{match.leaguePlayer2?.leagueName || 'TBD'}</span>
+                          {getDisplayName(match.leaguePlayer2) && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                              {getDisplayName(match.leaguePlayer2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {isPlayed && (
                         <div className={`text-2xl font-bold ${match.leaguePlayer2Result === 2 ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>

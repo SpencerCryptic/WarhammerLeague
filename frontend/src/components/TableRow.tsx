@@ -13,7 +13,17 @@ export interface LeaguePlayer {
   draws: number,
   losses: number,
   rankingPoints: number,
-  armyLists: any[]
+  armyLists: any[],
+  player?: {
+    id: string,
+    documentId: string,
+    name: string,
+    user?: {
+      id: string,
+      firstName?: string,
+      lastName?: string
+    }
+  }
 }
 
 const TableRow = () => {

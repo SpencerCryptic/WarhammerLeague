@@ -46,7 +46,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues and their players
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate=league_players.faction,league_players.player.user,matches');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=*&populate[matches]=*');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -75,6 +75,7 @@ export default function GlobalLeaderboards() {
 
           const totalGames = (player.wins || 0) + (player.draws || 0) + (player.losses || 0);
           const winRate = totalGames > 0 ? Math.round(((player.wins || 0) / totalGames) * 100) : 0;
+
 
           allPlayers.push({
             id: player.documentId,
@@ -167,10 +168,12 @@ export default function GlobalLeaderboards() {
   };
 
   const getDisplayName = (player: LeaderboardEntry) => {
+    // Only use the database firstName/lastName fields
     if (player.firstName && player.lastName) {
       const lastInitial = player.lastName.charAt(0).toUpperCase();
       return `${player.firstName} ${lastInitial}.`;
     }
+    
     return '';
   };
 

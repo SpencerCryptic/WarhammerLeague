@@ -644,6 +644,7 @@ export interface ApiOtpOtp extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::otp.otp'> &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    sentToEmail: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
