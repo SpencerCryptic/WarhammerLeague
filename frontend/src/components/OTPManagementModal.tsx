@@ -16,6 +16,7 @@ interface OTP {
   usedAt?: string;
   expiresAt: string;
   createdAt: string;
+  sentToEmail?: string;
 }
 
 interface OTPManagementModalProps {
@@ -308,11 +309,17 @@ export default function OTPManagementModal({ isOpen, onClose, leagueId, leagueNa
                             <div>
                               <div>Used by: {otp.usedBy.username}</div>
                               <div>On: {new Date(otp.usedAt!).toLocaleDateString()}</div>
+                              {otp.sentToEmail && (
+                                <div>Sent to: {otp.sentToEmail}</div>
+                              )}
                             </div>
                           ) : (
                             <div>
                               <div>Created: {new Date(otp.createdAt).toLocaleDateString()}</div>
                               <div>Expires: {new Date(otp.expiresAt).toLocaleDateString()}</div>
+                              {otp.sentToEmail && (
+                                <div>Sent to: {otp.sentToEmail}</div>
+                              )}
                             </div>
                           )}
                         </div>
