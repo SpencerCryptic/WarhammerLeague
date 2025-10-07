@@ -26,7 +26,7 @@ class CustomEmailService {
     }
 
     try {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
         secure: false, // Use TLS
