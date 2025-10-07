@@ -16,8 +16,14 @@ async function migrateNames() {
     console.log(`Found ${data.data.length} league players to migrate`);
     
     for (const leaguePlayer of data.data) {
+      console.log(`Processing ${leaguePlayer.leagueName}:`);
+      console.log('  Player:', leaguePlayer.player);
+      console.log('  User:', leaguePlayer.player?.user);
+      
       const firstName = leaguePlayer.player?.user?.firstName;
       const lastName = leaguePlayer.player?.user?.lastName;
+      
+      console.log(`  firstName: "${firstName}", lastName: "${lastName}"`);
       
       if (firstName && lastName) {
         console.log(`Updating ${leaguePlayer.leagueName} with ${firstName} ${lastName}`);
@@ -39,11 +45,13 @@ async function migrateNames() {
         if (updateResponse.ok) {
           console.log(`✅ Updated ${leaguePlayer.leagueName}`);
         } else {
-          console.error(`❌ Failed to update ${leaguePlayer.leagueName}`);
+          const errorText = await updateResponse.text();
+          console.error(`❌ Failed to update ${leaguePlayer.leagueName}:`, errorText);
         }
       } else {
         console.log(`⚠️  Skipping ${leaguePlayer.leagueName} - missing firstName or lastName`);
       }
+      console.log('---');
     }
     
     console.log('Migration complete!');

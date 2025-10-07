@@ -100,6 +100,9 @@
     },
     "leaguePlayer2ArmyListId": {
       "type": "string"
+    },
+    "playByDate": {
+      "type": "date"
     }
   }
 }

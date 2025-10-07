@@ -610,6 +610,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'unplayed'>;
     matchUID: Schema.Attribute.UID;
+    playByDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
     statusMatch: Schema.Attribute.Enumeration<
