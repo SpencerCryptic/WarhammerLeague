@@ -308,18 +308,19 @@ export default function HomePage() {
                     const textColors = ['text-black', 'text-black', 'text-white'];
                     
                     return (
-                      <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-all duration-200 border border-gray-600 hover:border-gray-500">
-                        <div className="flex items-center flex-1 min-w-0 mr-4">
-                          <div className={`w-10 h-10 ${rankColors[index]} rounded-full flex items-center justify-center ${textColors[index]} font-bold text-sm mr-3 shadow-md flex-shrink-0`}>
+                      <div key={player.id} className="flex items-start justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-all duration-200 border border-gray-600 hover:border-gray-500">
+                        <div className="flex items-start flex-1 min-w-0 mr-4">
+                          <div className={`w-8 h-8 ${rankColors[index]} rounded-full flex items-center justify-center ${textColors[index]} font-bold text-xs mr-3 shadow-md flex-shrink-0 mt-1`}>
                             {index + 1}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-white font-semibold text-lg truncate">{player.leagueName || 'Anonymous'}</p>
+                            <p className="text-white font-semibold text-sm leading-5 break-words">{player.leagueName || 'Anonymous'}</p>
+                            <p className="text-gray-400 text-xs mt-1">{player.wins}W-{player.losses}L</p>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.rankingPoints} pts</p>
-                          <p className="text-gray-400 text-sm mt-1">{player.wins}W-{player.losses}L</p>
+                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.rankingPoints}</p>
+                          <p className="text-orange-400 text-xs">pts</p>
                         </div>
                       </div>
                     );
