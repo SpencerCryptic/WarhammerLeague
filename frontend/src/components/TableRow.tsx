@@ -39,7 +39,7 @@ const TableRow = () => {
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
-      fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`)
+      fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[league_players][populate]=*&populate[matches]=*`)
       .then((res) => res.json())
       .then((data) => {
           setMatches(data.data.matches || [])
@@ -114,6 +114,14 @@ const TableRow = () => {
     const total = player.wins + player.draws + player.losses;
     if (total === 0) return 0;
     return Math.round((player.wins / total) * 100);
+  }
+
+  const getDisplayName = (player: LeaguePlayer) => {
+    if (player?.player?.user?.firstName && player?.player?.user?.lastName) {
+      const lastInitial = player.player.user.lastName.charAt(0).toUpperCase();
+      return `${player.player.user.firstName} ${lastInitial}.`;
+    }
+    return '';
   }
 
   // Fetch current user
@@ -234,8 +242,13 @@ const TableRow = () => {
                         </td>
                         <td className="py-4 px-6">
                           <div>
-                            <div className="text-base font-semibold text-gray-900 dark:text-white capitalize">
-                              {player.leagueName}
+                            <div className="text-base font-semibold text-gray-900 dark:text-white capitalize flex items-center gap-2">
+                              <span>{player.leagueName}</span>
+                              {getDisplayName(player) && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                                  {getDisplayName(player)}
+                                </span>
+                              )}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                               {player.faction}
