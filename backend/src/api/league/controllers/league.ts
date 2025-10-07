@@ -752,13 +752,21 @@ function transformMahinaEvents(mahinaData: any) {
           const gameType = determineGameTypeFromTags(event.tags, title, description);
           const color = getColorForGameType(gameType);
 
+          // Get Shopify URL from tickets
+          let shopifyUrl = '';
+          if (event.tickets?.active && event.tickets?.medium?.handle) {
+            shopifyUrl = `https://crypticcabin.com/products/${event.tickets.medium.handle}`;
+          }
+
           const processedEvent = {
             title: title,
             date: date,
             location: location,
             description: description,
             color: color,
-            gameType: gameType
+            gameType: gameType,
+            image: event.image || '',
+            shopifyUrl: shopifyUrl
           };
 
           console.log(`✅ Processed event: ${processedEvent.title} - ${processedEvent.date} - ${processedEvent.location} (${processedEvent.gameType})`);
