@@ -467,7 +467,8 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       
       try {
         console.log('🔍 Attempting to fetch from Mahina API...');
-        
+
+        // Fetch without pagination to get all events
         const response = await fetch('https://mahina.app/app/cryptic-cabin.myshopify.com', {
           method: 'POST',
           headers: {
@@ -480,10 +481,9 @@ export default factories.createCoreController('api::league.league', ({ strapi })
           body: JSON.stringify({
             "shop": "cryptic-cabin.myshopify.com",
             "selectedEventId": null,
-            "selectedRecurringDate": null,
-            "page": 1
+            "selectedRecurringDate": null
           }),
-          signal: AbortSignal.timeout(10000) // 10 second timeout
+          signal: AbortSignal.timeout(15000) // 15 second timeout for larger responses
         });
 
         console.log(`🔍 Mahina API Response: ${response.status} ${response.statusText}`);
@@ -492,7 +492,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
           const mahinaData = await response.json();
           storeEvents = transformMahinaEvents(mahinaData);
           console.log(`✅ Successfully processed ${storeEvents.length} events from Mahina`);
-          
+
           // Sort events by date (earliest first)
           storeEvents.sort((a, b) => {
             const dateA = new Date(a.date || '9999-12-31');
@@ -520,7 +520,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
       // Always return a successful response with data array
       ctx.body = {
-        data: storeEvents.slice(0, 5), // Limit to 5 events
+        data: storeEvents, // Return all events (no artificial limit)
         meta: {
           source: storeEvents.length > 0 ? 'mahina' : 'empty',
           count: storeEvents.length,
