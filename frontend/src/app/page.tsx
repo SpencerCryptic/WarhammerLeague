@@ -309,16 +309,16 @@ export default function HomePage() {
                     
                     return (
                       <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-all duration-200 border border-gray-600 hover:border-gray-500">
-                        <div className="flex items-center">
-                          <div className={`w-10 h-10 ${rankColors[index]} rounded-full flex items-center justify-center ${textColors[index]} font-bold text-sm mr-3 shadow-md`}>
+                        <div className="flex items-center flex-1 min-w-0 mr-4">
+                          <div className={`w-10 h-10 ${rankColors[index]} rounded-full flex items-center justify-center ${textColors[index]} font-bold text-sm mr-3 shadow-md flex-shrink-0`}>
                             {index + 1}
                           </div>
-                          <div>
-                            <p className="text-white font-semibold text-lg">{player.leagueName || 'Anonymous'}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white font-semibold text-lg truncate">{player.leagueName || 'Anonymous'}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-orange-400 font-bold text-lg leading-tight">{player.rankingPoints} pts</p>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.rankingPoints} pts</p>
                           <p className="text-gray-400 text-sm mt-1">{player.wins}W-{player.losses}L</p>
                         </div>
                       </div>
