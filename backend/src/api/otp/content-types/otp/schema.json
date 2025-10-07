@@ -37,6 +37,10 @@
     },
     "expiresAt": {
       "type": "datetime"
+    },
+    "sentToEmail": {
+      "type": "string",
+      "required": false
     }
   }
 }

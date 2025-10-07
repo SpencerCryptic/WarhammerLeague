@@ -184,7 +184,8 @@ export default factories.createCoreController('api::otp.otp', ({ strapi }) => ({
           code,
           league: leagueId,
           isUsed: false,
-          expiresAt: expiresAt.toISOString()
+          expiresAt: expiresAt.toISOString(),
+          sentToEmail: email
         }
       });
 
