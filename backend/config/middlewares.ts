@@ -21,8 +21,10 @@ export default [
       enabled: true,
       origin: [
         'http://localhost:3000',
+        'http://localhost:3002',
         'https://crypticcabin.com',
         'https://www.crypticcabin.com',
+        'https://leagues.crypticcabin.com',
         'https://cryptic-cabin.myshopify.com',
         'https://admin.shopify.com',
         'https://*.myshopify.com',
