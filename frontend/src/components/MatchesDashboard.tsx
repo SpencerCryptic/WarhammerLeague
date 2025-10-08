@@ -84,7 +84,7 @@ const MatchesDashboard = () => {
           setCurrentUser(userData);
           setIsAdmin(userData?.role?.name === 'Admin' || userData?.role?.name === 'LeagueCreator');
           
-          fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate]=*&populate[league_players][populate]=*`)
+          fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][populate][player][populate]=user&populate[league_players][populate]=*`)
           .then((res) => res.json())
           .then((data) => {
             setLeague(data.data);
@@ -119,7 +119,7 @@ const MatchesDashboard = () => {
           setIsLoading(false);
         });
       } else {
-        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate]=*`)
+        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][populate][player][populate]=user`)
         .then((res) => res.json())
         .then((data) => {
           setLeague(data.data);
@@ -189,12 +189,12 @@ const MatchesDashboard = () => {
   };
 
   const getDisplayName = (leaguePlayer: LeaguePlayer) => {
-    // Use the direct firstName/lastName fields on LeaguePlayer
-    if (leaguePlayer?.firstName && leaguePlayer?.lastName) {
-      const lastInitial = leaguePlayer.lastName.charAt(0).toUpperCase();
-      return `${leaguePlayer.firstName} ${lastInitial}.`;
+    // Access firstName/lastName through player.user
+    if (leaguePlayer?.player?.user?.firstName && leaguePlayer?.player?.user?.lastName) {
+      const lastInitial = leaguePlayer.player.user.lastName.charAt(0).toUpperCase();
+      return `${leaguePlayer.player.user.firstName} ${lastInitial}.`;
     }
-    
+
     return '';
   };
 
