@@ -907,12 +907,13 @@ function getFactionsForGameSystem(gameSystem: string): string[] {
     'Warhammer: The Horus Heresy': [
       'Dark Angels',
       'White Scars',
+      'Space Wolves',
       'Imperial Fists',
       'Blood Angels',
-      'Raven Guard',
+      'Iron Hands',
       'Ultramarines',
       'Salamanders',
-      'Iron Hands',
+      'Raven Guard',
       'Sons of Horus',
       'World Eaters',
       "Emperor's Children",
@@ -921,7 +922,14 @@ function getFactionsForGameSystem(gameSystem: string): string[] {
       'Word Bearers',
       'Iron Warriors',
       'Night Lords',
-      'Alpha Legion'
+      'Alpha Legion',
+      'Mechanicum',
+      'Legio Custodes',
+      'Sisters of Silence',
+      'Solar Auxilia',
+      'Imperialis Auxilia',
+      'Questoris Knights',
+      'Daemons of the Ruinstorm'
     ]
   };
 

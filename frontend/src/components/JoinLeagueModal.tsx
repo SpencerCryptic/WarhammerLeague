@@ -48,10 +48,12 @@ export default function JoinLeagueModal({
         'Targaryen', 'Greyjoy', 'Martell', 'Bolton', 'Brotherhood Without Banners', 'Neutral'
       ],
       'Warhammer: The Horus Heresy': [
-        'Dark Angels', 'White Scars', 'Imperial Fists', 'Blood Angels',
-        'Raven Guard', 'Ultramarines', 'Salamanders', 'Iron Hands',
+        'Dark Angels', 'White Scars', 'Space Wolves', 'Imperial Fists', 'Blood Angels',
+        'Iron Hands', 'Ultramarines', 'Salamanders', 'Raven Guard',
         'Sons of Horus', 'World Eaters', 'Emperor\'s Children', 'Death Guard',
-        'Thousand Sons', 'Word Bearers', 'Iron Warriors', 'Night Lords', 'Alpha Legion'
+        'Thousand Sons', 'Word Bearers', 'Iron Warriors', 'Night Lords', 'Alpha Legion',
+        'Mechanicum', 'Legio Custodes', 'Sisters of Silence', 'Solar Auxilia',
+        'Imperialis Auxilia', 'Questoris Knights', 'Daemons of the Ruinstorm'
       ],
       // Add more as needed
     };
