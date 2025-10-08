@@ -38,7 +38,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
       // Fetch top players aggregated from Player level
       const allLeaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
-        fields: ['wins', 'losses', 'draws', 'rankingPoints', 'firstName', 'lastName'],
+        fields: ['wins', 'losses', 'draws', 'rankingPoints'],
         populate: {
           player: { fields: ['id', 'name'] }
         }
@@ -50,7 +50,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         if (!lp.player?.id) return;
 
         const playerId = lp.player.id;
-        const playerName = `${lp.firstName || ''} ${lp.lastName || ''}`.trim() || lp.player.name || 'Anonymous';
+        const playerName = lp.player.name || 'Anonymous';
 
         if (!playerStatsMap.has(playerId)) {
           playerStatsMap.set(playerId, {
