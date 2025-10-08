@@ -44,8 +44,14 @@ export default function JoinLeagueModal({
         'Tau Pathfinders', 'Tyranid Genestealers', 'Chaos Cultists'
       ],
       'A Song of Ice and Fire': [
-        'Stark', 'Lannister', 'Free Folk', 'Nights Watch', 'Baratheon', 
+        'Stark', 'Lannister', 'Free Folk', 'Nights Watch', 'Baratheon',
         'Targaryen', 'Greyjoy', 'Martell', 'Bolton', 'Brotherhood Without Banners', 'Neutral'
+      ],
+      'Warhammer: The Horus Heresy': [
+        'Dark Angels', 'White Scars', 'Imperial Fists', 'Blood Angels',
+        'Raven Guard', 'Ultramarines', 'Salamanders', 'Iron Hands',
+        'Sons of Horus', 'World Eaters', 'Emperor\'s Children', 'Death Guard',
+        'Thousand Sons', 'Word Bearers', 'Iron Warriors', 'Night Lords', 'Alpha Legion'
       ],
       // Add more as needed
     };
