@@ -139,11 +139,19 @@ export default factories.createCoreController('api::league.league', ({ strapi })
 
     const league = await strapi.documents('api::league.league').findOne({
       documentId: leagueId,
-      fields: ['leaguePassword', 'useOTP'],
+      fields: ['leaguePassword', 'useOTP', 'gameSystem'],
     });
     
     if (!league) {
       return ctx.badRequest('League not found');
+    }
+
+    // Validate faction matches game system
+    if (faction) {
+      const validFactions = getFactionsForGameSystem(league.gameSystem);
+      if (!validFactions.includes(faction)) {
+        return ctx.badRequest(`Invalid faction "${faction}" for game system "${league.gameSystem}". Valid factions are: ${validFactions.join(', ')}`);
+      }
     }
 
     // Handle password validation based on league type
@@ -881,31 +889,70 @@ function getColorForGameType(gameType: string) {
     return colorMap[gameType as keyof typeof colorMap] || 'gray-500';
 }
 
+function getFactionsForGameSystem(gameSystem: string): string[] {
+  const factionMap: Record<string, string[]> = {
+    'A Song of Ice and Fire': [
+      'Stark',
+      'Lannister',
+      'Free Folk',
+      'Nights Watch',
+      'Baratheon',
+      'Targaryen',
+      'Greyjoy',
+      'Martell',
+      'Bolton',
+      'Brotherhood Without Banners',
+      'Neutral'
+    ],
+    'Warhammer: The Horus Heresy': [
+      'Dark Angels',
+      'White Scars',
+      'Imperial Fists',
+      'Blood Angels',
+      'Raven Guard',
+      'Ultramarines',
+      'Salamanders',
+      'Iron Hands',
+      'Sons of Horus',
+      'World Eaters',
+      "Emperor's Children",
+      'Death Guard',
+      'Thousand Sons',
+      'Word Bearers',
+      'Iron Warriors',
+      'Night Lords',
+      'Alpha Legion'
+    ]
+  };
+
+  return factionMap[gameSystem] || [];
+}
+
 function generateRoundRobinSchedule(players: any[]) {
   const numPlayers = players.length;
   const rounds = [];
-  
+
   if (numPlayers < 2) return rounds;
-  
+
   let playerList = [...players];
-  
+
   if (numPlayers % 2 === 1) {
     playerList.push(null);
   }
-  
+
   const numRounds = playerList.length - 1;
   const matchesPerRound = playerList.length / 2;
-  
+
   for (let round = 0; round < numRounds; round++) {
     const roundMatches = [];
-    
+
     for (let match = 0; match < matchesPerRound; match++) {
       const player1Index = match;
       const player2Index = playerList.length - 1 - match;
-      
+
       const player1 = playerList[player1Index];
       const player2 = playerList[player2Index];
-      
+
       if (player1 && player2) {
         roundMatches.push({
           player1,
@@ -913,14 +960,14 @@ function generateRoundRobinSchedule(players: any[]) {
         });
       }
     }
-    
+
     rounds.push(roundMatches);
-    
+
     const fixed = playerList[0];
     const rotating = playerList.slice(1);
     rotating.unshift(rotating.pop());
     playerList = [fixed, ...rotating];
   }
-  
+
   return rounds;
 }
