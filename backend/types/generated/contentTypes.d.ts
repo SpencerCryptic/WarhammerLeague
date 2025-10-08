@@ -441,6 +441,23 @@ export interface ApiLeaguePlayerLeaguePlayer
         'Bolton',
         'Brotherhood Without Banners',
         'Neutral',
+        'Dark Angels',
+        'White Scars',
+        'Imperial Fists',
+        'Blood Angels',
+        'Raven Guard',
+        'Ultramarines',
+        'Salamanders',
+        'Iron Hands',
+        'Sons of Horus',
+        'World Eaters',
+        "Emperor's Children",
+        'Death Guard',
+        'Thousand Sons',
+        'Word Bearers',
+        'Iron Warriors',
+        'Night Lords',
+        'Alpha Legion',
       ]
     >;
     firstName: Schema.Attribute.String;
