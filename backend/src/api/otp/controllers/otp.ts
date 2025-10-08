@@ -190,10 +190,10 @@ export default factories.createCoreController('api::otp.otp', ({ strapi }) => ({
       });
 
       // Create league invitation link
-      const leagueLink = `${process.env.FRONTEND_URL || 'https://warhammerleague.vercel.app'}/leagues/${leagueId}`;
+      const leagueLink = `${process.env.FRONTEND_URL || 'https://leagues.crypticcabin.com'}/leagues/${leagueId}`;
 
       // Send email using custom email service
-      const emailSent = await customEmailService.sendOTPEmail(email, code, leagueName);
+      const emailSent = await customEmailService.sendOTPEmail(email, code, leagueName, leagueLink);
 
       if (!emailSent) {
         return ctx.badRequest('Failed to send OTP email');
