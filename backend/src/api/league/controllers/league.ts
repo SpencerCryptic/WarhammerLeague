@@ -215,7 +215,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       player = await strapi.documents('api::player.player').create({
         data: {
           user: userId,
-          name: `Player${userId}`, // Default name, user can update later
+          name: ctx.state.user.username || `Player${userId}`, // Use username as player name
           email: ctx.state.user.email || `player${userId}@example.com`
         }
       });
