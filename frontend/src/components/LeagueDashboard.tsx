@@ -21,9 +21,14 @@ const LeagueDashboard = () => {
   getLeague(documentId)
   const selected: string = pathName.length === 4 ? pathName[3] : ''
   if (!league) {
-    return <div>
-        no league
-    </div>
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          <div className="text-white text-xl">Loading league data...</div>
+        </div>
+      </div>
+    );
   }
   return (
     <div className="mb-4 md:mb-8">
