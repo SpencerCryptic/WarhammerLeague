@@ -94,10 +94,11 @@
     "rulesetType": {
       "type": "enumeration",
       "enum": [
+        "cryptic_cabin_standard_no_bonus",
         "cryptic_cabin_standard",
         "custom"
       ],
-      "default": "custom"
+      "default": "cryptic_cabin_standard"
     },
     "otps": {
       "type": "relation",

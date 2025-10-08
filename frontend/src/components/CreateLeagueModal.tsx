@@ -56,17 +56,27 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
   ];
 
   const rulesetOptions = [
+    { value: 'cryptic_cabin_standard_no_bonus', label: 'Cryptic Cabin Standard No Bonus' },
     { value: 'cryptic_cabin_standard', label: 'Cryptic Cabin Standard' },
     { value: 'custom', label: 'Custom Rules' }
   ];
+
+  const getCrypticCabinStandardNoBonus = () => ({
+    gameWon: 3,
+    gameDrawn: 1,
+    gameLost: 0,
+    bonusPoints: {
+      lostButScored50Percent: 0
+    },
+    maxPointsPerGame: 3
+  });
 
   const getCrypticCabinScoring = () => ({
     gameWon: 4,
     gameDrawn: 2,
     gameLost: 0,
     bonusPoints: {
-      lostButScored50Percent: 1,
-      scoredAllPrimaryObjectives: 1
+      lostButScored50Percent: 1
     },
     maxPointsPerGame: 5
   });
@@ -128,15 +138,16 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
           children: [{ type: 'text', text: formData.description }]
         }
       ] : [],
-      scoringRules: formData.rulesetType === 'cryptic_cabin_standard' 
-        ? getCrypticCabinScoring() 
+      scoringRules: formData.rulesetType === 'cryptic_cabin_standard_no_bonus'
+        ? getCrypticCabinStandardNoBonus()
+        : formData.rulesetType === 'cryptic_cabin_standard'
+        ? getCrypticCabinScoring()
         : {
             gameWon: formData.customScoring.gameWon,
             gameDrawn: formData.customScoring.gameDrawn,
             gameLost: formData.customScoring.gameLost,
             bonusPoints: {
-              lostButScored50Percent: 0,
-              scoredAllPrimaryObjectives: 0
+              lostButScored50Percent: 0
             },
             maxPointsPerGame: formData.customScoring.gameWon
           },
@@ -311,6 +322,16 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
                 </option>
               ))}
             </select>
+            {formData.rulesetType === 'cryptic_cabin_standard_no_bonus' && (
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md text-sm text-blue-700 dark:text-blue-300">
+                <strong>Cryptic Cabin Standard No Bonus:</strong>
+                <ul className="mt-1 space-y-1">
+                  <li>• Win: 3 points</li>
+                  <li>• Draw: 1 point</li>
+                  <li>• Loss: 0 points</li>
+                </ul>
+              </div>
+            )}
             {formData.rulesetType === 'cryptic_cabin_standard' && (
               <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md text-sm text-blue-700 dark:text-blue-300">
                 <strong>Cryptic Cabin Standard:</strong>
