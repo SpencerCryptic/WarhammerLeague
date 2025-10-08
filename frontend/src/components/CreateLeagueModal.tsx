@@ -40,7 +40,7 @@ export default function CreateLeagueModal({ isOpen, onClose }: CreateLeagueModal
     'Warhammer: 40,000',
     'Warhammer: Age of Sigmar',
     'Warhammer: Kill Team',
-    'Warhammer: Warcry',
+    'Warhammer: The Horus Heresy',
     'Warhammer: Necromunda',
     'A Song of Ice and Fire',
     'Middle Earth SBG',

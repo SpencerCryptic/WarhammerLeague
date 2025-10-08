@@ -90,8 +90,8 @@ export default function GlobalLeaderboards() {
             victoryPoints,
             winRate,
             totalGames,
-            firstName: player.player?.user?.firstName,
-            lastName: player.player?.user?.lastName
+            firstName: player.firstName,
+            lastName: player.lastName
           });
 
           // Count factions

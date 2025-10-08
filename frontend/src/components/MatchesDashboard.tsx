@@ -46,6 +46,7 @@ export interface Match {
   proposedBy?: LeaguePlayer,
   proposalStatus?: ProposalStatus,
   proposalTimestamp?: Date,
+  playByDate?: Date,
 }
 
 const MatchesDashboard = () => {
@@ -60,6 +61,17 @@ const MatchesDashboard = () => {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   
+  const calculatePlayByDate = (league: any, round: number) => {
+    if (!league?.startDate) return null;
+    
+    const startDate = new Date(league.startDate);
+    const weeksToAdd = round * 2; // 2 weeks per round
+    const playByDate = new Date(startDate);
+    playByDate.setDate(playByDate.getDate() + (weeksToAdd * 7));
+    
+    return playByDate;
+  };
+
   const getLeague = async (documentId: string) => {
     useEffect(() => {
       const token = localStorage.getItem('token');
@@ -76,7 +88,19 @@ const MatchesDashboard = () => {
           .then((res) => res.json())
           .then((data) => {
             setLeague(data.data);
-            setMatches(data.data.matches || []);
+            
+            // Calculate playByDate for matches that don't have it
+            const matchesWithPlayByDate = (data.data.matches || []).map((match: Match) => {
+              if (!match.playByDate && match.round) {
+                return {
+                  ...match,
+                  playByDate: calculatePlayByDate(data.data, match.round)
+                };
+              }
+              return match;
+            });
+            
+            setMatches(matchesWithPlayByDate);
             
             if (userData?.player && data.data.league_players) {
               const userLeaguePlayer = data.data.league_players.find(
@@ -99,7 +123,19 @@ const MatchesDashboard = () => {
         .then((res) => res.json())
         .then((data) => {
           setLeague(data.data);
-          setMatches(data.data.matches || []);
+          
+          // Calculate playByDate for matches that don't have it
+          const matchesWithPlayByDate = (data.data.matches || []).map((match: Match) => {
+            if (!match.playByDate && match.round) {
+              return {
+                ...match,
+                playByDate: calculatePlayByDate(data.data, match.round)
+              };
+            }
+            return match;
+          });
+          
+          setMatches(matchesWithPlayByDate);
           setIsLoading(false);
         });
       }
@@ -153,10 +189,10 @@ const MatchesDashboard = () => {
   };
 
   const getDisplayName = (leaguePlayer: LeaguePlayer) => {
-    // Only use the database firstName/lastName fields
-    if (leaguePlayer?.player?.user?.firstName && leaguePlayer?.player?.user?.lastName) {
-      const lastInitial = leaguePlayer.player.user.lastName.charAt(0).toUpperCase();
-      return `${leaguePlayer.player.user.firstName} ${lastInitial}.`;
+    // Use the direct firstName/lastName fields on LeaguePlayer
+    if (leaguePlayer?.firstName && leaguePlayer?.lastName) {
+      const lastInitial = leaguePlayer.lastName.charAt(0).toUpperCase();
+      return `${leaguePlayer.firstName} ${lastInitial}.`;
     }
     
     return '';
@@ -293,6 +329,14 @@ const MatchesDashboard = () => {
                     </span>
                   )}
                 </div>
+                
+                {match.playByDate && !isPlayed && (
+                  <div className="mb-3 text-center">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 px-2 py-1 rounded-full">
+                      To be played by {new Date(match.playByDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
 
                 <div className="space-y-2 sm:space-y-4">
                   <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer1?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>

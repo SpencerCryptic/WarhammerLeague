@@ -14,6 +14,8 @@ export interface LeaguePlayer {
   losses: number,
   rankingPoints: number,
   armyLists: any[],
+  firstName?: string,
+  lastName?: string,
   player?: {
     id: string,
     documentId: string,
@@ -117,9 +119,9 @@ const TableRow = () => {
   }
 
   const getDisplayName = (player: LeaguePlayer) => {
-    if (player?.player?.user?.firstName && player?.player?.user?.lastName) {
-      const lastInitial = player.player.user.lastName.charAt(0).toUpperCase();
-      return `${player.player.user.firstName} ${lastInitial}.`;
+    if (player?.firstName && player?.lastName) {
+      const lastInitial = player.lastName.charAt(0).toUpperCase();
+      return `${player.firstName} ${lastInitial}.`;
     }
     return '';
   }
