@@ -106,62 +106,6 @@ export default function HomePage() {
 
         {/* Main Content Container */}
         <div className="bg-gray-800/50 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-2xl">
-          {/* About Section - Full Width */}
-          <div className="mb-8 sm:mb-12">
-            <div className="bg-gray-800 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
-              <div className="flex items-center mb-4 sm:mb-6">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">About Our Leagues</h3>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-                <div>
-                  <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg leading-relaxed">
-                    Cryptic Cabin Leagues offer tabletop games and TCG leagues across multiple systems. 
-                    Whether you're into board games, miniatures, or trading card games, we have a league for you.
-                  </p>
-                  <ul className="text-gray-300 space-y-2 sm:space-y-3">
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
-                      <span className="text-sm sm:text-base lg:text-lg">Multiple game types supported</span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
-                      <span className="text-sm sm:text-base lg:text-lg">Skill-based matchmaking</span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
-                      <span className="text-sm sm:text-base lg:text-lg">Bristol and Bracknell locations</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-                      <svg className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                    {isAuthenticated && (
-                      <Link 
-                        href="/dashboard" 
-                        className="inline-flex items-center text-orange-400 hover:text-orange-300 font-medium text-lg"
-                      >
-                        View Your Leagues
-                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Leagues Section - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Upcoming Leagues */}
@@ -306,7 +250,7 @@ export default function HomePage() {
                   topPlayers.map((player: any, index: number) => {
                     const rankColors = ['bg-yellow-500', 'bg-gray-400', 'bg-orange-600'];
                     const textColors = ['text-black', 'text-black', 'text-white'];
-                    
+
                     return (
                       <div key={player.id} className="flex items-start justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-all duration-200 border border-gray-600 hover:border-gray-500">
                         <div className="flex items-start flex-1 min-w-0 mr-4">
@@ -314,12 +258,12 @@ export default function HomePage() {
                             {index + 1}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-white font-semibold text-sm leading-5 break-words">{player.leagueName || 'Anonymous'}</p>
-                            <p className="text-gray-400 text-xs mt-1">{player.wins}W-{player.losses}L</p>
+                            <p className="text-white font-semibold text-sm leading-5 break-words">{player.name || 'Anonymous'}</p>
+                            <p className="text-gray-400 text-xs mt-1">{player.totalWins}W-{player.totalLosses}L • {player.leagueCount} {player.leagueCount === 1 ? 'league' : 'leagues'}</p>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.rankingPoints}</p>
+                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.totalPoints}</p>
                           <p className="text-orange-400 text-xs">pts</p>
                         </div>
                       </div>
@@ -432,6 +376,62 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                 </a>
+              </div>
+            </div>
+          </div>
+
+          {/* About Section - Full Width */}
+          <div className="mb-8 sm:mb-12">
+            <div className="bg-gray-800 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">About Our Leagues</h3>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                <div>
+                  <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg leading-relaxed">
+                    Cryptic Cabin Leagues offer tabletop games and TCG leagues across multiple systems.
+                    Whether you're into board games, miniatures, or trading card games, we have a league for you.
+                  </p>
+                  <ul className="text-gray-300 space-y-2 sm:space-y-3">
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Multiple game types supported</span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Skill-based matchmaking</span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="text-sm sm:text-base lg:text-lg">Bristol and Bracknell locations</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                      <svg className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    {isAuthenticated && (
+                      <Link
+                        href="/dashboard"
+                        className="inline-flex items-center text-orange-400 hover:text-orange-300 font-medium text-lg"
+                      >
+                        View Your Leagues
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

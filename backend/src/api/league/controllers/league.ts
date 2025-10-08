@@ -36,38 +36,55 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         }
       });
 
-      // Fetch top players (sorted by points, limit 3)
-      const topPlayers = await strapi.documents('api::league-player.league-player').findMany({
-        limit: 3,
-        sort: ['rankingPoints:desc'],
-        fields: ['leagueName', 'faction', 'wins', 'losses', 'draws', 'rankingPoints'],
+      // Fetch top players aggregated from Player level
+      const allLeaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
+        fields: ['wins', 'losses', 'draws', 'rankingPoints', 'firstName', 'lastName'],
         populate: {
-          league: { fields: ['gameSystem'] }
+          player: { fields: ['id', 'name'] }
         }
       });
+
+      // Aggregate stats by player
+      const playerStatsMap = new Map();
+      allLeaguePlayers.forEach((lp: any) => {
+        if (!lp.player?.id) return;
+
+        const playerId = lp.player.id;
+        const playerName = `${lp.firstName || ''} ${lp.lastName || ''}`.trim() || lp.player.name || 'Anonymous';
+
+        if (!playerStatsMap.has(playerId)) {
+          playerStatsMap.set(playerId, {
+            id: playerId,
+            name: playerName,
+            totalWins: 0,
+            totalLosses: 0,
+            totalDraws: 0,
+            totalPoints: 0,
+            leagueCount: 0
+          });
+        }
+
+        const stats = playerStatsMap.get(playerId);
+        stats.totalWins += lp.wins || 0;
+        stats.totalLosses += lp.losses || 0;
+        stats.totalDraws += lp.draws || 0;
+        stats.totalPoints += lp.rankingPoints || 0;
+        stats.leagueCount += 1;
+      });
+
+      // Convert to array and sort by total points
+      const topPlayers = Array.from(playerStatsMap.values())
+        .sort((a, b) => b.totalPoints - a.totalPoints)
+        .slice(0, 3);
 
       // Get league stats
       const totalLeagues = await strapi.documents('api::league.league').count({});
       const activeLeagues = await strapi.documents('api::league.league').count({
         filters: { statusleague: 'ongoing' }
       });
-      
-      // Count unique users by getting all league players and extracting unique player IDs
-      const allLeaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
-        fields: [],
-        populate: {
-          player: { fields: ['id'] }
-        }
-      });
-      
-      const uniquePlayerIds = new Set();
-      allLeaguePlayers.forEach((lp: any) => {
-        if (lp.player?.id) {
-          uniquePlayerIds.add(lp.player.id);
-        }
-      });
-      
-      const totalPlayers = uniquePlayerIds.size;
+
+      // Count unique users from the player stats we already aggregated
+      const totalPlayers = playerStatsMap.size;
 
       ctx.body = {
         data: {
