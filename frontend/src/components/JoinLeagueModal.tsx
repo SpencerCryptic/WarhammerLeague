@@ -18,7 +18,6 @@ export default function JoinLeagueModal({
   gameSystem 
 }: JoinLeagueModalProps) {
   const [formData, setFormData] = useState({
-    leagueName: '',
     faction: '',
     password: '',
     goodFaithAccepted: false
@@ -83,7 +82,6 @@ export default function JoinLeagueModal({
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          leagueName: formData.leagueName,
           faction: formData.faction,
           password: formData.password,
           goodFaithAccepted: formData.goodFaithAccepted
@@ -145,22 +143,6 @@ export default function JoinLeagueModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Display Name in League *
-            </label>
-            <input
-              type="text"
-              name="leagueName"
-              value={formData.leagueName}
-              onChange={handleChange}
-              required
-              placeholder="How you'll appear in the league"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-            <p className="text-xs text-gray-500 mt-1">This must be unique within this league</p>
-          </div>
-
           {factionOptions.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

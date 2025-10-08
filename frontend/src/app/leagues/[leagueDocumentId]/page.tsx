@@ -41,6 +41,14 @@ const League = async ({ params }: { params: any }) => {
 
   return (
     <div className="w-full">
+      {/* Join League Section */}
+      <JoinLeagueButton
+        leagueId={leagueDocumentId}
+        hasPassword={!!league.data?.leaguePassword}
+        gameSystem={league.data?.gameSystem || ''}
+        status={league.data?.statusleague || ''}
+      />
+
       {/* League Details Card */}
       <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-8 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
@@ -126,14 +134,6 @@ const League = async ({ params }: { params: any }) => {
           </div>
         </div>
       )}
-
-      {/* Join League Section - Working functionality */}
-      <JoinLeagueButton
-        leagueId={leagueDocumentId}
-        hasPassword={!!league.data?.leaguePassword}
-        gameSystem={league.data?.gameSystem || ''}
-        status={league.data?.statusleague || ''}
-      />
 
       {/* League Status Messages */}
       {league.data?.statusleague === 'ongoing' && (

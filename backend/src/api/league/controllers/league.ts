@@ -141,15 +141,10 @@ export default factories.createCoreController('api::league.league', ({ strapi })
   async joinLeague(ctx) {
     await this.validateQuery(ctx);
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
-    
+
     const { id: leagueId } = ctx.params;
-    const { password, faction, leagueName, goodFaithAccepted } = ctx.request.body;
-    
-    if (!leagueName || typeof leagueName !== "string") {
-      return ctx.badRequest("League name is required and must be a string.");
-    }
-    
-    
+    const { password, faction, goodFaithAccepted } = ctx.request.body;
+
     if (goodFaithAccepted !== true) {
       return ctx.badRequest("You must agree to the good faith commitment.");
     }
@@ -235,18 +230,8 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       return ctx.badRequest('You have already joined this league');
     }
 
-    // Check if league name is already taken in this specific league
-    const [existingLeagueName] = await strapi.documents('api::league-player.league-player').findMany({
-      filters: {
-        $and: [
-          { leagueName: leagueName },
-          { league: { documentId: leagueId } },
-        ]
-      }
-    });
-    if (existingLeagueName) {
-      return ctx.badRequest('This league name is already taken in this league. Please choose a different name.');
-    }
+    // Set leagueName to player's name (which is set from username)
+    const leagueName = player.name || ctx.state.user.username || `Player${userId}`;
 
     await strapi.documents('api::league-player.league-player').create({
       data: {
