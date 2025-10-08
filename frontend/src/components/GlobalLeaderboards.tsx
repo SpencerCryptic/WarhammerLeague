@@ -5,10 +5,8 @@ import Link from 'next/link';
 
 interface LeaderboardEntry {
   id: string;
-  leagueName: string;
-  leagueId: string;
-  leagueTitle: string;
-  faction?: string;
+  playerName: string;
+  leagueCount: number;
   wins: number;
   draws: number;
   losses: number;
@@ -16,8 +14,6 @@ interface LeaderboardEntry {
   victoryPoints: number;
   winRate: number;
   totalGames: number;
-  firstName?: string;
-  lastName?: string;
 }
 
 interface GlobalStats {
@@ -46,7 +42,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues and their players
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=*&populate[matches]=*');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][player][populate]=user&populate[matches]=*');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -54,59 +50,74 @@ export default function GlobalLeaderboards() {
         return;
       }
 
-      let allPlayers: LeaderboardEntry[] = [];
       let totalMatches = 0;
       let factionCounts: { [key: string]: number } = {};
+      const playerStatsMap = new Map();
 
       leaguesData.data.forEach((league: any) => {
         const leagueMatches = league.matches || [];
         totalMatches += leagueMatches.length;
 
-        (league.league_players || []).forEach((player: any) => {
+        (league.league_players || []).forEach((leaguePlayer: any) => {
+          const playerId = leaguePlayer.player?.id;
+          if (!playerId) return;
+
+          const playerName = leaguePlayer.player?.name || 'Anonymous';
+
           // Calculate victory points from matches
           let victoryPoints = 0;
           leagueMatches.forEach((match: any) => {
-            if (match.leaguePlayer1?.documentId === player.documentId) {
+            if (match.leaguePlayer1?.documentId === leaguePlayer.documentId) {
               victoryPoints += match.leaguePlayer1Score || 0;
-            } else if (match.leaguePlayer2?.documentId === player.documentId) {
+            } else if (match.leaguePlayer2?.documentId === leaguePlayer.documentId) {
               victoryPoints += match.leaguePlayer2Score || 0;
             }
           });
 
-          const totalGames = (player.wins || 0) + (player.draws || 0) + (player.losses || 0);
-          const winRate = totalGames > 0 ? Math.round(((player.wins || 0) / totalGames) * 100) : 0;
+          // Aggregate by player
+          if (!playerStatsMap.has(playerId)) {
+            playerStatsMap.set(playerId, {
+              id: playerId,
+              playerName: playerName,
+              wins: 0,
+              draws: 0,
+              losses: 0,
+              rankingPoints: 0,
+              victoryPoints: 0,
+              totalGames: 0,
+              leagueCount: 0
+            });
+          }
 
-
-          allPlayers.push({
-            id: player.documentId,
-            leagueName: player.leagueName,
-            leagueId: league.documentId,
-            leagueTitle: league.name,
-            faction: player.faction?.name,
-            wins: player.wins || 0,
-            draws: player.draws || 0,
-            losses: player.losses || 0,
-            rankingPoints: player.rankingPoints || 0,
-            victoryPoints,
-            winRate,
-            totalGames,
-            firstName: player.firstName,
-            lastName: player.lastName
-          });
+          const stats = playerStatsMap.get(playerId);
+          stats.wins += leaguePlayer.wins || 0;
+          stats.draws += leaguePlayer.draws || 0;
+          stats.losses += leaguePlayer.losses || 0;
+          stats.rankingPoints += leaguePlayer.rankingPoints || 0;
+          stats.victoryPoints += victoryPoints;
+          stats.totalGames += (leaguePlayer.wins || 0) + (leaguePlayer.draws || 0) + (leaguePlayer.losses || 0);
+          stats.leagueCount += 1;
 
           // Count factions
-          const factionName = player.faction?.name || 'No Faction';
+          const factionName = leaguePlayer.faction || 'No Faction';
           factionCounts[factionName] = (factionCounts[factionName] || 0) + 1;
         });
       });
 
+      // Convert map to array and calculate win rates
+      const allPlayers: LeaderboardEntry[] = Array.from(playerStatsMap.values()).map(player => ({
+        ...player,
+        winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0
+      }));
+
       // Find most popular faction
-      const mostPopularFaction = Object.keys(factionCounts).reduce((a, b) => 
-        factionCounts[a] > factionCounts[b] ? a : b, 'No Faction');
+      const mostPopularFaction = Object.keys(factionCounts).length > 0
+        ? Object.keys(factionCounts).reduce((a, b) => factionCounts[a] > factionCounts[b] ? a : b)
+        : 'No Faction';
 
       // Calculate average win rate
       const playersWithGames = allPlayers.filter(p => p.totalGames > 0);
-      const averageWinRate = playersWithGames.length > 0 
+      const averageWinRate = playersWithGames.length > 0
         ? Math.round(playersWithGames.reduce((sum, p) => sum + p.winRate, 0) / playersWithGames.length)
         : 0;
 
@@ -130,7 +141,7 @@ export default function GlobalLeaderboards() {
 
       setStats({
         totalLeagues: leaguesData.data.length,
-        totalPlayers: allPlayers.length,
+        totalPlayers: playerStatsMap.size,
         totalMatches,
         averageWinRate,
         mostPopularFaction,
@@ -167,15 +178,6 @@ export default function GlobalLeaderboards() {
     }
   };
 
-  const getDisplayName = (player: LeaderboardEntry) => {
-    // Only use the database firstName/lastName fields
-    if (player.firstName && player.lastName) {
-      const lastInitial = player.lastName.charAt(0).toUpperCase();
-      return `${player.firstName} ${lastInitial}.`;
-    }
-    
-    return '';
-  };
 
   if (loading) {
     return (
@@ -316,8 +318,8 @@ export default function GlobalLeaderboards() {
 
           <div className="space-y-2">
             {getCurrentLeaderboard().map((player, index) => (
-              <div 
-                key={`${player.leagueId}-${player.id}`}
+              <div
+                key={player.id}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 <div className="flex items-center space-x-4">
@@ -325,29 +327,11 @@ export default function GlobalLeaderboards() {
                     {getRankIcon(index + 1)}
                   </div>
                   <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
-                        {player.leagueName}
-                      </h3>
-                      {getDisplayName(player) && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-                          {getDisplayName(player)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Link 
-                        href={`/leagues/${player.leagueId}`}
-                        className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-                      >
-                        {player.leagueTitle}
-                      </Link>
-                      {player.faction && (
-                        <>
-                          <span>•</span>
-                          <span>{player.faction}</span>
-                        </>
-                      )}
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {player.playerName}
+                    </h3>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {player.leagueCount} {player.leagueCount === 1 ? 'league' : 'leagues'}
                     </div>
                   </div>
                 </div>
