@@ -42,6 +42,14 @@ const RegisterPage = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // Validate username: max 24 chars, alphanumeric and underscores only
+    if (name === 'username') {
+      const sanitized = value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 24);
+      setFormData(prev => ({ ...prev, [name]: sanitized }));
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -121,9 +129,13 @@ const RegisterPage = () => {
             placeholder="Choose a username"
             type="text"
             required
+            value={formData.username}
             onChange={handleChange}
             className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Max 24 characters. Letters, numbers, and underscores only.
+          </p>
         </div>
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
