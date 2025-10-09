@@ -134,7 +134,7 @@ const RegisterPage = () => {
             className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Max 24 characters. Letters, numbers, and underscores only.
+            Max 24 characters. Letters, numbers, and underscores only. This will be publicly visible—use something identifiable, maybe not your full government name though.
           </p>
         </div>
         <div>
