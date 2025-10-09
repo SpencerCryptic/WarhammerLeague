@@ -4,7 +4,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
-const links: { href: string; text: string }[] = [
+const publicLinks: { href: string; text: string }[] = [
+  { href: '/leagues', text: 'leagues' },
+  { href: '/stats', text: 'stats' },
+];
+
+const authenticatedLinks: { href: string; text: string }[] = [
+  { href: '/dashboard', text: 'dashboard' },
   { href: '/leagues', text: 'leagues' },
   { href: '/stats', text: 'stats' },
 ];
@@ -39,7 +45,7 @@ const Navbar = () => {
         </Link>
 
         <ul className='flex items-center space-x-4 sm:space-x-6 ml-4'>
-          {links.map((link) => (
+          {(user ? authenticatedLinks : publicLinks).map((link) => (
             <li key={link.href} className='hover:text-orange-400 transition-all duration-150'>
               <Link href={link.href} className='text-sm sm:text-base font-medium'>{link.text}</Link>
             </li>
