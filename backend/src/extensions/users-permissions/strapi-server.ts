@@ -1,4 +1,7 @@
+import authController from './controllers/auth';
+
 export default (plugin) => {
-  // No modifications needed - use default auth controller
+  // Override the auth controller with custom forgot password functionality
+  plugin = authController(plugin);
   return plugin;
 };

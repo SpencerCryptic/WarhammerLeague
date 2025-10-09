@@ -120,6 +120,57 @@ This code will expire in 3 months.
       text,
     });
   }
+
+  async sendPasswordResetEmail(to: string, resetUrl: string): Promise<boolean> {
+    const subject = 'Reset your password - Cryptic Cabin Leagues';
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #f97316;">Password Reset Request</h2>
+
+        <p>Hello,</p>
+
+        <p>We received a request to reset your password for your Cryptic Cabin Leagues account.</p>
+
+        <p>Click the button below to reset your password:</p>
+
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${resetUrl}" style="background-color: #f97316; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+            Reset Password
+          </a>
+        </div>
+
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="color: #6b7280; word-break: break-all;">${resetUrl}</p>
+
+        <p style="margin-top: 30px;">This link will expire in 24 hours. If you didn't request this password reset, please ignore this email.</p>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+        <p style="color: #6b7280; font-size: 14px;">
+          Sent from Cryptic Cabin Leagues
+        </p>
+      </div>
+    `;
+
+    const text = `
+Password Reset Request
+
+Hello,
+
+We received a request to reset your password for your Cryptic Cabin Leagues account.
+
+Click the link below to reset your password:
+${resetUrl}
+
+This link will expire in 24 hours. If you didn't request this password reset, please ignore this email.
+    `;
+
+    return this.sendEmail({
+      to,
+      subject,
+      html,
+      text,
+    });
+  }
 }
 
 export const customEmailService = new CustomEmailService();
