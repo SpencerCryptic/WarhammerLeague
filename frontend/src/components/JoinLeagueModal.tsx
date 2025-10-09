@@ -52,7 +52,7 @@ export default function JoinLeagueModal({
         'Sons of Horus', 'World Eaters', 'Emperor\'s Children', 'Death Guard',
         'Thousand Sons', 'Word Bearers', 'Iron Warriors', 'Night Lords', 'Alpha Legion',
         'Mechanicum', 'Legio Custodes', 'Sisters of Silence', 'Solar Auxilia',
-        'Imperialis Auxilia', 'Questoris Knights', 'Daemons of the Ruinstorm'
+        'Imperialis Auxilia', 'Questoris Knights', 'Daemons of the Ruinstorm', 'Blackshields'
       ],
       // Add more as needed
     };

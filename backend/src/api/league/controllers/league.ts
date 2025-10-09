@@ -931,7 +931,8 @@ function getFactionsForGameSystem(gameSystem: string): string[] {
       'Solar Auxilia',
       'Imperialis Auxilia',
       'Questoris Knights',
-      'Daemons of the Ruinstorm'
+      'Daemons of the Ruinstorm',
+      'Blackshields'
     ]
   };
 
