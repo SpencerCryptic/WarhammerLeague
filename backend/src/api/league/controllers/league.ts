@@ -752,12 +752,24 @@ function transformMahinaEvents(mahinaData: any) {
           }
           
           // Try multiple possible date fields
-          const rawDate = event.startDate || event.start_time || event.start || event.date || event.dateTime;
-          const date = formatEventDate(rawDate);
-          
+          const rawStartDate = event.startDate || event.start_time || event.start || event.date || event.dateTime;
+          const rawEndDate = event.endDate || event.end_time || event.end;
+
+          const startDate = formatEventDate(rawStartDate);
+          const endDate = rawEndDate ? formatEventDate(rawEndDate) : null;
+
+          // Calculate duration in hours
+          let duration = null;
+          if (rawStartDate && rawEndDate) {
+            const start = new Date(rawStartDate);
+            const end = new Date(rawEndDate);
+            const durationMs = end.getTime() - start.getTime();
+            duration = Math.round(durationMs / (1000 * 60 * 60) * 10) / 10; // Round to 1 decimal place
+          }
+
           // Try multiple location field patterns
           const location = determineLocation(event.location || event.venue || '');
-          
+
           // Use tags from Mahina API for more accurate categorization
           const gameType = determineGameTypeFromTags(event.tags, title, description);
           const color = getColorForGameType(gameType);
@@ -770,7 +782,9 @@ function transformMahinaEvents(mahinaData: any) {
 
           const processedEvent = {
             title: title,
-            date: date,
+            date: startDate,
+            endDate: endDate,
+            duration: duration,
             location: location,
             description: description,
             color: color,
