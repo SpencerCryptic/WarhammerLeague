@@ -90,7 +90,7 @@ const ResetPasswordContent = () => {
           </p>
         </div>
         
-        <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
+        <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 focus-within:border-gray-700">
           {/* Messages */}
           {message && (
             <div className="mb-6 p-4 bg-green-600 text-white rounded-lg text-center">
