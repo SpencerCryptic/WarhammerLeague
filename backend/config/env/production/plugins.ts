@@ -1,4 +1,4 @@
-module.exports = ({ env }) => ({
+export default ({ env }) => ({
   'users-permissions': {
     enabled: true,
     config: {
@@ -13,8 +13,8 @@ module.exports = ({ env }) => ({
     config: {
       provider: 'nodemailer',
       providerOptions: {
-        host: 'smtp.gmail.com',
-        port: 587,
+        host: env('SMTP_HOST', 'smtp.gmail.com'),
+        port: env('SMTP_PORT', 587),
         secure: false,
         auth: {
           user: env('SMTP_USER'),
@@ -22,8 +22,8 @@ module.exports = ({ env }) => ({
         },
       },
       settings: {
-        defaultFrom: 'noreply@crypticcabin.com',
-        defaultReplyTo: 'noreply@crypticcabin.com',
+        defaultFrom: env('SMTP_FROM', 'noreply@crypticcabin.com'),
+        defaultReplyTo: env('SMTP_REPLY_TO', 'noreply@crypticcabin.com'),
       },
     },
   },
