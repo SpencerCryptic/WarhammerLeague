@@ -774,32 +774,10 @@ function transformMahinaEvents(mahinaData: any) {
           const gameType = determineGameTypeFromTags(event.tags, title, description);
           const color = getColorForGameType(gameType);
 
-          // Get Shopify URL and ticket price from tickets
+          // Get Shopify URL from tickets
           let shopifyUrl = '';
-          let ticketPrice = null;
-          let currency = 'GBP';
-
           if (event.tickets?.active && event.tickets?.medium?.handle) {
             shopifyUrl = `https://crypticcabin.com/products/${event.tickets.medium.handle}`;
-          }
-
-          // Extract ticket price
-          if (event.tickets) {
-            const priceType = event.tickets.priceType;
-            currency = event.tickets.currency || 'GBP';
-
-            if (priceType === 'free') {
-              ticketPrice = 'Free';
-            } else if (event.tickets.priceMin !== undefined && event.tickets.priceMax !== undefined) {
-              const minPrice = parseFloat(event.tickets.priceMin);
-              const maxPrice = parseFloat(event.tickets.priceMax);
-
-              if (minPrice === maxPrice) {
-                ticketPrice = `${currency === 'GBP' ? '£' : currency}${minPrice}`;
-              } else {
-                ticketPrice = `${currency === 'GBP' ? '£' : currency}${minPrice}-${maxPrice}`;
-              }
-            }
           }
 
           const processedEvent = {
@@ -812,9 +790,7 @@ function transformMahinaEvents(mahinaData: any) {
             color: color,
             gameType: gameType,
             image: event.image || '',
-            shopifyUrl: shopifyUrl,
-            ticketPrice: ticketPrice,
-            currency: currency
+            shopifyUrl: shopifyUrl
           };
 
           console.log(`✅ Processed event: ${processedEvent.title} - ${processedEvent.date} - ${processedEvent.location} (${processedEvent.gameType})`);
