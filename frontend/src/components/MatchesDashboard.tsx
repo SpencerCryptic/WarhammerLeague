@@ -343,7 +343,7 @@ const MatchesDashboard = () => {
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
                         <div className="flex items-center gap-2">
-                          <span>{match.leaguePlayer1?.leagueName || 'TBD'}</span>
+                          <span className="break-words hyphens-auto">{match.leaguePlayer1?.leagueName || 'TBD'}</span>
                           {getDisplayName(match.leaguePlayer1) && (
                             <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
                               {getDisplayName(match.leaguePlayer1)}
@@ -370,7 +370,7 @@ const MatchesDashboard = () => {
                     <div className="flex justify-between items-center mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
                         <div className="flex items-center gap-2">
-                          <span>{match.leaguePlayer2?.leagueName || 'TBD'}</span>
+                          <span className="break-words hyphens-auto">{match.leaguePlayer2?.leagueName || 'TBD'}</span>
                           {getDisplayName(match.leaguePlayer2) && (
                             <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
                               {getDisplayName(match.leaguePlayer2)}

@@ -443,12 +443,13 @@ export interface ApiLeaguePlayerLeaguePlayer
         'Neutral',
         'Dark Angels',
         'White Scars',
+        'Space Wolves',
         'Imperial Fists',
         'Blood Angels',
-        'Raven Guard',
+        'Iron Hands',
         'Ultramarines',
         'Salamanders',
-        'Iron Hands',
+        'Raven Guard',
         'Sons of Horus',
         'World Eaters',
         "Emperor's Children",
@@ -458,6 +459,14 @@ export interface ApiLeaguePlayerLeaguePlayer
         'Iron Warriors',
         'Night Lords',
         'Alpha Legion',
+        'Mechanicum',
+        'Legio Custodes',
+        'Sisters of Silence',
+        'Solar Auxilia',
+        'Imperialis Auxilia',
+        'Questoris Knights',
+        'Daemons of the Ruinstorm',
+        'Blackshields',
       ]
     >;
     firstName: Schema.Attribute.String;
@@ -548,9 +557,9 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
     otps: Schema.Attribute.Relation<'oneToMany', 'api::otp.otp'>;
     publishedAt: Schema.Attribute.DateTime;
     rulesetType: Schema.Attribute.Enumeration<
-      ['cryptic_cabin_standard', 'custom']
+      ['cryptic_cabin_standard_no_bonus', 'cryptic_cabin_standard', 'custom']
     > &
-      Schema.Attribute.DefaultTo<'custom'>;
+      Schema.Attribute.DefaultTo<'cryptic_cabin_standard'>;
     scoringRules: Schema.Attribute.JSON &
       Schema.Attribute.DefaultTo<{
         bonusPoints: {
