@@ -230,14 +230,17 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         break;
     }
 
-    // Bonus points
-    if (leaguePlayer1BonusPoints.lostButScored50Percent) {
+    // Bonus points - automatically check if losing player scored more than 50% of winner's score
+    const player1ScoredHalf = matchResult === 'player2_win' && leaguePlayer1Score > (leaguePlayer2Score / 2);
+    const player2ScoredHalf = matchResult === 'player1_win' && leaguePlayer2Score > (leaguePlayer1Score / 2);
+
+    if (player1ScoredHalf || leaguePlayer1BonusPoints.lostButScored50Percent) {
       player1LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
     }
     if (leaguePlayer1BonusPoints.scoredAllPrimaryObjectives) {
       player1LeaguePoints += scoringRules.bonusPoints.scoredAllPrimaryObjectives;
     }
-    if (leaguePlayer2BonusPoints.lostButScored50Percent) {
+    if (player2ScoredHalf || leaguePlayer2BonusPoints.lostButScored50Percent) {
       player2LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
     }
     if (leaguePlayer2BonusPoints.scoredAllPrimaryObjectives) {
@@ -406,14 +409,17 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         break;
     }
 
-    // Bonus points
-    if (leaguePlayer1BonusPoints.lostButScored50Percent) {
+    // Bonus points - automatically check if losing player scored more than 50% of winner's score
+    const player1ScoredHalf = matchResult === 'player2_win' && leaguePlayer1Score > (leaguePlayer2Score / 2);
+    const player2ScoredHalf = matchResult === 'player1_win' && leaguePlayer2Score > (leaguePlayer1Score / 2);
+
+    if (player1ScoredHalf || leaguePlayer1BonusPoints.lostButScored50Percent) {
       player1LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
     }
     if (leaguePlayer1BonusPoints.scoredAllPrimaryObjectives) {
       player1LeaguePoints += scoringRules.bonusPoints.scoredAllPrimaryObjectives;
     }
-    if (leaguePlayer2BonusPoints.lostButScored50Percent) {
+    if (player2ScoredHalf || leaguePlayer2BonusPoints.lostButScored50Percent) {
       player2LeaguePoints += scoringRules.bonusPoints.lostButScored50Percent;
     }
     if (leaguePlayer2BonusPoints.scoredAllPrimaryObjectives) {
