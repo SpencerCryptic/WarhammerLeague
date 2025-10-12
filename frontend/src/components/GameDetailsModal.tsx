@@ -106,7 +106,7 @@ export default function GameDetailsModal({
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <div className="text-center">
-                  <div className="font-bold text-xl text-gray-900 dark:text-white">
+                  <div className="font-bold text-xl text-gray-900 dark:text-white break-words hyphens-auto">
                     {match?.leaguePlayer1?.leagueName}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -129,7 +129,7 @@ export default function GameDetailsModal({
                 </div>
 
                 <div className="text-center">
-                  <div className="font-bold text-xl text-gray-900 dark:text-white">
+                  <div className="font-bold text-xl text-gray-900 dark:text-white break-words hyphens-auto">
                     {match?.leaguePlayer2?.leagueName}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
