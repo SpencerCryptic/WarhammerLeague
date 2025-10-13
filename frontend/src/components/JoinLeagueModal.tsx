@@ -30,16 +30,51 @@ export default function JoinLeagueModal({
   const getFactionOptions = (gameSystem: string) => {
     const factionMap: { [key: string]: string[] } = {
       'Warhammer: 40,000': [
-        'Space Marines', 'Chaos Space Marines', 'Imperial Guard', 'Orks', 
-        'Eldar', 'Dark Eldar', 'Tyranids', 'Necrons', 'Tau Empire',
-        'Sisters of Battle', 'Chaos Daemons', 'Imperial Knights'
+        'Space Marines (Astartes)',
+        'Black Templars',
+        'Blood Angels',
+        'Dark Angels',
+        'Deathwatch',
+        'Grey Knights',
+        'Imperial Fists',
+        'Iron Hands',
+        'Raven Guard',
+        'Salamanders',
+        'Space Marines',
+        'Space Wolves',
+        'Ultramarines',
+        'White Scars',
+        'Aeldari',
+        'Aeldari Craftworlds',
+        'Drukhari',
+        'Chaos',
+        'Chaos Daemons',
+        'Chaos Knights',
+        'Chaos Space Marines',
+        'Death Guard',
+        'Emperor\'s Children',
+        'Thousand Sons',
+        'World Eaters',
+        'Tyranids',
+        'Tyranid Swarm',
+        'Genestealer Cults',
+        'Imperium',
+        'Adepta Sororitas',
+        'Adeptus Custodes',
+        'Adeptus Mechanicus',
+        'Astra Militarum',
+        'Imperial Knights',
+        'Leagues of Votann',
+        'Orks',
+        'T\'au Empire',
+        'Necrons'
       ],
       'Warhammer: Age of Sigmar': [
         'Stormcast Eternals', 'Khorne Bloodbound', 'Sylvaneth', 'Fyreslayers',
         'Seraphon', 'Slaves to Darkness', 'Nighthaunt', 'Daughters of Khaine'
       ],
       'Warhammer: Kill Team': [
-        'Adeptus Astartes', 'Death Korps of Krieg', 'Ork Kommandos', 
+        'Adeptus Astartes', 'Death Korps of Krieg', 'Ork Kommandos',
         'Tau Pathfinders', 'Tyranid Genestealers', 'Chaos Cultists'
       ],
       'A Song of Ice and Fire': [
