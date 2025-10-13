@@ -84,7 +84,7 @@ const MatchesDashboard = () => {
           setCurrentUser(userData);
           setIsAdmin(userData?.role?.name === 'Admin' || userData?.role?.name === 'LeagueCreator');
           
-          fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][populate][player][populate]=user&populate[league_players][populate]=*`)
+          fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][fields][0]=leagueName&populate[matches][populate][leaguePlayer1][fields][1]=faction&populate[matches][populate][leaguePlayer1][fields][2]=firstName&populate[matches][populate][leaguePlayer1][fields][3]=lastName&populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][fields][0]=leagueName&populate[matches][populate][leaguePlayer2][fields][1]=faction&populate[matches][populate][leaguePlayer2][fields][2]=firstName&populate[matches][populate][leaguePlayer2][fields][3]=lastName&populate[matches][populate][leaguePlayer2][populate][player][populate]=user&populate[league_players][populate]=*`)
           .then((res) => res.json())
           .then((data) => {
             setLeague(data.data);
@@ -119,7 +119,7 @@ const MatchesDashboard = () => {
           setIsLoading(false);
         });
       } else {
-        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][populate][player][populate]=user`)
+        fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[matches][populate][leaguePlayer1][fields][0]=leagueName&populate[matches][populate][leaguePlayer1][fields][1]=faction&populate[matches][populate][leaguePlayer1][fields][2]=firstName&populate[matches][populate][leaguePlayer1][fields][3]=lastName&populate[matches][populate][leaguePlayer1][populate][player][populate]=user&populate[matches][populate][leaguePlayer2][fields][0]=leagueName&populate[matches][populate][leaguePlayer2][fields][1]=faction&populate[matches][populate][leaguePlayer2][fields][2]=firstName&populate[matches][populate][leaguePlayer2][fields][3]=lastName&populate[matches][populate][leaguePlayer2][populate][player][populate]=user`)
         .then((res) => res.json())
         .then((data) => {
           setLeague(data.data);
