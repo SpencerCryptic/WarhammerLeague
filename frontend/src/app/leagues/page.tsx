@@ -18,7 +18,6 @@ export default function Leagues() {
   const [stats, setStats] = useState({ totalLeagues: 0, activeLeagues: 0, totalPlayers: 0 });
   const [gameFilter, setGameFilter] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     fetchDashboardData();
@@ -351,7 +350,6 @@ export default function Leagues() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(groupLeaguesByBase(leagues)).map(([baseName, groupLeagues]) => {
-                  const isExpanded = expandedGroups[baseName];
                   const hasPools = groupLeagues.length > 1;
                   const firstLeague = groupLeagues[0];
 
