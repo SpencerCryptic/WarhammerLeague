@@ -189,10 +189,10 @@ const MatchesDashboard = () => {
   };
 
   const getDisplayName = (leaguePlayer: LeaguePlayer) => {
-    // Access firstName/lastName through player.user
-    if (leaguePlayer?.player?.user?.firstName && leaguePlayer?.player?.user?.lastName) {
-      const lastInitial = leaguePlayer.player.user.lastName.charAt(0).toUpperCase();
-      return `${leaguePlayer.player.user.firstName} ${lastInitial}.`;
+    // Access firstName/lastName directly from leaguePlayer
+    if (leaguePlayer?.firstName && leaguePlayer?.lastName) {
+      const lastInitial = leaguePlayer.lastName.charAt(0).toUpperCase();
+      return `${leaguePlayer.firstName} ${lastInitial}.`;
     }
 
     return '';
