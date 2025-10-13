@@ -287,11 +287,16 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       return ctx.unauthorized('User not authenticated');
     }
 
+    // Fetch full user object with firstName and lastName
+    const user = await strapi.documents('plugin::users-permissions.user').findOne({
+      documentId: userId
+    });
+
     // Find or create a player record for this user
     let [player] = await strapi.documents('api::player.player').findMany({
       filters: { user: { id: userId } }
     });
-    
+
     if (!player) {
       // Create a player record for this user
       console.log('🔍 Creating player record for user:', userId);
@@ -327,6 +332,8 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         league: leagueId,
         faction,
         leagueName,
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
         goodFaithAccepted,
         wins: 0,
         draws: 0,
