@@ -340,14 +340,14 @@ const MatchesDashboard = () => {
 
                 <div className="space-y-2 sm:space-y-4">
                   <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer1?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-start mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        <div className="flex items-center gap-2">
+                        <div>
                           <span className="break-words hyphens-auto">{match.leaguePlayer1?.leagueName || 'TBD'}</span>
                           {getDisplayName(match.leaguePlayer1) && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1">
                               {getDisplayName(match.leaguePlayer1)}
-                            </span>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -367,14 +367,14 @@ const MatchesDashboard = () => {
                   </div>
 
                   <div className={`p-2 sm:p-3 rounded-lg ${isUserMatch && match.leaguePlayer2?.leagueName === userLeaguePlayerName ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-start mb-1">
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        <div className="flex items-center gap-2">
+                        <div>
                           <span className="break-words hyphens-auto">{match.leaguePlayer2?.leagueName || 'TBD'}</span>
                           {getDisplayName(match.leaguePlayer2) && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1">
                               {getDisplayName(match.leaguePlayer2)}
-                            </span>
+                            </div>
                           )}
                         </div>
                       </div>
