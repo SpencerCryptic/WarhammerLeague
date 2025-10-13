@@ -19,6 +19,8 @@ interface LeaguePlayer {
   id: number;
   leagueName: string;
   faction: string;
+  firstName?: string;
+  lastName?: string;
   wins: number;
   losses: number;
   draws: number;
@@ -173,6 +175,14 @@ export default function DashboardPage() {
     }
   };
 
+  const getDisplayName = (leaguePlayer: any) => {
+    if (leaguePlayer?.firstName && leaguePlayer?.lastName) {
+      const lastInitial = leaguePlayer.lastName.charAt(0).toUpperCase();
+      return `${leaguePlayer.firstName} ${lastInitial}.`;
+    }
+    return '';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
@@ -222,9 +232,27 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div className="text-white font-medium">
-                    {match.leaguePlayer1?.leagueName || 'TBD'} vs {match.leaguePlayer2?.leagueName || 'TBD'}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div>{match.leaguePlayer1?.leagueName || 'TBD'}</div>
+                        {getDisplayName(match.leaguePlayer1) && (
+                          <div className="text-xs text-gray-400 font-normal mt-0.5">
+                            {getDisplayName(match.leaguePlayer1)}
+                          </div>
+                        )}
+                      </div>
+                      <span>vs</span>
+                      <div className="flex-1">
+                        <div>{match.leaguePlayer2?.leagueName || 'TBD'}</div>
+                        {getDisplayName(match.leaguePlayer2) && (
+                          <div className="text-xs text-gray-400 font-normal mt-0.5">
+                            {getDisplayName(match.leaguePlayer2)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-sm mt-1">
+                  <div className="text-gray-400 text-sm mt-2">
                     {match.league?.name || 'Unknown League'}
                   </div>
                 </div>
@@ -330,10 +358,26 @@ export default function DashboardPage() {
                 <div key={match.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                   <div className="flex justify-between items-center">
                     <div>
-                      <div className="text-white font-medium">
-                        {match.leaguePlayer1?.leagueName || 'Unknown'} vs {match.leaguePlayer2?.leagueName || 'Unknown'}
+                      <div className="text-white font-medium flex items-center gap-2">
+                        <div>
+                          <div>{match.leaguePlayer1?.leagueName || 'Unknown'}</div>
+                          {getDisplayName(match.leaguePlayer1) && (
+                            <div className="text-xs text-gray-400 font-normal">
+                              {getDisplayName(match.leaguePlayer1)}
+                            </div>
+                          )}
+                        </div>
+                        <span>vs</span>
+                        <div>
+                          <div>{match.leaguePlayer2?.leagueName || 'Unknown'}</div>
+                          {getDisplayName(match.leaguePlayer2) && (
+                            <div className="text-xs text-gray-400 font-normal">
+                              {getDisplayName(match.leaguePlayer2)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-gray-400 text-sm">
+                      <div className="text-gray-400 text-sm mt-1">
                         {match.league?.name || 'Unknown League'} • {match.league?.gameSystem || 'Unknown Game'}
                       </div>
                     </div>

@@ -38,8 +38,12 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         ]
       },
       populate: {
-        leaguePlayer1: true,
-        leaguePlayer2: true,
+        leaguePlayer1: {
+          fields: ['leagueName', 'faction', 'firstName', 'lastName']
+        },
+        leaguePlayer2: {
+          fields: ['leagueName', 'faction', 'firstName', 'lastName']
+        },
         league: true
       }
     });
