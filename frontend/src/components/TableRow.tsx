@@ -29,7 +29,7 @@ export interface LeaguePlayer {
 }
 
 const TableRow = () => {
-  
+
   const [leaguePlayers, setLeaguePlayers] = useState<LeaguePlayer[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [activeList, setActiveList] = useState({id: '', list: ''})
@@ -38,6 +38,7 @@ const TableRow = () => {
   const [selectedPlayerFaction, setSelectedPlayerFaction] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [expandedLists, setExpandedLists] = useState<Set<string>>(new Set())
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
@@ -317,11 +318,11 @@ const TableRow = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-4 md:p-6">
-            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-              <button 
-                type='button' 
+            <div className="flex items-center">
+              <button
+                type='button'
                 onClick={(e) => toggleExpand(e, '')}
-                className="flex items-center text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium transition-colors duration-200 self-start text-sm md:text-base"
+                className="flex items-center text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium transition-colors duration-200 text-sm md:text-base"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -329,22 +330,10 @@ const TableRow = () => {
                 <span className="hidden sm:inline">Back to Standings</span>
                 <span className="sm:hidden">Back</span>
               </button>
-              
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white capitalize text-center md:flex-1 md:mx-4">
+
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white capitalize text-center flex-1">
                 {leaguePlayers.find((player: LeaguePlayer) => player.documentId === activeList.id)!.leagueName}'s List
               </h1>
-              
-              <button 
-                type='button' 
-                onClick={(e) => copylist(e, activeList.list)}
-                className="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-2 rounded-lg font-medium transition-colors duration-200 self-end md:self-auto"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <span className="hidden sm:inline">Copy List</span>
-                <span className="sm:hidden">Copy</span>
-              </button>
             </div>
           </div>
 
@@ -359,7 +348,7 @@ const TableRow = () => {
               {(() => {
                 const player = leaguePlayers.find((player: LeaguePlayer) => player.documentId === activeList.id);
                 const armyLists = player?.armyLists || [];
-                
+
                 if (armyLists.length === 0) {
                   return (
                     <div className="text-gray-500 dark:text-gray-400 text-center py-8">
@@ -367,30 +356,89 @@ const TableRow = () => {
                     </div>
                   );
                 }
-                
+
+                // Sort lists to show active list first
+                const sortedLists = [...armyLists].sort((a, b) => {
+                  if (a.isActive && !b.isActive) return -1;
+                  if (!a.isActive && b.isActive) return 1;
+                  return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+                });
+
                 return (
-                  <div className="space-y-6">
-                    {armyLists.map((list: any, index: number) => (
-                      <div key={list.id || index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{list.name}</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{list.faction}</p>
-                            {list.isActive && (
-                              <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full mt-1">
-                                Active
-                              </span>
+                  <div className="space-y-4">
+                    {sortedLists.map((list: any, index: number) => {
+                      const listId = list.id || `${index}`;
+                      const isExpanded = expandedLists.has(listId) || sortedLists.length === 1;
+
+                      return (
+                        <div key={listId} className={`border rounded-lg ${
+                          list.isActive
+                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                            : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
+                        }`}>
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  {sortedLists.length > 1 && (
+                                    <button
+                                      onClick={() => {
+                                        const newExpanded = new Set(expandedLists);
+                                        if (isExpanded) {
+                                          newExpanded.delete(listId);
+                                        } else {
+                                          newExpanded.add(listId);
+                                        }
+                                        setExpandedLists(newExpanded);
+                                      }}
+                                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                          d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"} />
+                                      </svg>
+                                    </button>
+                                  )}
+                                  <div>
+                                    <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{list.name}</h4>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{list.faction}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1 ml-7">
+                                  {list.isActive && (
+                                    <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">
+                                      Active
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    Created: {new Date(list.createdDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type='button'
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copylist(e, list.listContent);
+                                }}
+                                className="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Copy List
+                              </button>
+                            </div>
+
+                            {isExpanded && (
+                              <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 leading-relaxed bg-white dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-600 mt-3 ml-7">
+                                {list.listContent}
+                              </pre>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Created: {new Date(list.createdDate).toLocaleDateString()}
-                          </p>
                         </div>
-                        <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 leading-relaxed bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                          {list.listContent}
-                        </pre>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}
