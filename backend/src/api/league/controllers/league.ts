@@ -1,5 +1,53 @@
 import { factories } from '@strapi/strapi';
 
+function getFactionsForGameSystem(gameSystem: string): string[] {
+  const factionMap: Record<string, string[]> = {
+    'A Song of Ice and Fire': [
+      'Stark',
+      'Lannister',
+      'Free Folk',
+      'Nights Watch',
+      'Baratheon',
+      'Targaryen',
+      'Greyjoy',
+      'Martell',
+      'Bolton',
+      'Brotherhood Without Banners',
+      'Neutral'
+    ],
+    'Warhammer: The Horus Heresy': [
+      'Dark Angels',
+      'White Scars',
+      'Space Wolves',
+      'Imperial Fists',
+      'Blood Angels',
+      'Iron Hands',
+      'Ultramarines',
+      'Salamanders',
+      'Raven Guard',
+      'Sons of Horus',
+      'World Eaters',
+      "Emperor's Children",
+      'Death Guard',
+      'Thousand Sons',
+      'Word Bearers',
+      'Iron Warriors',
+      'Night Lords',
+      'Alpha Legion',
+      'Mechanicum',
+      'Legio Custodes',
+      'Sisters of Silence',
+      'Solar Auxilia',
+      'Imperialis Auxilia',
+      'Questoris Knights',
+      'Daemons of the Ruinstorm',
+      'Blackshields'
+    ]
+  };
+
+  return factionMap[gameSystem] || [];
+}
+
 export default factories.createCoreController('api::league.league', ({ strapi }) => ({
 
   async dashboard(ctx) {
@@ -861,6 +909,12 @@ function determineGameType(title: string, description: string) {
 function determineLocation(venue: string | { name?: string } | any) {
     // Handle different venue types
     const venueName = typeof venue === 'string' ? venue : (venue?.name || '');
+
+    // Safety check - return default if venueName is not a valid string
+    if (!venueName || typeof venueName !== 'string') {
+      return 'Bristol'; // Default to Bristol if venue is empty or invalid
+    }
+
     const venueText = venueName.toLowerCase();
     if (venueText.includes('bristol')) return 'Bristol';
     if (venueText.includes('bracknell')) return 'Bracknell';
@@ -903,54 +957,6 @@ function getColorForGameType(gameType: string) {
       'Mixed': 'gray-500'
     };
     return colorMap[gameType as keyof typeof colorMap] || 'gray-500';
-}
-
-function getFactionsForGameSystem(gameSystem: string): string[] {
-  const factionMap: Record<string, string[]> = {
-    'A Song of Ice and Fire': [
-      'Stark',
-      'Lannister',
-      'Free Folk',
-      'Nights Watch',
-      'Baratheon',
-      'Targaryen',
-      'Greyjoy',
-      'Martell',
-      'Bolton',
-      'Brotherhood Without Banners',
-      'Neutral'
-    ],
-    'Warhammer: The Horus Heresy': [
-      'Dark Angels',
-      'White Scars',
-      'Space Wolves',
-      'Imperial Fists',
-      'Blood Angels',
-      'Iron Hands',
-      'Ultramarines',
-      'Salamanders',
-      'Raven Guard',
-      'Sons of Horus',
-      'World Eaters',
-      "Emperor's Children",
-      'Death Guard',
-      'Thousand Sons',
-      'Word Bearers',
-      'Iron Warriors',
-      'Night Lords',
-      'Alpha Legion',
-      'Mechanicum',
-      'Legio Custodes',
-      'Sisters of Silence',
-      'Solar Auxilia',
-      'Imperialis Auxilia',
-      'Questoris Knights',
-      'Daemons of the Ruinstorm',
-      'Blackshields'
-    ]
-  };
-
-  return factionMap[gameSystem] || [];
 }
 
 function generateRoundRobinSchedule(players: any[]) {
