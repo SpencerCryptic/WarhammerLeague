@@ -56,7 +56,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       const upcomingLeagues = await strapi.documents('api::league.league').findMany({
         filters: { statusleague: 'planned' },
         limit: 3,
-        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem', 'storeLocation'],
+        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem'],
         populate: {
           createdByUser: { fields: ['username'] },
           league_players: {
@@ -72,7 +72,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       const currentLeagues = await strapi.documents('api::league.league').findMany({
         filters: { statusleague: 'ongoing' },
         limit: 3,
-        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem', 'storeLocation'],
+        fields: ['name', 'statusleague', 'description', 'startDate', 'gameSystem'],
         populate: {
           createdByUser: { fields: ['username'] },
           league_players: {
@@ -383,7 +383,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     const rawLeagues = await strapi.documents('api::league.league').findMany({
       filters,
       ...( {
-        fields: ['name', 'statusleague', 'description', 'leaguePassword', 'useOTP', 'startDate', 'gameSystem', 'storeLocation'],
+        fields: ['name', 'statusleague', 'description', 'leaguePassword', 'useOTP', 'startDate', 'gameSystem'],
         populate: {
           createdByUser: { fields: ['id', 'username'] },
           league_players: {

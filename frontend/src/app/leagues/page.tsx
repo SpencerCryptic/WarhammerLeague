@@ -118,6 +118,14 @@ export default function Leagues() {
     setGameFilter(e.target.value);
   };
 
+  const getLocationFromName = (name: string) => {
+    if (!name) return null;
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('bristol')) return 'Bristol';
+    if (lowerName.includes('bracknell')) return 'Bracknell';
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -204,12 +212,12 @@ export default function Leagues() {
                       <div className="bg-gray-700 rounded-lg p-4 border-l-4 border-blue-500 hover:bg-gray-650 transition-colors duration-200 cursor-pointer">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
-                          {league.storeLocation && (
+                          {getLocationFromName(league.name) && (
                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                              league.storeLocation === 'Cryptic Cabin Bristol'
+                              getLocationFromName(league.name) === 'Bristol'
                                 ? 'bg-orange-600'
                                 : 'bg-pink-600'
-                            }`} title={league.storeLocation}></div>
+                            }`} title={getLocationFromName(league.name) || ''}></div>
                           )}
                         </div>
                         <div className="flex items-center text-gray-400 text-sm mb-2">
@@ -261,12 +269,12 @@ export default function Leagues() {
                       <div className="bg-gray-700 rounded-lg p-4 border-l-4 border-green-500 hover:bg-gray-650 transition-colors duration-200 cursor-pointer">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
-                          {league.storeLocation && (
+                          {getLocationFromName(league.name) && (
                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                              league.storeLocation === 'Cryptic Cabin Bristol'
+                              getLocationFromName(league.name) === 'Bristol'
                                 ? 'bg-orange-600'
                                 : 'bg-pink-600'
-                            }`} title={league.storeLocation}></div>
+                            }`} title={getLocationFromName(league.name) || ''}></div>
                           )}
                         </div>
                         <div className="flex items-center text-gray-400 text-sm mb-2">
@@ -331,12 +339,12 @@ export default function Leagues() {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
-                          {league.storeLocation && (
+                          {getLocationFromName(league.name) && (
                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                              league.storeLocation === 'Cryptic Cabin Bristol'
+                              getLocationFromName(league.name) === 'Bristol'
                                 ? 'bg-orange-600'
                                 : 'bg-pink-600'
-                            }`} title={league.storeLocation}></div>
+                            }`} title={getLocationFromName(league.name) || ''}></div>
                           )}
                         </div>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -393,12 +401,12 @@ export default function Leagues() {
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
-                          {league.storeLocation && (
+                          {getLocationFromName(league.name) && (
                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                              league.storeLocation === 'Cryptic Cabin Bristol'
+                              getLocationFromName(league.name) === 'Bristol'
                                 ? 'bg-orange-600'
                                 : 'bg-pink-600'
-                            }`} title={league.storeLocation}></div>
+                            }`} title={getLocationFromName(league.name) || ''}></div>
                           )}
                         </div>
                         <span className="px-2 py-1 rounded text-xs font-medium bg-gray-500 text-white">
