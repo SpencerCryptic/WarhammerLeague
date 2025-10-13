@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fira_Sans, Fira_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import AuthProvider from "@/components/AuthProvider";
 
 
 const FiraSans = Fira_Sans({
@@ -43,10 +44,12 @@ export default function RootLayout({
       <body
         className={`${montserrat.className} ${montserrat.className} antialiased`}
       >
-        <Navbar />
-        <main className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 pt-4 sm:pt-6">
-          {children}
-        </main>
+        <AuthProvider>
+          <Navbar />
+          <main className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 pt-4 sm:pt-6">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );
