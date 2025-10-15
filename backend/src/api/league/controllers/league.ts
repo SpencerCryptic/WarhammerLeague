@@ -919,7 +919,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         documentId: replacingLeaguePlayerId,
         data: {
           status: 'dropped'
-        }
+        } as any
       });
 
       // Find all matches where the replaced player is involved
