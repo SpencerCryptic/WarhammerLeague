@@ -27,6 +27,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
   const [addPlayerFaction, setAddPlayerFaction] = useState('');
   const [addPlayerLoading, setAddPlayerLoading] = useState(false);
   const [availableFactions, setAvailableFactions] = useState<string[]>([]);
+  const [replacingPlayerId, setReplacingPlayerId] = useState('');
 
   // Check if current user is logged in and get user info
   useEffect(() => {
@@ -231,7 +232,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
 
   // Handle adding replacement player
   const handleAddPlayer = async () => {
-    if (!addPlayerEmail || !addPlayerLeagueName) return;
+    if (!addPlayerEmail || !addPlayerLeagueName || !replacingPlayerId) return;
 
     setAddPlayerLoading(true);
     try {
@@ -246,7 +247,8 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
           leagueId: documentId,
           userEmail: addPlayerEmail,
           leagueName: addPlayerLeagueName,
-          faction: addPlayerFaction || null
+          faction: addPlayerFaction || null,
+          replacingLeaguePlayerId: replacingPlayerId
         }),
       });
 
@@ -257,6 +259,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
         setAddPlayerEmail('');
         setAddPlayerLeagueName('');
         setAddPlayerFaction('');
+        setReplacingPlayerId('');
         // Refresh the page to show updated player list
         setTimeout(() => {
           window.location.reload();
@@ -581,6 +584,7 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
                   setAddPlayerEmail('');
                   setAddPlayerLeagueName('');
                   setAddPlayerFaction('');
+                  setReplacingPlayerId('');
                 }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
@@ -591,6 +595,28 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
             </div>
 
             <div className="space-y-4">
+              {/* Player to Replace */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Player to Replace <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={replacingPlayerId}
+                  onChange={(e) => setReplacingPlayerId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select player to replace...</option>
+                  {league?.league_players?.filter((p: any) => p.status !== 'dropped').map((player: any) => (
+                    <option key={player.documentId} value={player.documentId}>
+                      {player.leagueName || player.player?.name || `Player ${player.documentId}`}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  All matches will be transferred to the new player
+                </p>
+              </div>
+
               {/* User Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -646,15 +672,15 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
               {/* Add Button */}
               <button
                 onClick={handleAddPlayer}
-                disabled={!addPlayerEmail || !addPlayerLeagueName || addPlayerLoading}
+                disabled={!addPlayerEmail || !addPlayerLeagueName || !replacingPlayerId || addPlayerLoading}
                 className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {addPlayerLoading ? 'Adding Player...' : 'Add Player'}
+                {addPlayerLoading ? 'Adding Replacement Player...' : 'Add Replacement Player'}
               </button>
 
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Note:</strong> The user must already have an account. They will be added directly to the league without needing a password.
+                  <strong>Note:</strong> The user must already have an account. The replacement player will inherit the stats and all scheduled matches from the player being replaced. The replaced player will be marked as dropped.
                 </p>
               </div>
             </div>

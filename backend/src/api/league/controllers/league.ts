@@ -815,10 +815,14 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         return ctx.unauthorized('You must be logged in');
       }
 
-      const { leagueId, userEmail, leagueName, faction } = ctx.request.body;
+      const { leagueId, userEmail, leagueName, faction, replacingLeaguePlayerId } = ctx.request.body;
 
       if (!leagueId || !userEmail || !leagueName) {
         return ctx.badRequest('League ID, user email, and league name are required');
+      }
+
+      if (!replacingLeaguePlayerId) {
+        return ctx.badRequest('Must specify which player is being replaced');
       }
 
       // Get the league and check if current user is admin
@@ -868,6 +872,15 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         });
       }
 
+      // Get the player being replaced
+      const replacedPlayer = await strapi.documents('api::league-player.league-player').findOne({
+        documentId: replacingLeaguePlayerId
+      });
+
+      if (!replacedPlayer) {
+        return ctx.notFound('Player to replace not found');
+      }
+
       // Check if player already exists in this league
       const [existingLeaguePlayer] = await strapi.documents('api::league-player.league-player').findMany({
         filters: {
@@ -882,30 +895,71 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         return ctx.badRequest('This user is already in the league');
       }
 
-      // Create the league player
-      await strapi.documents('api::league-player.league-player').create({
+      // Create the new league player with the same stats as the replaced player
+      const newLeaguePlayer = await strapi.documents('api::league-player.league-player').create({
         data: {
           player: player.documentId,
           league: leagueId,
-          faction: faction || null,
+          faction: faction || replacedPlayer.faction,
           leagueName,
           firstName: targetUser.firstName || '',
           lastName: targetUser.lastName || '',
           goodFaithAccepted: true,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          rankingPoints: 0,
-          status: 'active'
+          wins: replacedPlayer.wins || 0,
+          draws: replacedPlayer.draws || 0,
+          losses: replacedPlayer.losses || 0,
+          rankingPoints: replacedPlayer.rankingPoints || 0,
+          status: 'active',
+          armyLists: replacedPlayer.armyLists || []
         }
       });
 
+      // Mark the old player as dropped
+      await strapi.documents('api::league-player.league-player').update({
+        documentId: replacingLeaguePlayerId,
+        data: {
+          status: 'dropped'
+        }
+      });
+
+      // Find all matches where the replaced player is involved
+      const matches = await strapi.documents('api::match.match').findMany({
+        filters: {
+          $or: [
+            { leaguePlayer1: { documentId: replacingLeaguePlayerId } },
+            { leaguePlayer2: { documentId: replacingLeaguePlayerId } }
+          ]
+        },
+        populate: ['leaguePlayer1', 'leaguePlayer2']
+      });
+
+      // Update all matches to use the new player
+      for (const match of matches) {
+        const updateData: any = {};
+
+        if ((match.leaguePlayer1 as any)?.documentId === replacingLeaguePlayerId) {
+          updateData.leaguePlayer1 = newLeaguePlayer.documentId;
+        }
+        if ((match.leaguePlayer2 as any)?.documentId === replacingLeaguePlayerId) {
+          updateData.leaguePlayer2 = newLeaguePlayer.documentId;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await strapi.documents('api::match.match').update({
+            documentId: match.documentId,
+            data: updateData
+          });
+        }
+      }
+
       return ctx.send({
-        message: `Successfully added ${leagueName} to ${league.name}`,
+        message: `Successfully replaced ${replacedPlayer.leagueName} with ${leagueName} in ${league.name}. ${matches.length} matches reassigned.`,
         data: {
           leagueName,
           userEmail,
-          faction
+          faction,
+          replacedPlayer: replacedPlayer.leagueName,
+          matchesReassigned: matches.length
         }
       });
 
