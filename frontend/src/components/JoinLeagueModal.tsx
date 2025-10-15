@@ -89,6 +89,23 @@ export default function JoinLeagueModal({
         'Mechanicum', 'Legio Custodes', 'Sisters of Silence', 'Solar Auxilia',
         'Imperialis Auxilia', 'Questoris Knights', 'Daemons of the Ruinstorm', 'Blackshields'
       ],
+      'Warhammer: The Old World': [
+        'Tomb Kings of Khemri',
+        'Kingdom of Bretonnia',
+        'Empire of Man',
+        'Orc & Goblin Tribes',
+        'Dwarfen Mountain Holds',
+        'High Elves',
+        'Wood Elves',
+        'Warriors of Chaos',
+        'Beastmen Brayherds',
+        'Dark Elves',
+        'Skaven',
+        'Vampire Counts',
+        'Lizardmen',
+        'Ogre Kingdoms',
+        'Daemons of Chaos'
+      ],
       // Add more as needed
     };
 

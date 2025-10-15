@@ -82,6 +82,23 @@ function getFactionsForGameSystem(gameSystem: string): string[] {
       'Orks',
       "T'au Empire",
       'Necrons'
+    ],
+    'Warhammer: The Old World': [
+      'Tomb Kings of Khemri',
+      'Kingdom of Bretonnia',
+      'Empire of Man',
+      'Orc & Goblin Tribes',
+      'Dwarfen Mountain Holds',
+      'High Elves',
+      'Wood Elves',
+      'Warriors of Chaos',
+      'Beastmen Brayherds',
+      'Dark Elves',
+      'Skaven',
+      'Vampire Counts',
+      'Lizardmen',
+      'Ogre Kingdoms',
+      'Daemons of Chaos'
     ]
   };
 
