@@ -106,6 +106,17 @@ export default {
           policies: [],
         },
       },
+      {
+        method: 'POST',
+        path: '/leagues/add-replacement-player',
+        handler: 'league.addReplacementPlayer',
+        config: {
+          auth: {
+            required: true,
+          },
+          policies: [],
+        },
+      },
     ],
   };
   

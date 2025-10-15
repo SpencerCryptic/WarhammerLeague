@@ -21,6 +21,12 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
   const [showDropModal, setShowDropModal] = useState(false);
   const [selectedDropPlayer, setSelectedDropPlayer] = useState<any>(null);
   const [dropLoading, setDropLoading] = useState(false);
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [addPlayerEmail, setAddPlayerEmail] = useState('');
+  const [addPlayerLeagueName, setAddPlayerLeagueName] = useState('');
+  const [addPlayerFaction, setAddPlayerFaction] = useState('');
+  const [addPlayerLoading, setAddPlayerLoading] = useState(false);
+  const [availableFactions, setAvailableFactions] = useState<string[]>([]);
 
   // Check if current user is logged in and get user info
   useEffect(() => {
@@ -210,6 +216,69 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     }
   };
 
+  // Fetch available factions for the league
+  const fetchFactions = async () => {
+    try {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}/factions`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableFactions(data.factions || []);
+      }
+    } catch (error) {
+      console.error('Error fetching factions:', error);
+    }
+  };
+
+  // Handle adding replacement player
+  const handleAddPlayer = async () => {
+    if (!addPlayerEmail || !addPlayerLeagueName) return;
+
+    setAddPlayerLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/add-replacement-player', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          leagueId: documentId,
+          userEmail: addPlayerEmail,
+          leagueName: addPlayerLeagueName,
+          faction: addPlayerFaction || null
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setMessage(result.message);
+        setShowAddPlayerModal(false);
+        setAddPlayerEmail('');
+        setAddPlayerLeagueName('');
+        setAddPlayerFaction('');
+        // Refresh the page to show updated player list
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.error?.message || 'Failed to add player');
+      }
+    } catch (error) {
+      console.error('Error adding player:', error);
+      setMessage('Error adding player');
+    } finally {
+      setAddPlayerLoading(false);
+    }
+  };
+
+  // Open add player modal
+  const openAddPlayerModal = () => {
+    setShowAddPlayerModal(true);
+    fetchFactions();
+  };
+
   // Don't show controls if user is not the league owner
   if (!isLeagueOwner) {
     return null;
@@ -288,6 +357,14 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
               Drop Player
             </button>
           )}
+
+          {/* Add Replacement Player Button */}
+          <button
+            onClick={openAddPlayerModal}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors"
+          >
+            Add Replacement Player
+          </button>
         </div>
         
         {/* Start League Requirements */}
@@ -485,6 +562,101 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Replacement Player Modal */}
+      {showAddPlayerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Add Replacement Player
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAddPlayerModal(false);
+                  setAddPlayerEmail('');
+                  setAddPlayerLeagueName('');
+                  setAddPlayerFaction('');
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* User Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  User Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={addPlayerEmail}
+                  onChange={(e) => setAddPlayerEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  User must have an existing account
+                </p>
+              </div>
+
+              {/* League Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  League Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addPlayerLeagueName}
+                  onChange={(e) => setAddPlayerLeagueName(e.target.value)}
+                  placeholder="Player display name in league"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Faction Selection */}
+              {availableFactions.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Faction (Optional)
+                  </label>
+                  <select
+                    value={addPlayerFaction}
+                    onChange={(e) => setAddPlayerFaction(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select a faction</option>
+                    {availableFactions.map((faction) => (
+                      <option key={faction} value={faction}>
+                        {faction}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Add Button */}
+              <button
+                onClick={handleAddPlayer}
+                disabled={!addPlayerEmail || !addPlayerLeagueName || addPlayerLoading}
+                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {addPlayerLoading ? 'Adding Player...' : 'Add Player'}
+              </button>
+
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Note:</strong> The user must already have an account. They will be added directly to the league without needing a password.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -808,6 +808,113 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
   },
 
+  async addReplacementPlayer(ctx) {
+    try {
+      const currentUserId = ctx.state.user?.id;
+      if (!currentUserId) {
+        return ctx.unauthorized('You must be logged in');
+      }
+
+      const { leagueId, userEmail, leagueName, faction } = ctx.request.body;
+
+      if (!leagueId || !userEmail || !leagueName) {
+        return ctx.badRequest('League ID, user email, and league name are required');
+      }
+
+      // Get the league and check if current user is admin
+      const league = await strapi.documents('api::league.league').findOne({
+        documentId: leagueId,
+        populate: ['createdByUser']
+      });
+
+      if (!league) {
+        return ctx.notFound('League not found');
+      }
+
+      if (league.createdByUser?.id !== currentUserId) {
+        return ctx.forbidden('Only league admins can add replacement players');
+      }
+
+      // Validate faction if provided
+      if (faction) {
+        const validFactions = getFactionsForGameSystem(league.gameSystem);
+        if (!validFactions.includes(faction)) {
+          return ctx.badRequest(`Invalid faction "${faction}" for game system "${league.gameSystem}"`);
+        }
+      }
+
+      // Find the user by email
+      const [targetUser] = await strapi.documents('plugin::users-permissions.user').findMany({
+        filters: { email: userEmail }
+      });
+
+      if (!targetUser) {
+        return ctx.notFound(`User with email ${userEmail} not found`);
+      }
+
+      // Find or create a player record for the target user
+      let [player] = await strapi.documents('api::player.player').findMany({
+        filters: { user: { id: targetUser.id } }
+      });
+
+      if (!player) {
+        // Create a player record for this user
+        player = await strapi.documents('api::player.player').create({
+          data: {
+            user: targetUser.id,
+            name: targetUser.username || `Player${targetUser.id}`,
+            email: targetUser.email || `player${targetUser.id}@example.com`
+          }
+        });
+      }
+
+      // Check if player already exists in this league
+      const [existingLeaguePlayer] = await strapi.documents('api::league-player.league-player').findMany({
+        filters: {
+          $and: [
+            { player: { documentId: player.documentId } },
+            { league: { documentId: leagueId } },
+          ]
+        }
+      });
+
+      if (existingLeaguePlayer) {
+        return ctx.badRequest('This user is already in the league');
+      }
+
+      // Create the league player
+      await strapi.documents('api::league-player.league-player').create({
+        data: {
+          player: player.documentId,
+          league: leagueId,
+          faction: faction || null,
+          leagueName,
+          firstName: targetUser.firstName || '',
+          lastName: targetUser.lastName || '',
+          goodFaithAccepted: true,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          rankingPoints: 0,
+          status: 'active'
+        }
+      });
+
+      return ctx.send({
+        message: `Successfully added ${leagueName} to ${league.name}`,
+        data: {
+          leagueName,
+          userEmail,
+          faction
+        }
+      });
+
+    } catch (error) {
+      console.error('Error adding replacement player:', error);
+      return ctx.badRequest(`Failed to add replacement player: ${error.message}`);
+    }
+  },
+
 }));
 
 // Helper functions outside the controller
