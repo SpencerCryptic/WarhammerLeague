@@ -119,6 +119,14 @@
     "lastName": {
       "type": "string"
     },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "dropped"
+      ],
+      "default": "active"
+    },
     "firstPlayerMatches": {
       "type": "relation",
       "relation": "oneToMany",

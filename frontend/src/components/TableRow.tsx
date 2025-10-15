@@ -7,7 +7,7 @@ import ArmyListManager from './ArmyListManager';
 
 export interface LeaguePlayer {
   documentId: string,
-  leagueName: string, 
+  leagueName: string,
   faction: string,
   wins: number,
   draws: number,
@@ -16,6 +16,7 @@ export interface LeaguePlayer {
   armyLists: any[],
   firstName?: string,
   lastName?: string,
+  status?: string,
   player?: {
     id: string,
     documentId: string,
@@ -47,7 +48,9 @@ const TableRow = () => {
       .then((data) => {
           setMatches(data.data.matches || [])
           const players = data.data.league_players || [];
-          const sortedPlayers = players.sort((a: LeaguePlayer, b: LeaguePlayer) => {
+          // Filter out dropped players
+          const activePlayers = players.filter((p: LeaguePlayer) => p.status !== 'dropped');
+          const sortedPlayers = activePlayers.sort((a: LeaguePlayer, b: LeaguePlayer) => {
             if (b.rankingPoints - a.rankingPoints != 0 ) {
               return b.rankingPoints - a.rankingPoints;
             }
