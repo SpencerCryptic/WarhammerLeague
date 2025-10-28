@@ -1012,7 +1012,7 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       }
 
       // Check if user is the league owner
-      if ((originalLeague.createdByUser as any)?.documentId !== userId) {
+      if ((originalLeague.createdByUser as any)?.id !== userId) {
         return ctx.forbidden('Only the league owner can create pools');
       }
 
