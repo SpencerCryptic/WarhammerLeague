@@ -104,7 +104,8 @@ export default function JoinLeagueModal({
         'Vampire Counts',
         'Lizardmen',
         'Ogre Kingdoms',
-        'Daemons of Chaos'
+        'Daemons of Chaos',
+        'Cathay'
       ],
       // Add more as needed
     };

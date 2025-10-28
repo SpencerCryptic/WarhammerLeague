@@ -98,7 +98,8 @@ function getFactionsForGameSystem(gameSystem: string): string[] {
       'Vampire Counts',
       'Lizardmen',
       'Ogre Kingdoms',
-      'Daemons of Chaos'
+      'Daemons of Chaos',
+      'Cathay'
     ]
   };
 

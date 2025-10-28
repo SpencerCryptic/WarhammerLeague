@@ -130,7 +130,21 @@ const League = async ({ params }: { params: any }) => {
             Description
           </h3>
           <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-            <RichText content={league.data.description} />
+            <RichText
+              content={league.data.description}
+              renderers={{
+                a: ({ children, href, openInNewTab }) => (
+                  <a
+                    href={href}
+                    target={openInNewTab ? '_blank' : '_self'}
+                    rel={openInNewTab ? 'noopener noreferrer' : undefined}
+                    className="font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline transition-colors"
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            />
           </div>
         </div>
       )}

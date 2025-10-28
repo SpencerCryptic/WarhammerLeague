@@ -54,5 +54,15 @@ export default {
         auth: false,
       },
     },
+    {
+      method: 'PUT',
+      path: '/league-players/:id/faction',
+      handler: 'league-player.updateFaction',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
+    },
   ],
 };

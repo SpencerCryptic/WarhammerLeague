@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation';
 import ArmyListManager from './ArmyListManager';
+import ChangeFactionButton from './ChangeFactionButton';
 
 const PlayerDetailsComponent = () => {
   const [leaguePlayer, setLeaguePlayer] = useState<any>(null)
+  const [league, setLeague] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [showArmyListManager, setShowArmyListManager] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -22,12 +24,13 @@ const PlayerDetailsComponent = () => {
     }
   }, []);
 
-  useEffect(() => {
+  const fetchLeagueData = () => {
     if (!leagueDocumentId) return;
-    
+
     fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${leagueDocumentId}`)
       .then((res) => res.json())
       .then((data) => {
+        setLeague(data.data);
         const currentLeaguePlayer = data.data.league_players.find((lp: any) => {
           return user ? lp.player.email === user.email : null
         });
@@ -35,6 +38,10 @@ const PlayerDetailsComponent = () => {
         setIsLoading(false)
       })
       .catch(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    fetchLeagueData();
   }, [leagueDocumentId, user])
 
   if (isLoading) {
@@ -75,15 +82,24 @@ const PlayerDetailsComponent = () => {
               <span>Pts: {leaguePlayer.rankingPoints}</span>
             </div>
           </div>
-          <button
-            onClick={() => setShowArmyListManager(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Manage Army Lists
-          </button>
+          <div className="flex gap-2">
+            <ChangeFactionButton
+              leaguePlayerId={leaguePlayer.documentId}
+              currentFaction={leaguePlayer.faction}
+              gameSystem={league?.gameSystem || ''}
+              leagueStartDate={league?.startDate || null}
+              onFactionChanged={fetchLeagueData}
+            />
+            <button
+              onClick={() => setShowArmyListManager(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Manage Army Lists
+            </button>
+          </div>
         </div>
       </div>
 
