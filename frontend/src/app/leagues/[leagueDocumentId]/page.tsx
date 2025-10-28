@@ -1,27 +1,52 @@
+'use client';
+
 import React from 'react';
 import { BlocksRenderer } from '@strapi/blocks-react-renderer';
 import LeagueAdminControls from '@/components/LeagueAdminControls';
 import JoinLeagueButton from '@/components/JoinLeagueButton';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-const getLeague = async (documentId: string) => {
-  try {
-    const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}`);
+const League = () => {
+  const params = useParams();
+  const leagueDocumentId = params.leagueDocumentId as string;
+  const [league, setLeague] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-    if (!response.ok) {
-      console.error(`Failed to fetch league: ${response.status}`);
-      return { data: null };
+  useEffect(() => {
+    const fetchLeague = async () => {
+      try {
+        const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${leagueDocumentId}`);
+
+        if (!response.ok) {
+          console.error(`Failed to fetch league: ${response.status}`);
+          setLeague({ data: null });
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        setLeague(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch league:', error);
+        setLeague({ data: null });
+        setLoading(false);
+      }
+    };
+
+    if (leagueDocumentId) {
+      fetchLeague();
     }
+  }, [leagueDocumentId]);
 
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch league:', error);
-    return { data: null };
+  if (loading) {
+    return (
+      <div className="w-full flex items-center justify-center py-12">
+        <div className="text-gray-600 dark:text-gray-300">Loading league...</div>
+      </div>
+    );
   }
-};
-
-const League = async ({ params }: { params: any }) => {
-  const { leagueDocumentId } = params;
-  const league = await getLeague(leagueDocumentId);
 
   if (!league.data) {
     return (
