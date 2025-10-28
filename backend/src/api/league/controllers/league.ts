@@ -987,6 +987,83 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
   },
 
+  async createPools(ctx) {
+    const { id: leagueDocumentId } = ctx.params;
+    const { numberOfPools } = ctx.request.body;
+    const userId = ctx.state.user?.id;
+
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in');
+    }
+
+    if (!numberOfPools || numberOfPools < 1 || numberOfPools > 26) {
+      return ctx.badRequest('Number of pools must be between 1 and 26');
+    }
+
+    try {
+      // Get the original league
+      const originalLeague = await strapi.documents('api::league.league').findOne({
+        documentId: leagueDocumentId,
+        populate: ['createdByUser']
+      });
+
+      if (!originalLeague) {
+        return ctx.notFound('League not found');
+      }
+
+      // Check if user is the league owner
+      if ((originalLeague.createdByUser as any)?.documentId !== userId) {
+        return ctx.forbidden('Only the league owner can create pools');
+      }
+
+      const poolNames = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+      const createdPools = [];
+
+      // Create duplicate leagues
+      for (let i = 0; i < numberOfPools; i++) {
+        const poolName = `Pool ${poolNames[i]}`;
+
+        const newLeague = await strapi.documents('api::league.league').create({
+          data: {
+            name: `${originalLeague.name} - ${poolName}`,
+            description: originalLeague.description,
+            statusleague: originalLeague.statusleague,
+            leaguePassword: originalLeague.leaguePassword,
+            useOTP: originalLeague.useOTP,
+            gameSystem: originalLeague.gameSystem,
+            startDate: originalLeague.startDate,
+            format: originalLeague.format,
+            scoringRules: originalLeague.scoringRules,
+            rulesetType: originalLeague.rulesetType,
+            createdByUser: userId,
+            publishedAt: new Date()
+          }
+        });
+
+        createdPools.push({
+          documentId: newLeague.documentId,
+          name: newLeague.name,
+          poolName
+        });
+      }
+
+      return ctx.send({
+        message: `Successfully created ${numberOfPools} pool(s)`,
+        data: {
+          originalLeague: {
+            documentId: originalLeague.documentId,
+            name: originalLeague.name
+          },
+          createdPools
+        }
+      });
+
+    } catch (error) {
+      console.error('Error creating pools:', error);
+      return ctx.badRequest(`Failed to create pools: ${error.message}`);
+    }
+  },
+
 }));
 
 // Helper functions outside the controller

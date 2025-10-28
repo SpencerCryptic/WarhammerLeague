@@ -28,6 +28,9 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
   const [addPlayerLoading, setAddPlayerLoading] = useState(false);
   const [availableFactions, setAvailableFactions] = useState<string[]>([]);
   const [replacingPlayerId, setReplacingPlayerId] = useState('');
+  const [showCreatePoolsModal, setShowCreatePoolsModal] = useState(false);
+  const [numberOfPools, setNumberOfPools] = useState(1);
+  const [createPoolsLoading, setCreatePoolsLoading] = useState(false);
 
   // Check if current user is logged in and get user info
   useEffect(() => {
@@ -282,6 +285,43 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
     fetchFactions();
   };
 
+  // Handle create pools
+  const handleCreatePools = async () => {
+    if (numberOfPools < 1 || numberOfPools > 25) return;
+
+    setCreatePoolsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}/create-pools`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ numberOfPools }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setMessage(result.message);
+        setShowCreatePoolsModal(false);
+        setNumberOfPools(1);
+        // Refresh after a delay to show the message
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.error?.message || 'Failed to create pools');
+      }
+    } catch (error) {
+      console.error('Error creating pools:', error);
+      setMessage('Error creating pools');
+    } finally {
+      setCreatePoolsLoading(false);
+    }
+  };
+
   // Don't show controls if user is not the league owner
   if (!isLeagueOwner) {
     return null;
@@ -367,6 +407,14 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold transition-colors"
           >
             Add Replacement Player
+          </button>
+
+          {/* Create Pools Button */}
+          <button
+            onClick={() => setShowCreatePoolsModal(true)}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors"
+          >
+            Create Pools
           </button>
         </div>
         
@@ -683,6 +731,58 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
                   <strong>Note:</strong> The user must already have an account. The replacement player will inherit the stats and all scheduled matches from the player being replaced. The replaced player will be marked as dropped.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Pools Modal */}
+      {showCreatePoolsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Create Pools
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCreatePoolsModal(false);
+                  setNumberOfPools(1);
+                }}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Number of Pools to Create (1-25)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="25"
+                  value={numberOfPools}
+                  onChange={(e) => setNumberOfPools(parseInt(e.target.value) || 1)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Note:</strong> This will create {numberOfPools} duplicate{numberOfPools > 1 ? 's' : ''} of this league named "Pool B", "Pool C", etc. Each pool will have the same settings but no players or matches. You'll need to manually rename this league to "Pool A" and move players to the appropriate pools.
+                </p>
+              </div>
+
+              <button
+                onClick={handleCreatePools}
+                disabled={createPoolsLoading || numberOfPools < 1 || numberOfPools > 25}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createPoolsLoading ? 'Creating Pools...' : `Create ${numberOfPools} Pool${numberOfPools > 1 ? 's' : ''}`}
+              </button>
             </div>
           </div>
         </div>

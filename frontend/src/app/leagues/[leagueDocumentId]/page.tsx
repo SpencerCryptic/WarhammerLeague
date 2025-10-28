@@ -1,5 +1,5 @@
 import React from 'react';
-import { RichText } from "@graphcms/rich-text-react-renderer";
+import { BlocksRenderer } from '@strapi/blocks-react-renderer';
 import LeagueAdminControls from '@/components/LeagueAdminControls';
 import JoinLeagueButton from '@/components/JoinLeagueButton';
 
@@ -130,19 +130,23 @@ const League = async ({ params }: { params: any }) => {
             Description
           </h3>
           <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-            <RichText
+            <BlocksRenderer
               content={league.data.description}
-              renderers={{
-                a: ({ children, href, openInNewTab }) => (
+              blocks={{
+                link: ({ children, url }: any) => (
                   <a
-                    href={href}
-                    target={openInNewTab ? '_blank' : '_self'}
-                    rel={openInNewTab ? 'noopener noreferrer' : undefined}
-                    className="font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline transition-colors"
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline transition-colors cursor-pointer"
                   >
                     {children}
                   </a>
                 ),
+              }}
+              modifiers={{
+                bold: ({ children }: any) => <strong>{children}</strong>,
+                italic: ({ children }: any) => <em>{children}</em>,
               }}
             />
           </div>

@@ -117,6 +117,17 @@ export default {
           policies: [],
         },
       },
+      {
+        method: 'POST',
+        path: '/leagues/:id/create-pools',
+        handler: 'league.createPools',
+        config: {
+          auth: {
+            required: true,
+          },
+          policies: [],
+        },
+      },
     ],
   };
   
