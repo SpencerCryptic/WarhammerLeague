@@ -305,9 +305,9 @@ export default factories.createCoreController('api::league.league', ({ strapi })
       return ctx.unauthorized('User not authenticated');
     }
 
-    // Fetch full user object with firstName and lastName
-    const user = await strapi.documents('plugin::users-permissions.user').findOne({
-      documentId: userId
+    // Fetch full user object with firstName and lastName using entityService (numeric ID)
+    const user = await strapi.entityService.findOne('plugin::users-permissions.user', userId, {
+      fields: ['firstName', 'lastName', 'username', 'email']
     });
 
     // Find or create a player record for this user
