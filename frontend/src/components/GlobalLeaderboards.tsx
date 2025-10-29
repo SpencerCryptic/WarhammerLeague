@@ -41,7 +41,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues and their players
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][player][populate]=user&populate[matches]=*');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][player][populate]=user&populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -231,7 +231,7 @@ export default function GlobalLeaderboards() {
       </div>
 
       {/* Global Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
             {stats.totalLeagues}
@@ -262,14 +262,6 @@ export default function GlobalLeaderboards() {
           </div>
           <div className="text-sm font-medium text-gray-900 dark:text-white mb-1">
             Avg Win Rate
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-red-600 dark:text-red-400 mb-1 truncate">
-            {stats.mostPopularFaction}
-          </div>
-          <div className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-            Top Faction
           </div>
         </div>
       </div>

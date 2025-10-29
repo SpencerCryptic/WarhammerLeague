@@ -121,8 +121,10 @@ export default function LeagueAdminControls({ league, documentId }: LeagueAdminC
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched leagues:', data); // Debug log
-        // Filter out the current league
-        const otherLeagues = data.data.filter((l: any) => l.documentId !== documentId);
+        // Filter out the current league and only show leagues with the same game system
+        const otherLeagues = data.data.filter((l: any) =>
+          l.documentId !== documentId && l.gameSystem === league.gameSystem
+        );
         console.log('Other leagues after filtering:', otherLeagues); // Debug log
         setAvailableLeagues(otherLeagues);
       } else {

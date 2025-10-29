@@ -344,13 +344,16 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     // Set leagueName to player's name (which is set from username)
     const leagueName = player.name || ctx.state.user.username || `Player${userId}`;
 
+    // Use username as fallback if firstName/lastName are missing
+    const username = ctx.state.user.username || '';
+
     await strapi.documents('api::league-player.league-player').create({
       data: {
         player: player.documentId,
         league: leagueId,
         faction,
         leagueName,
-        firstName: user?.firstName || '',
+        firstName: user?.firstName || username,
         lastName: user?.lastName || '',
         goodFaithAccepted,
         wins: 0,

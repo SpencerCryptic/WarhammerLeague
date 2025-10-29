@@ -139,6 +139,15 @@ export default function Leagues() {
       groups[baseName].push(league);
     });
 
+    // Sort pools alphabetically within each group
+    Object.keys(groups).forEach(baseName => {
+      groups[baseName].sort((a, b) => {
+        const poolA = a.name.match(/Pool\s+([A-Z])$/i)?.[1] || '';
+        const poolB = b.name.match(/Pool\s+([A-Z])$/i)?.[1] || '';
+        return poolA.localeCompare(poolB);
+      });
+    });
+
     return groups;
   };
 

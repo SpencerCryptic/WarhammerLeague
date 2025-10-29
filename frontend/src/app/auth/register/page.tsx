@@ -83,9 +83,12 @@ const RegisterPage = () => {
           }
         );
         console.log('Profile data updated successfully');
-      } catch (profileError) {
-        console.warn('Profile update failed, but registration succeeded:', profileError);
-        // Don't fail registration if profile update fails
+      } catch (profileError: any) {
+        console.error('Profile update failed:', profileError);
+        // Fail registration if profile update fails since these fields are required
+        const profileErrorMsg = profileError?.response?.data?.error?.message || 'Failed to save profile information. Please try again.';
+        setError(profileErrorMsg);
+        return;
       }
 
       localStorage.setItem('token', jwt);
