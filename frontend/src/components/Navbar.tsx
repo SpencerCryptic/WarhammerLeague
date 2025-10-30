@@ -55,9 +55,10 @@ const Navbar = () => {
             <li className='relative group'>
               <button
                 onClick={() => setShowMenu((prev) => !prev)}
-                className='hover:text-orange-400 font-semibold transition-all duration-150 text-sm sm:text-base px-2 py-1 rounded'
+                className='hover:text-orange-400 font-semibold transition-all duration-150 text-sm sm:text-base px-2 py-1 rounded flex items-center max-w-[120px] sm:max-w-none'
               >
-                {user.username} ⌄
+                <span className='truncate'>{user.username}</span>
+                <span className='ml-1 flex-shrink-0'>⌄</span>
               </button>
 
               {showMenu && (

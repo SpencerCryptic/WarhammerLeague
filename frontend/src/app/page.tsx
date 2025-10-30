@@ -67,7 +67,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-16">
           <h2 className="text-2xl font-extrabold text-white sm:text-4xl md:text-5xl lg:text-6xl">
@@ -119,10 +119,10 @@ export default function HomePage() {
                 <h3 className="text-2xl font-bold text-white">Upcoming Leagues</h3>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {leagues.length > 0 ? (
                   leagues.map((league: any) => (
-                    <div key={league.id} className="bg-gray-700 rounded-lg p-4 border-l-4 border-blue-500 hover:bg-gray-650 transition-colors duration-200">
+                    <Link key={league.id} href={`/leagues/${league.documentId}`} className="block bg-gray-700 rounded-lg p-4 border-l-4 border-blue-500 hover:bg-gray-650 transition-colors duration-200 cursor-pointer">
                       <h4 className="text-lg font-semibold text-white mb-2">{league.name}</h4>
                       <div className="flex items-center text-gray-400 text-sm mb-2">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,18 +134,13 @@ export default function HomePage() {
                           year: 'numeric'
                         })}
                       </div>
-                      <div className="flex items-center text-gray-400 text-sm mb-3">
+                      <div className="flex items-center text-gray-400 text-sm">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                         {league.gameSystem}
                       </div>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {league.description.length > 0 && league.description[0].children?.[0]?.text 
-                          ? league.description[0].children[0].text.slice(0, 100) + (league.description[0].children[0].text.length > 100 ? '...' : '')
-                          : 'Competitive league - Join now!'}
-                      </p>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <div className="bg-gray-700 rounded-lg p-6 text-center border-l-4 border-gray-500">
@@ -185,28 +180,68 @@ export default function HomePage() {
               
               <div className="space-y-4">
                 {currentLeagues.length > 0 ? (
-                  currentLeagues.map((league: any) => (
-                    <div key={league.id} className="bg-gray-700 rounded-lg p-4 border-l-4 border-green-500 hover:bg-gray-650 transition-colors duration-200">
-                      <h4 className="text-lg font-semibold text-white mb-2">{league.name}</h4>
-                      <div className="flex items-center text-gray-400 text-sm mb-2">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {league.league_players?.length || 0} players
-                      </div>
-                      <div className="flex items-center text-gray-400 text-sm mb-3">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        {league.gameSystem}
-                      </div>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {league.description.length > 0 && league.description[0].children?.[0]?.text 
-                          ? league.description[0].children[0].text.slice(0, 100) + (league.description[0].children[0].text.length > 100 ? '...' : '')
-                          : 'League matches in progress with active players battling for the top spot.'}
-                      </p>
-                    </div>
-                  ))
+                  (() => {
+                    // Group leagues by base name (removing pool suffix)
+                    const grouped: { [key: string]: any[] } = {};
+                    currentLeagues.forEach((league: any) => {
+                      const baseName = league.name.replace(/\s*-\s*Pool\s+[A-Z]$/i, '').trim();
+                      if (!grouped[baseName]) {
+                        grouped[baseName] = [];
+                      }
+                      grouped[baseName].push(league);
+                    });
+
+                    // Sort pools within each group
+                    Object.keys(grouped).forEach(baseName => {
+                      grouped[baseName].sort((a, b) => {
+                        const poolA = a.name.match(/Pool\s+([A-Z])$/i)?.[1] || '';
+                        const poolB = b.name.match(/Pool\s+([A-Z])$/i)?.[1] || '';
+                        return poolA.localeCompare(poolB);
+                      });
+                    });
+
+                    return Object.entries(grouped).map(([baseName, leagues]) => {
+                      const mainLeague = leagues[0];
+                      const hasPools = leagues.length > 1;
+
+                      return (
+                        <div key={baseName} className="bg-gray-700 rounded-lg border-l-4 border-green-500">
+                          <Link href={`/leagues/${mainLeague.documentId}`} className="block p-4 hover:bg-gray-650 transition-colors duration-200">
+                            <h4 className="text-lg font-semibold text-white mb-2">{baseName}</h4>
+                            <div className="flex items-center text-gray-400 text-sm">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              {mainLeague.gameSystem}
+                            </div>
+                          </Link>
+                          {hasPools && (
+                            <div className="px-4 pb-4 space-y-2">
+                              {leagues.map((league: any, idx: number) => {
+                                const poolMatch = league.name.match(/Pool\s+([A-Z])$/i);
+                                const poolName = poolMatch ? `Pool ${poolMatch[1]}` : '';
+                                return (
+                                  <Link
+                                    key={league.id}
+                                    href={`/leagues/${league.documentId}`}
+                                    className="flex items-center justify-between bg-gray-800 hover:bg-gray-750 rounded-md p-3 transition-colors duration-200"
+                                  >
+                                    <span className="text-white font-medium">{poolName || league.name}</span>
+                                    <div className="flex items-center text-gray-400 text-sm">
+                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                      </svg>
+                                      {league.league_players?.length || 0}
+                                    </div>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()
                 ) : (
                   <div className="bg-gray-700 rounded-lg p-6 text-center border-l-4 border-gray-500">
                     <svg className="w-12 h-12 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
