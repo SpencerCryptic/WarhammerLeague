@@ -219,12 +219,18 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {upcomingMatches.slice(0, 4).map((match) => (
-                <div key={match.id} className="rounded-lg p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
-                     onClick={() => {
-                       if (match.league?.documentId) {
-                         window.location.href = `/leagues/${match.league.documentId}`;
-                       }
-                     }}>
+                <div
+                  key={match.id}
+                  className="rounded-lg p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+                  onClick={() => {
+                    if (match.league?.documentId) {
+                      window.location.href = `/leagues/${match.league.documentId}`;
+                    }
+                  }}
+                >
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold" style={{ color: '#FF7F2A' }}>Upcoming Match</span>
                     <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
@@ -287,7 +293,13 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userLeagues.map((leaguePlayer) => (
-                <div key={leaguePlayer.id} className="rounded-lg p-6 border transition-all duration-200" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+                <div
+                  key={leaguePlayer.id}
+                  className="rounded-lg p-6 border transition-all duration-200"
+                  style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+                >
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white truncate">
                       {leaguePlayer.league?.name || 'Unknown League'}
