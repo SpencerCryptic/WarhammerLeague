@@ -237,7 +237,7 @@ export default function Leagues() {
                 {upcomingLeagues.length > 0 ? (
                   upcomingLeagues.map((league: any) => (
                     <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                      <div className="rounded-lg p-4 border-l-4 transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#4A90E2' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
+                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#4A90E2', borderColor: 'rgba(74, 144, 226, 0.2)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
                           {getLocationFromName(league.name) && (
@@ -294,7 +294,7 @@ export default function Leagues() {
                 {userLeagues.length > 0 ? (
                   userLeagues.map((league: any) => (
                     <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                      <div className="rounded-lg p-4 border-l-4 transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#059669' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
+                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#059669', borderColor: 'rgba(74, 144, 226, 0.2)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
                           {getLocationFromName(league.name) && (

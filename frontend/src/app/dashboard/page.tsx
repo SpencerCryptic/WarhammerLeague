@@ -222,7 +222,7 @@ export default function DashboardPage() {
                 <div
                   key={match.id}
                   className="rounded-lg p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
+                  style={{ backgroundColor: '#2D3E5F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
                   onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
                   onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
                   onClick={() => {
