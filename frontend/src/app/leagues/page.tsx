@@ -153,14 +153,14 @@ export default function Leagues() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1A1F3A' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F1117' }}>
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#0F1117' }}>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
@@ -183,9 +183,9 @@ export default function Leagues() {
               value={gameFilter}
               onChange={handleFilterChange}
               className="px-4 py-2 rounded-lg text-white border focus:outline-none"
-              style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.3)' }}
+              style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.2)' }}
               onFocus={(e) => e.currentTarget.style.borderColor = '#FF7F2A'}
-              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)'}
             >
               <option value="">All Games</option>
               <option value="Warhammer: 40,000">Warhammer: 40,000</option>
@@ -207,7 +207,7 @@ export default function Leagues() {
               <span className="text-gray-300">Active</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#4A90E2' }}></div>
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#A855F7' }}></div>
               <span className="text-gray-300">Planned</span>
             </div>
             <div className="flex items-center gap-2">
@@ -219,13 +219,13 @@ export default function Leagues() {
 
 
         {/* Main Content Container */}
-        <div className="rounded-2xl p-8 border shadow-2xl" style={{ backgroundColor: 'rgba(44, 62, 96, 0.5)', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
+        <div className="rounded-2xl p-8 border shadow-2xl" style={{ backgroundColor: 'rgba(30, 35, 48, 0.5)', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           {/* Leagues Section - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Upcoming Leagues */}
-            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.25)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.15)'}>
               <div className="flex items-center mb-6">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #4A90E2, #3A7BC8)' }}>
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #A855F7, #9333EA)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -237,7 +237,7 @@ export default function Leagues() {
                 {upcomingLeagues.length > 0 ? (
                   upcomingLeagues.map((league: any) => (
                     <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#4A90E2', borderColor: 'rgba(74, 144, 226, 0.2)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
+                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#2D3548', borderLeftColor: '#A855F7', borderColor: 'rgba(168, 85, 247, 0.15)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3A4558'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2D3548'}>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
                           {getLocationFromName(league.name) && (
@@ -280,7 +280,7 @@ export default function Leagues() {
             </div>
 
             {/* Your Leagues */}
-            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.25)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.15)'}>
               <div className="flex items-center mb-6">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #059669, #047857)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@ export default function Leagues() {
                 {userLeagues.length > 0 ? (
                   userLeagues.map((league: any) => (
                     <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#059669', borderColor: 'rgba(74, 144, 226, 0.2)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
+                      <div className="rounded-lg p-4 border-l-4 border transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#2D3548', borderLeftColor: '#059669', borderColor: 'rgba(168, 85, 247, 0.15)', borderLeftWidth: '4px' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3A4558'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2D3548'}>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>
                           {getLocationFromName(league.name) && (
@@ -348,7 +348,7 @@ export default function Leagues() {
 
           {/* All Leagues Section */}
           {leagues.length > 0 && (
-            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.25)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.15)'}>
               <div className="flex items-center mb-6">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #A855F7, #9333EA)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -369,7 +369,7 @@ export default function Leagues() {
                     // Single league - show as normal card
                     return (
                       <Link key={firstLeague.documentId} href={`/leagues/${firstLeague.documentId}`}>
-                        <div className="rounded-lg p-4 border transition-all duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'; e.currentTarget.style.backgroundColor = '#3D5580'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'; e.currentTarget.style.backgroundColor = '#354A6F'; }}>
+                        <div className="rounded-lg p-4 border transition-all duration-200 cursor-pointer" style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'; e.currentTarget.style.backgroundColor = '#3A4558'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)'; e.currentTarget.style.backgroundColor = '#2D3548'; }}>
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-2">
                               <h4 className="text-lg font-semibold text-white">{firstLeague.name}</h4>
@@ -416,7 +416,7 @@ export default function Leagues() {
 
                   // Multiple pools - show expanded group
                   return (
-                    <div key={baseName} className="rounded-lg border p-4" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}>
+                    <div key={baseName} className="rounded-lg border p-4" style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }}>
                       <div className="mb-3">
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ export default function Leagues() {
                       <div className="space-y-2 mt-4 pt-3 border-t border-gray-600">
                         {groupLeagues.map((league: any) => (
                           <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                            <div className="rounded-lg p-3 transition-colors cursor-pointer border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#354A6F'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2C3E60'}>
+                            <div className="rounded-lg p-3 transition-colors cursor-pointer border" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2D3548'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1E2330'}>
                               <div className="flex justify-between items-center">
                                 <span className="text-white font-medium">{league.name.match(/Pool\s+[A-Z]$/i)?.[0] || league.name}</span>
                                 <span className="text-gray-400 text-sm flex items-center">
@@ -479,7 +479,7 @@ export default function Leagues() {
 
           {/* Archived Leagues Section */}
           {archivedLeagues.length > 0 && (
-            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl mt-8" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl mt-8" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.25)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.15)'}>
               <div className="flex items-center mb-6">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #6B7280, #4B5563)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -492,7 +492,7 @@ export default function Leagues() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {archivedLeagues.map((league: any) => (
                   <Link key={league.documentId} href={`/leagues/${league.documentId}`}>
-                    <div className="rounded-lg p-4 border transition-all duration-200 cursor-pointer opacity-75" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'; e.currentTarget.style.backgroundColor = '#3D5580'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'; e.currentTarget.style.backgroundColor = '#354A6F'; }}>
+                    <div className="rounded-lg p-4 border transition-all duration-200 cursor-pointer opacity-75" style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'; e.currentTarget.style.backgroundColor = '#3A4558'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)'; e.currentTarget.style.backgroundColor = '#2D3548'; }}>
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                           <h4 className="text-lg font-semibold text-white">{league.name}</h4>

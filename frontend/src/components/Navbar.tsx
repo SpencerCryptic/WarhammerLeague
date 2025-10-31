@@ -38,7 +38,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="shadow-lg border-b" style={{ background: 'linear-gradient(to right, #1A1F3A, #2C3E60)', borderBottomColor: 'rgba(74, 144, 226, 0.2)' }}>
+    <nav className="shadow-lg border-b" style={{ background: 'linear-gradient(to right, #0F1117, #1E2330)', borderBottomColor: 'rgba(168, 85, 247, 0.15)' }}>
       <div className='max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-4 flex items-center justify-between'>
         <Link href='/' className='flex-shrink-0'>
           <Image width={40} height={40} src='/cabin-logo.png' alt='logo' className='sm:w-[48px] sm:h-[48px] object-contain' />
@@ -62,8 +62,8 @@ const Navbar = () => {
               </button>
 
               {showMenu && (
-                <div className='absolute right-0 mt-2 text-white rounded-lg shadow-xl w-36 sm:w-40 z-50' style={{ backgroundColor: '#2C3E60', border: '1px solid rgba(74, 144, 226, 0.3)' }}>
-                  <Link href='/settings' className='block px-4 py-2 text-sm rounded-t-lg' style={{ transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#354A6F'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <div className='absolute right-0 mt-2 text-white rounded-lg shadow-xl w-36 sm:w-40 z-50' style={{ backgroundColor: '#1E2330', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                  <Link href='/settings' className='block px-4 py-2 text-sm rounded-t-lg' style={{ transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2D3548'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                     Settings
                   </Link>
                   <button

@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
+      <div className="min-h-screen" style={{ backgroundColor: '#0F1117' }}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-white text-xl">Loading your dashboard...</div>
         </div>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#0F1117' }}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Upcoming Games */}
-        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
+        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Your Upcoming Games</h2>
           
           {upcomingMatches.length === 0 ? (
@@ -222,9 +222,9 @@ export default function DashboardPage() {
                 <div
                   key={match.id}
                   className="rounded-lg p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  style={{ backgroundColor: '#2D3E5F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+                  style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)'}
                   onClick={() => {
                     if (match.league?.documentId) {
                       window.location.href = `/leagues/${match.league.documentId}`;
@@ -268,7 +268,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Your Leagues */}
-        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
+        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Your Leagues</h2>
           
           {userLeagues.length === 0 ? (
@@ -296,9 +296,9 @@ export default function DashboardPage() {
                 <div
                   key={leaguePlayer.id}
                   className="rounded-lg p-6 border transition-all duration-200"
-                  style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
+                  style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)'}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white truncate">
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg p-3 mb-4" style={{ backgroundColor: '#2C3E60' }}>
+                  <div className="rounded-lg p-3 mb-4" style={{ backgroundColor: '#1E2330' }}>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-400 text-sm">Record</span>
                       <span className="text-white font-semibold">
@@ -343,9 +343,9 @@ export default function DashboardPage() {
                     <Link
                       href={`/leagues/${leaguePlayer.league.documentId}`}
                       className="block w-full text-white text-center py-2 rounded-lg transition-colors duration-200"
-                      style={{ backgroundColor: '#4A90E2' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3A7BC8'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4A90E2'}
+                      style={{ backgroundColor: '#A855F7' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9333EA'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#A855F7'}
                     >
                       View League
                     </Link>
@@ -357,7 +357,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Previous Matches */}
-        <div className="rounded-xl p-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
+        <div className="rounded-xl p-8 border" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Previous Matches</h2>
           
           {completedMatches.length === 0 ? (
@@ -373,7 +373,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {completedMatches.slice(0, 10).map((match) => (
-                <div key={match.id} className="rounded-lg p-4 border" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}>
+                <div key={match.id} className="rounded-lg p-4 border" style={{ backgroundColor: '#2D3548', borderColor: 'rgba(168, 85, 247, 0.2)' }}>
                   <div className="flex justify-between items-center">
                     <div>
                       <div className="text-white font-medium flex items-center gap-2">
