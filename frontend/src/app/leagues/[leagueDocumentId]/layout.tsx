@@ -7,7 +7,7 @@ const leagueLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#0F1117' }}>
       <div className="pt-12 pb-20">
         <LeagueDashboard />
         <div className='max-w-6xl mx-4'>
