@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
+      <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-white text-xl">Loading your dashboard...</div>
         </div>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Upcoming Games */}
-        <div className="bg-gray-800 rounded-xl p-8 mb-8 border border-gray-700">
+        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Your Upcoming Games</h2>
           
           {upcomingMatches.length === 0 ? (
@@ -219,14 +219,14 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {upcomingMatches.slice(0, 4).map((match) => (
-                <div key={match.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600 hover:border-gray-500 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                <div key={match.id} className="rounded-lg p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
                      onClick={() => {
                        if (match.league?.documentId) {
                          window.location.href = `/leagues/${match.league.documentId}`;
                        }
                      }}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-orange-400 font-semibold">Upcoming Match</span>
+                    <span className="font-semibold" style={{ color: '#FF7F2A' }}>Upcoming Match</span>
                     <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
                       {match.league?.gameSystem || 'Unknown Game'}
                     </span>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Your Leagues */}
-        <div className="bg-gray-800 rounded-xl p-8 mb-8 border border-gray-700">
+        <div className="rounded-xl p-8 mb-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Your Leagues</h2>
           
           {userLeagues.length === 0 ? (
@@ -276,7 +276,10 @@ export default function DashboardPage() {
               <p className="text-gray-500 mb-6">Join your first league to start competing!</p>
               <Link
                 href="/leagues"
-                className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
+                className="text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
+                style={{ backgroundColor: '#FF7F2A' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E86D1A'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF7F2A'}
               >
                 Browse Available Leagues
               </Link>
@@ -284,7 +287,7 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userLeagues.map((leaguePlayer) => (
-                <div key={leaguePlayer.id} className="bg-gray-700 rounded-lg p-6 border border-gray-600 hover:border-gray-500 transition-all duration-200">
+                <div key={leaguePlayer.id} className="rounded-lg p-6 border transition-all duration-200" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'}
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white truncate">
                       {leaguePlayer.league?.name || 'Unknown League'}
@@ -311,7 +314,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 rounded-lg p-3 mb-4">
+                  <div className="rounded-lg p-3 mb-4" style={{ backgroundColor: '#2C3E60' }}>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-400 text-sm">Record</span>
                       <span className="text-white font-semibold">
@@ -320,14 +323,17 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Points</span>
-                      <span className="text-orange-400 font-bold">{leaguePlayer.rankingPoints || 0}</span>
+                      <span className="font-bold" style={{ color: '#FF7F2A' }}>{leaguePlayer.rankingPoints || 0}</span>
                     </div>
                   </div>
 
                   {leaguePlayer.league?.documentId && (
                     <Link
                       href={`/leagues/${leaguePlayer.league.documentId}`}
-                      className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg transition-colors duration-200"
+                      className="block w-full text-white text-center py-2 rounded-lg transition-colors duration-200"
+                      style={{ backgroundColor: '#4A90E2' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3A7BC8'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4A90E2'}
                     >
                       View League
                     </Link>
@@ -339,7 +345,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Previous Matches */}
-        <div className="bg-gray-800 rounded-xl p-8 border border-gray-700">
+        <div className="rounded-xl p-8 border" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
           <h2 className="text-2xl font-bold text-white mb-6">Previous Matches</h2>
           
           {completedMatches.length === 0 ? (
@@ -355,7 +361,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {completedMatches.slice(0, 10).map((match) => (
-                <div key={match.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <div key={match.id} className="rounded-lg p-4 border" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }}>
                   <div className="flex justify-between items-center">
                     <div>
                       <div className="text-white font-medium flex items-center gap-2">

@@ -58,29 +58,32 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1A1F3A' }}>
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#1A1F3A' }}>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-16">
           <h2 className="text-2xl font-extrabold text-white sm:text-4xl md:text-5xl lg:text-6xl">
-            Welcome to <span className="text-orange-500">Cryptic Cabin</span> Leagues
+            Welcome to <span style={{ color: '#FF7F2A' }}>Cryptic Cabin</span> Leagues
           </h2>
-          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-400">
+          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl" style={{ color: '#CBD5E0' }}>
             Join tabletop games and TCG leagues at Cryptic Cabin stores and track your progress
           </p>
           {!isAuthenticated && (
             <div className="mt-6 sm:mt-10">
-              <Link 
+              <Link
                 href="/auth/register"
-                className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-lg text-base sm:text-lg"
+                className="text-white font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-lg text-base sm:text-lg inline-block transition-all"
+                style={{ backgroundColor: '#FF7F2A' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E86D1A'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF7F2A'}
               >
                 Get Started
               </Link>
@@ -90,28 +93,28 @@ export default function HomePage() {
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-orange-500 transition-colors duration-300 shadow-lg">
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-400 mb-1 sm:mb-2">{stats.totalLeagues}</div>
+          <div className="rounded-lg p-4 sm:p-6 text-center border transition-colors duration-300 shadow-lg" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = '#FF7F2A'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2" style={{ color: '#FF7F2A' }}>{stats.totalLeagues}</div>
             <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Total Leagues</div>
           </div>
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-green-500 transition-colors duration-300 shadow-lg">
+          <div className="rounded-lg p-4 sm:p-6 text-center border transition-colors duration-300 shadow-lg" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = '#059669'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">{stats.activeLeagues}</div>
             <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Active Now</div>
           </div>
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 text-center border border-gray-700 hover:border-blue-500 transition-colors duration-300 shadow-lg">
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 mb-1 sm:mb-2">{stats.totalPlayers}</div>
+          <div className="rounded-lg p-4 sm:p-6 text-center border transition-colors duration-300 shadow-lg" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4A90E2'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2" style={{ color: '#4A90E2' }}>{stats.totalPlayers}</div>
             <div className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">Total Players</div>
           </div>
         </div>
 
         {/* Main Content Container */}
-        <div className="bg-gray-800/50 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-2xl">
+        <div className="rounded-2xl p-4 sm:p-6 lg:p-8 border shadow-2xl" style={{ backgroundColor: 'rgba(44, 62, 96, 0.5)', borderColor: 'rgba(74, 144, 226, 0.2)' }}>
           {/* Leagues Section - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Upcoming Leagues */}
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
               <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #4A90E2, #3A7BC8)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -122,9 +125,9 @@ export default function HomePage() {
               <div className="space-y-6">
                 {leagues.length > 0 ? (
                   leagues.map((league: any) => (
-                    <Link key={league.id} href={`/leagues/${league.documentId}`} className="block bg-gray-700 rounded-lg p-4 border-l-4 border-blue-500 hover:bg-gray-650 transition-colors duration-200 cursor-pointer">
+                    <Link key={league.id} href={`/leagues/${league.documentId}`} className="block rounded-lg p-4 border-l-4 transition-colors duration-200 cursor-pointer" style={{ backgroundColor: '#354A6F', borderLeftColor: '#4A90E2' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
                       <h4 className="text-lg font-semibold text-white mb-2">{league.name}</h4>
-                      <div className="flex items-center text-gray-400 text-sm mb-2">
+                      <div className="flex items-center text-sm mb-2" style={{ color: '#CBD5E0' }}>
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -134,7 +137,7 @@ export default function HomePage() {
                           year: 'numeric'
                         })}
                       </div>
-                      <div className="flex items-center text-gray-400 text-sm">
+                      <div className="flex items-center text-sm" style={{ color: '#CBD5E0' }}>
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
@@ -143,7 +146,7 @@ export default function HomePage() {
                     </Link>
                   ))
                 ) : (
-                  <div className="bg-gray-700 rounded-lg p-6 text-center border-l-4 border-gray-500">
+                  <div className="rounded-lg p-6 text-center border-l-4" style={{ backgroundColor: '#354A6F', borderLeftColor: 'rgba(74, 144, 226, 0.3)' }}>
                     <svg className="w-12 h-12 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -157,7 +160,10 @@ export default function HomePage() {
               <div className="mt-6">
                 <Link 
                   href={isAuthenticated ? "/leagues" : "/auth/register"}
-                  className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium"
+                  className="inline-flex items-center font-medium transition-colors"
+                  style={{ color: '#4A90E2' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#5BA0F2'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#4A90E2'}
                 >
                   {isAuthenticated ? "Join a League" : "Sign Up to Join"}
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,9 +174,9 @@ export default function HomePage() {
             </div>
 
             {/* Current Leagues */}
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
               <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #059669, #047857)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
@@ -205,10 +211,10 @@ export default function HomePage() {
                       const hasPools = leagues.length > 1;
 
                       return (
-                        <div key={baseName} className="bg-gray-700 rounded-lg border-l-4 border-green-500">
-                          <Link href={`/leagues/${mainLeague.documentId}`} className="block p-4 hover:bg-gray-650 transition-colors duration-200">
+                        <div key={baseName} className="rounded-lg border-l-4" style={{ backgroundColor: '#354A6F', borderLeftColor: '#059669' }}>
+                          <Link href={`/leagues/${mainLeague.documentId}`} className="block p-4 transition-colors duration-200" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                             <h4 className="text-lg font-semibold text-white mb-2">{baseName}</h4>
-                            <div className="flex items-center text-gray-400 text-sm">
+                            <div className="flex items-center text-sm" style={{ color: '#CBD5E0' }}>
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
@@ -224,10 +230,13 @@ export default function HomePage() {
                                   <Link
                                     key={league.id}
                                     href={`/leagues/${league.documentId}`}
-                                    className="flex items-center justify-between bg-gray-800 hover:bg-gray-750 rounded-md p-3 transition-colors duration-200"
+                                    className="flex items-center justify-between rounded-md p-3 transition-colors duration-200"
+                                    style={{ backgroundColor: '#2C3E60' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2C3E60'}
                                   >
                                     <span className="text-white font-medium">{poolName || league.name}</span>
-                                    <div className="flex items-center text-gray-400 text-sm">
+                                    <div className="flex items-center text-sm" style={{ color: '#CBD5E0' }}>
                                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                       </svg>
@@ -243,7 +252,7 @@ export default function HomePage() {
                     });
                   })()
                 ) : (
-                  <div className="bg-gray-700 rounded-lg p-6 text-center border-l-4 border-gray-500">
+                  <div className="rounded-lg p-6 text-center border-l-4" style={{ backgroundColor: '#354A6F', borderLeftColor: 'rgba(74, 144, 226, 0.3)' }}>
                     <svg className="w-12 h-12 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -270,9 +279,9 @@ export default function HomePage() {
 
           {/* Top Players Section */}
           <div className="mb-12">
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
               <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #EAB308, #CA8A04)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
@@ -287,7 +296,7 @@ export default function HomePage() {
                     const textColors = ['text-black', 'text-black', 'text-white'];
 
                     return (
-                      <div key={player.id} className="flex items-start justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-all duration-200 border border-gray-600 hover:border-gray-500">
+                      <div key={player.id} className="flex items-start justify-between p-4 rounded-lg transition-all duration-200 border" style={{ backgroundColor: '#354A6F', borderColor: 'rgba(74, 144, 226, 0.3)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#3D5580'; e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.5)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#354A6F'; e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.3)'; }}>
                         <div className="flex items-start flex-1 min-w-0 mr-4">
                           <div className={`w-8 h-8 ${rankColors[index]} rounded-full flex items-center justify-center ${textColors[index]} font-bold text-xs mr-3 shadow-md flex-shrink-0 mt-1`}>
                             {index + 1}
@@ -298,8 +307,8 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-orange-400 font-bold text-lg leading-tight whitespace-nowrap">{player.totalPoints}</p>
-                          <p className="text-orange-400 text-xs">pts</p>
+                          <p className="font-bold text-lg leading-tight whitespace-nowrap" style={{ color: '#FF7F2A' }}>{player.totalPoints}</p>
+                          <p className="text-xs" style={{ color: '#FF7F2A' }}>pts</p>
                         </div>
                       </div>
                     );
@@ -318,7 +327,10 @@ export default function HomePage() {
               <div className="mt-6">
                 <Link 
                   href={isAuthenticated ? "/leaderboards" : "/auth/register"}
-                  className="inline-flex items-center text-orange-400 hover:text-orange-300 font-medium"
+                  className="inline-flex items-center font-medium transition-colors"
+                  style={{ color: '#FF7F2A' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#FF9F5A'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#FF7F2A'}
                 >
                   View Full Leaderboard
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,9 +343,9 @@ export default function HomePage() {
 
           {/* Store Events Section - Full Width */}
           <div className="mb-12">
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+            <div className="rounded-xl p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
               <div className="flex items-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #A855F7, #9333EA)' }}>
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -364,14 +376,14 @@ export default function HomePage() {
                     const gameTypeClass = gameTypeColors[event.gameType as keyof typeof gameTypeColors] || 'bg-gray-600 text-white';
                     
                     return (
-                      <div key={index} className={`bg-gray-700 rounded-lg p-4 border-l-4 ${colorClass} hover:bg-gray-650 transition-all duration-200`}>
+                      <div key={index} className={`rounded-lg p-4 border-l-4 ${colorClass} transition-all duration-200`} style={{ backgroundColor: '#354A6F' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3D5580'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#354A6F'}>
                         <div className="flex items-start justify-between mb-2">
                           <h4 className="text-lg font-semibold text-white">{event.title}</h4>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${gameTypeClass}`}>
                             {event.gameType}
                           </span>
                         </div>
-                        <div className="flex items-center text-gray-400 text-sm mb-2">
+                        <div className="flex items-center text-sm mb-2" style={{ color: '#CBD5E0' }}>
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -404,7 +416,10 @@ export default function HomePage() {
                   href="https://crypticcabin.com/pages/events"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-orange-400 hover:text-orange-300 font-medium"
+                  className="inline-flex items-center font-medium transition-colors"
+                  style={{ color: '#FF7F2A' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#FF9F5A'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#FF7F2A'}
                 >
                   View All Events
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -417,9 +432,9 @@ export default function HomePage() {
 
           {/* About Section - Full Width */}
           <div className="mb-8 sm:mb-12">
-            <div className="bg-gray-800 rounded-xl p-4 sm:p-6 lg:p-8 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-xl hover:shadow-2xl">
+            <div className="rounded-xl p-4 sm:p-6 lg:p-8 border transition-all duration-300 shadow-xl hover:shadow-2xl" style={{ backgroundColor: '#2C3E60', borderColor: 'rgba(74, 144, 226, 0.2)' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.4)'} onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(74, 144, 226, 0.2)'}>
               <div className="flex items-center mb-4 sm:mb-6">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #FF7F2A, #E86D1A)' }}>
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
@@ -434,22 +449,22 @@ export default function HomePage() {
                   </p>
                   <ul className="text-gray-300 space-y-2 sm:space-y-3">
                     <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-3 sm:mr-4" style={{ backgroundColor: '#FF7F2A' }}></span>
                       <span className="text-sm sm:text-base lg:text-lg">Multiple game types supported</span>
                     </li>
                     <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-3 sm:mr-4" style={{ backgroundColor: '#FF7F2A' }}></span>
                       <span className="text-sm sm:text-base lg:text-lg">Skill-based matchmaking</span>
                     </li>
                     <li className="flex items-center">
-                      <span className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full mr-3 sm:mr-4"></span>
+                      <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-3 sm:mr-4" style={{ backgroundColor: '#FF7F2A' }}></span>
                       <span className="text-sm sm:text-base lg:text-lg">Bristol and Bracknell locations</span>
                     </li>
                   </ul>
                 </div>
                 <div className="flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl" style={{ background: 'linear-gradient(to bottom right, #FF7F2A, #E86D1A)' }}>
                       <svg className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>

@@ -10,13 +10,15 @@ html {
 }
 
 :root {
-  --background: #1a1a1a;
+  --background: #1A1F3A;
   --foreground: #ededed;
-  --card-background: #374151;
-  --card-border: #4b5563;
-  --primary-orange: #ea580c;
-  --primary-blue: #2563eb;
+  --card-background: #2C3E60;
+  --card-border: rgba(74, 144, 226, 0.2);
+  --card-hover: #354A6F;
+  --primary-orange: #FF7F2A;
+  --primary-blue: #4A90E2;
   --primary-green: #059669;
+  --text-secondary: #CBD5E0;
 }
 
 @theme inline {
@@ -41,18 +43,18 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: #2C3E60;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #4A90E2;
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #5BA0F2;
 }
 
 /* Enhanced transitions and animations */
@@ -76,9 +78,9 @@ body {
 
 /* Enhanced card effects */
 .card-glass {
-  background: rgba(55, 65, 81, 0.8);
+  background: rgba(44, 62, 96, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(75, 85, 99, 0.3);
+  border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
 /* Smooth focus states */
@@ -96,24 +98,24 @@ body {
 }
 
 .loading-shimmer {
-  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background: linear-gradient(90deg, #2C3E60 25%, #354A6F 50%, #2C3E60 75%);
   background-size: 200px 100%;
   animation: shimmer 1.5s infinite;
 }
 
 /* Enhanced gradient backgrounds */
 .gradient-dark {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 50%, #0f172a 100%);
+  background: linear-gradient(135deg, #1A1F3A 0%, #0F1424 50%, #0A0F1E 100%);
 }
 
 .gradient-card {
-  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #2C3E60 0%, #354A6F 100%);
 }
 
 /* Improved form styling */
 input, textarea, select {
-  background: #374151;
-  border: 1px solid #4b5563;
+  background: #2C3E60;
+  border: 1px solid rgba(74, 144, 226, 0.3);
   color: #f9fafb;
   border-radius: 8px;
   padding: 12px;
@@ -123,12 +125,12 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 127, 42, 0.1);
 }
 
 /* Enhanced button styling */
 .btn-primary {
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #FF7F2A 0%, #E86D1A 100%);
   border: none;
   color: white;
   padding: 12px 24px;
@@ -140,11 +142,11 @@ input:focus, textarea:focus, select:focus {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 8px 20px rgba(255, 127, 42, 0.3);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #4A90E2 0%, #3A7BC8 100%);
   border: none;
   color: white;
   padding: 12px 24px;
@@ -156,5 +158,5 @@ input:focus, textarea:focus, select:focus {
 
 .btn-secondary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
 }
