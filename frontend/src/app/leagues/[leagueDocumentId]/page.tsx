@@ -51,7 +51,7 @@ const League = () => {
   if (!league.data) {
     return (
       <div className="w-full">
-        <div className="bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-800 rounded-xl shadow-lg p-8 mb-6">
+        <div className="p-8 mb-6">
           <h2 className="text-2xl font-bold text-red-800 dark:text-red-300 mb-4">League Not Found</h2>
           <p className="text-red-600 dark:text-red-400">
             Unable to load league data. This could be because the league doesn't exist or the server is not available.
@@ -75,7 +75,7 @@ const League = () => {
       />
 
       {/* League Details Card */}
-      <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-8 mb-6">
+      <div className="p-8 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
           <span className="w-1 h-8 bg-orange-500 mr-3 rounded-full"></span>
           League Details
@@ -149,7 +149,7 @@ const League = () => {
 
       {/* League Description */}
       {league.data?.description && (
-        <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-8 mb-6">
+        <div className="p-8 mb-6">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
             <span className="w-1 h-8 bg-orange-500 mr-3 rounded-full"></span>
             Description
@@ -180,9 +180,8 @@ const League = () => {
 
       {/* League Status Messages */}
       {league.data?.statusleague === 'ongoing' && (
-        <div className="relative overflow-hidden bg-gradient-to-r from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 rounded-xl shadow-lg p-8 mb-6 border border-green-200 dark:border-green-800">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl"></div>
-          <div className="relative">
+        <div className="p-8 mb-6">
+          <div>
             <h3 className="text-2xl font-bold mb-3 text-green-800 dark:text-green-300 flex items-center">
               <span className="text-3xl mr-3">⚔️</span>
               League is Active!
@@ -195,9 +194,8 @@ const League = () => {
       )}
 
       {league.data?.statusleague === 'completed' && (
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 rounded-xl shadow-lg p-8 mb-6 border border-blue-200 dark:border-blue-800">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-          <div className="relative">
+        <div className="p-8 mb-6">
+          <div>
             <h3 className="text-2xl font-bold mb-3 text-blue-800 dark:text-blue-300 flex items-center">
               <span className="text-3xl mr-3">🏆</span>
               League Completed

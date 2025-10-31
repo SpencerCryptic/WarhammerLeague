@@ -183,9 +183,9 @@ const MatchesDashboard = () => {
 
   const getMatchCardStyle = (isUserMatch: boolean) => {
     if (isUserMatch) {
-      return 'bg-gradient-to-br from-orange-500/10 to-orange-600/10 dark:from-orange-500/20 dark:to-orange-600/20 border-orange-400 dark:border-orange-600 ring-2 ring-orange-400/30';
+      return 'border-orange-400 dark:border-orange-600 ring-2 ring-orange-400/30';
     }
-    return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-gray-200 dark:border-gray-700';
+    return 'border-gray-200 dark:border-gray-700';
   };
 
   const getDisplayName = (leaguePlayer: LeaguePlayer) => {
@@ -208,7 +208,7 @@ const MatchesDashboard = () => {
 
   if (league && league.statusleague?.toString() === 'planned') {
     return (
-      <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 rounded-xl shadow-lg p-8 border border-blue-200 dark:border-blue-800">
+      <div className="p-8">
         <h3 className="text-2xl font-bold mb-3 text-blue-800 dark:text-blue-300">League Not Started</h3>
         <p className="text-lg text-blue-700 dark:text-blue-400">
           This league is scheduled to begin on {league.startDate ? new Date(league.startDate).toLocaleDateString() : 'a date to be determined'}.
@@ -219,7 +219,7 @@ const MatchesDashboard = () => {
 
   if (matches.length === 0) {
     return (
-      <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-8">
+      <div className="p-8">
         <h3 className="text-2xl font-bold mb-3 text-gray-800 dark:text-gray-200">No Matches Yet</h3>
         <p className="text-gray-600 dark:text-gray-400">
           Matches will appear here once the league organizer creates them.
@@ -309,7 +309,6 @@ const MatchesDashboard = () => {
             >
               {isUserMatch && (
                 <>
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl"></div>
                   {!isPlayed && (
                     <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                       Click to Report
