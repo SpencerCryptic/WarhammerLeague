@@ -32,7 +32,7 @@ interface GlobalStats {
 export default function GlobalLeaderboards() {
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedBoard, setSelectedBoard] = useState<'points' | 'winrate' | 'victory' | 'active'>('points');
+  const [selectedBoard, setSelectedBoard] = useState<'points' | 'winrate' | 'active'>('points');
 
   useEffect(() => {
     fetchGlobalStats();
@@ -201,7 +201,6 @@ export default function GlobalLeaderboards() {
     switch (selectedBoard) {
       case 'points': return stats.leaderboards.topByPoints;
       case 'winrate': return stats.leaderboards.topByWinRate;
-      case 'victory': return stats.leaderboards.topByVictoryPoints;
       case 'active': return stats.leaderboards.mostActive;
       default: return stats.leaderboards.topByPoints;
     }
@@ -211,7 +210,6 @@ export default function GlobalLeaderboards() {
     switch (selectedBoard) {
       case 'points': return `${player.rankingPoints} LP`;
       case 'winrate': return `${player.winRate}%`;
-      case 'victory': return `${player.victoryPoints} VP`;
       case 'active': return `${player.totalGames} games`;
       default: return `${player.rankingPoints} LP`;
     }
@@ -273,7 +271,6 @@ export default function GlobalLeaderboards() {
             {[
               { id: 'points', name: 'League Points', desc: 'Ranked by total league points' },
               { id: 'winrate', name: 'Win Rate', desc: 'Best win percentage (min 3 games)' },
-              { id: 'victory', name: 'Victory Points', desc: 'Total victory points scored' },
               { id: 'active', name: 'Most Active', desc: 'Most games played' }
             ].map(tab => (
               <button
@@ -296,13 +293,11 @@ export default function GlobalLeaderboards() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               {selectedBoard === 'points' && 'Top by League Points'}
               {selectedBoard === 'winrate' && 'Best Win Rates'}
-              {selectedBoard === 'victory' && 'Highest Victory Points'}
               {selectedBoard === 'active' && 'Most Active Players'}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {selectedBoard === 'points' && 'Players ranked by total league points earned'}
               {selectedBoard === 'winrate' && 'Players with best win percentage (minimum 3 games)'}
-              {selectedBoard === 'victory' && 'Players who have scored the most victory points'}
               {selectedBoard === 'active' && 'Players who have played the most games'}
             </p>
           </div>
