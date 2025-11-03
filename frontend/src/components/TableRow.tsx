@@ -40,12 +40,14 @@ const TableRow = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [expandedLists, setExpandedLists] = useState<Set<string>>(new Set())
+  const [leagueName, setLeagueName] = useState('')
   
   const getLeague = (documentId: string) => {
     useEffect(() => {
       fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${documentId}?populate[league_players][populate]=*&populate[matches]=*`)
       .then((res) => res.json())
       .then((data) => {
+          setLeagueName(data.data.name || '')
           setMatches(data.data.matches || [])
           const players = data.data.league_players || [];
           // Filter out dropped players
@@ -130,6 +132,43 @@ const TableRow = () => {
     return '';
   }
 
+  // Helper functions for promotion/relegation
+  const getPoolInfo = () => {
+    const poolMatch = leagueName.match(/Pool\s+([A-Z])$/i);
+    if (!poolMatch) return null;
+
+    const poolLetter = poolMatch[1].toUpperCase();
+    const baseName = leagueName.replace(/\s*-\s*Pool\s+[A-Z]$/i, '').trim();
+
+    return {
+      poolLetter,
+      baseName,
+      isFirstPool: poolLetter === 'A',
+      // Check if it's Pool E for 40K (you can extend this logic for other game systems)
+      isLastPool: (baseName.includes('40K') && poolLetter === 'E') ||
+                  (baseName.includes('Age of Sigmar') && poolLetter === 'C') // Adjust as needed
+    };
+  }
+
+  const getRowBorderStyle = (position: number) => {
+    const poolInfo = getPoolInfo();
+    if (!poolInfo) return '';
+
+    const totalPlayers = leaguePlayers.length;
+
+    // Top 2 get promoted (except from Pool A)
+    if (!poolInfo.isFirstPool && position <= 2) {
+      return 'border-l-4 border-l-green-500 dark:border-l-green-400';
+    }
+
+    // Bottom 2 get relegated (except from last pool)
+    if (!poolInfo.isLastPool && position >= totalPlayers - 1) {
+      return 'border-l-4 border-l-red-500 dark:border-l-red-400';
+    }
+
+    return '';
+  }
+
   // Fetch current user
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -186,9 +225,27 @@ const TableRow = () => {
               <span className="w-1 h-8 bg-orange-500 mr-3 rounded-full"></span>
               League Standings
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400 mb-3">
               {leaguePlayers.length} players competing • Ranked by league points
             </p>
+
+            {/* Promotion/Relegation Legend */}
+            {getPoolInfo() && (
+              <div className="flex items-center gap-6 text-sm mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {!getPoolInfo()!.isFirstPool && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-green-500 dark:bg-green-400 rounded"></div>
+                    <span className="text-gray-600 dark:text-gray-400">Promotion Zone</span>
+                  </div>
+                )}
+                {!getPoolInfo()!.isLastPool && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-red-500 dark:bg-red-400 rounded"></div>
+                    <span className="text-gray-600 dark:text-gray-400">Relegation Zone</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* League Table */}
@@ -237,9 +294,9 @@ const TableRow = () => {
                     const winRate = getWinRate(player);
                     
                     return (
-                      <tr 
+                      <tr
                         key={player.documentId}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150 ${getRowBorderStyle(position)}`}
                       >
                         <td className="py-4 px-6">
                           <div className={`text-lg font-bold ${getRankStyle(position)}`}>
