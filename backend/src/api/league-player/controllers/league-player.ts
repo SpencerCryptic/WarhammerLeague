@@ -67,22 +67,22 @@ export default factories.createCoreController('api::league-player.league-player'
         return ctx.notFound('League player not found');
       }
 
-      // Get the player to check the user relation
-      const playerDocumentId = (leaguePlayer.player as any)?.documentId;
-      if (!playerDocumentId) {
-        return ctx.badRequest('League player has no associated player');
+      // Get the current user's email
+      const currentUser = ctx.state.user;
+      const userEmail = currentUser?.email;
+
+      if (!userEmail) {
+        return ctx.unauthorized('User email not found');
       }
 
-      const player = await strapi.documents('api::player.player').findOne({
-        documentId: playerDocumentId,
-        populate: ['user']
-      });
-
-      // Check if user owns this league player
-      const playerUserId = (player?.user as any)?.id;
-      if (!playerUserId || playerUserId !== userId) {
+      // Check if user owns this league player by matching emails
+      const playerEmail = (leaguePlayer.player as any)?.email;
+      if (!playerEmail || playerEmail !== userEmail) {
+        console.log('🔍 Authorization failed - playerEmail:', playerEmail, 'userEmail:', userEmail);
         return ctx.forbidden('You can only update your own faction');
       }
+
+      console.log('✅ Authorization passed - emails match:', userEmail);
 
       // Check if league status is planned - only allow faction changes in planned status
       const league = leaguePlayer.league as any;
