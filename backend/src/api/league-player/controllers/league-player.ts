@@ -57,10 +57,15 @@ export default factories.createCoreController('api::league-player.league-player'
     }
 
     try {
-      // Get the league player
+      // Get the league player with player.user populated
       const leaguePlayer = await strapi.documents('api::league-player.league-player').findOne({
         documentId: leaguePlayerDocumentId,
-        populate: ['player', 'league']
+        populate: {
+          player: {
+            populate: ['user']
+          },
+          league: true
+        }
       });
 
       if (!leaguePlayer) {
@@ -68,7 +73,8 @@ export default factories.createCoreController('api::league-player.league-player'
       }
 
       // Check if user owns this league player
-      if ((leaguePlayer.player as any)?.documentId !== userId) {
+      const playerUser = (leaguePlayer.player as any)?.user;
+      if (!playerUser || playerUser.id !== userId) {
         return ctx.forbidden('You can only update your own faction');
       }
 
