@@ -129,7 +129,7 @@ export default function ChangeFactionButton({
         return;
       }
 
-      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}/faction`, {
+      const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/players/${leaguePlayerId}/faction`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

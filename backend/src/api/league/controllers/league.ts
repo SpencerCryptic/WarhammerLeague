@@ -1067,6 +1067,75 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
   },
 
+  async updatePlayerFaction(ctx) {
+    const { leaguePlayerId } = ctx.params;
+    const { faction } = ctx.request.body;
+    const userId = ctx.state.user?.id;
+
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in');
+    }
+
+    if (!faction) {
+      return ctx.badRequest('Faction is required');
+    }
+
+    try {
+      // Get the league player
+      const leaguePlayer = await strapi.documents('api::league-player.league-player').findOne({
+        documentId: leaguePlayerId,
+        populate: ['player', 'league']
+      });
+
+      if (!leaguePlayer) {
+        return ctx.notFound('League player not found');
+      }
+
+      // Find the player for the current user - same pattern as joinLeague
+      const [userPlayer] = await strapi.documents('api::player.player').findMany({
+        filters: { user: { id: userId } }
+      });
+
+      if (!userPlayer) {
+        console.log('🔍 Authorization failed - no player found for userId:', userId);
+        return ctx.forbidden('You can only update your own faction');
+      }
+
+      // Check if the league player belongs to this user's player
+      const leaguePlayerDocId = (leaguePlayer.player as any)?.documentId;
+      if (leaguePlayerDocId !== userPlayer.documentId) {
+        console.log('🔍 Authorization failed - leaguePlayer.player.documentId:', leaguePlayerDocId, 'userPlayer.documentId:', userPlayer.documentId);
+        return ctx.forbidden('You can only update your own faction');
+      }
+
+      console.log('✅ Authorization passed - player documentIds match:', userPlayer.documentId);
+
+      // Check if league status is planned - only allow faction changes in planned status
+      const league = leaguePlayer.league as any;
+      if (league?.statusleague && league.statusleague !== 'planned') {
+        return ctx.badRequest('Cannot change faction - league has already started or is completed');
+      }
+
+      // Update the faction and preserve status
+      const updatedLeaguePlayer = await strapi.documents('api::league-player.league-player').update({
+        documentId: leaguePlayerId,
+        data: {
+          faction,
+          status: leaguePlayer.status || 'active' // Preserve existing status or default to active
+        }
+      });
+
+      return ctx.send({
+        message: 'Faction updated successfully',
+        data: updatedLeaguePlayer
+      });
+
+    } catch (error) {
+      console.error('Error updating faction:', error);
+      return ctx.badRequest(`Failed to update faction: ${error.message}`);
+    }
+  },
+
   async fixLeaguePlayerStatuses(ctx) {
     try {
       console.log('🔍 Starting league player status fix...');

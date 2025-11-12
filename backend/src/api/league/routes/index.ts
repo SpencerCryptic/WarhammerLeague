@@ -118,6 +118,17 @@ export default {
         },
       },
       {
+        method: 'PUT',
+        path: '/leagues/players/:leaguePlayerId/faction',
+        handler: 'league.updatePlayerFaction',
+        config: {
+          auth: {
+            required: true,
+          },
+          policies: [],
+        },
+      },
+      {
         method: 'POST',
         path: '/leagues/:id/create-pools',
         handler: 'league.createPools',
