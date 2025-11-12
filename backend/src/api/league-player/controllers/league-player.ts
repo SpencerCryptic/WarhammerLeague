@@ -66,11 +66,12 @@ export default factories.createCoreController('api::league-player.league-player'
         }
       }
 
-      // Update the faction
+      // Update the faction and preserve status
       const updatedLeaguePlayer = await strapi.documents('api::league-player.league-player').update({
         documentId: leaguePlayerDocumentId,
         data: {
-          faction
+          faction,
+          status: leaguePlayer.status || 'active' // Preserve existing status or default to active
         }
       });
 
