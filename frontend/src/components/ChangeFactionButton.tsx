@@ -6,7 +6,7 @@ interface ChangeFactionButtonProps {
   leaguePlayerId: string;
   currentFaction: string;
   gameSystem: string;
-  leagueStartDate: string | null;
+  leagueStatus: string;
   onFactionChanged: () => void;
 }
 
@@ -14,7 +14,7 @@ export default function ChangeFactionButton({
   leaguePlayerId,
   currentFaction,
   gameSystem,
-  leagueStartDate,
+  leagueStatus,
   onFactionChanged
 }: ChangeFactionButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,14 +22,9 @@ export default function ChangeFactionButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check if league has started
-  const hasLeagueStarted = () => {
-    if (!leagueStartDate) return false;
-    return new Date() >= new Date(leagueStartDate);
-  };
-
-  // If league has started, don't show the button
-  if (hasLeagueStarted()) {
+  // Only allow faction changes when league is planned
+  // If league is ongoing or completed, don't show the button
+  if (leagueStatus !== 'planned') {
     return null;
   }
 
@@ -218,7 +213,7 @@ export default function ChangeFactionButton({
               )}
 
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Note: You can only change your faction until the league starts.
+                Note: You can only change your faction while the league is in planned status.
               </div>
 
               <div className="flex gap-3 pt-4">

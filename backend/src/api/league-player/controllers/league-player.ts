@@ -72,15 +72,10 @@ export default factories.createCoreController('api::league-player.league-player'
         return ctx.forbidden('You can only update your own faction');
       }
 
-      // Check if league has started
+      // Check if league status is planned - only allow faction changes in planned status
       const league = leaguePlayer.league as any;
-      if (league?.startDate) {
-        const startDate = new Date(league.startDate);
-        const now = new Date();
-
-        if (now >= startDate) {
-          return ctx.badRequest('Cannot change faction after league has started');
-        }
+      if (league?.statusleague && league.statusleague !== 'planned') {
+        return ctx.badRequest('Cannot change faction - league has already started or is completed');
       }
 
       // Update the faction and preserve status

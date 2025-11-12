@@ -87,7 +87,7 @@ const PlayerDetailsComponent = () => {
               leaguePlayerId={leaguePlayer.documentId}
               currentFaction={leaguePlayer.faction}
               gameSystem={league?.gameSystem || ''}
-              leagueStartDate={league?.startDate || null}
+              leagueStatus={league?.statusleague || 'planned'}
               onFactionChanged={fetchLeagueData}
             />
             <button
