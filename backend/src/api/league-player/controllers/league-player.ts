@@ -1,6 +1,23 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league-player.league-player', ({ strapi }) => ({
+  async update(ctx) {
+    // Intercept update requests and ensure status is always set
+    const { data } = ctx.request.body;
+
+    console.log('🔍 League player update - incoming data:', data);
+
+    // If status is missing, empty, or invalid, set it to 'active'
+    if (!data.status || data.status === '' || data.status === null || data.status === undefined) {
+      console.log('✅ Setting missing status to active in update controller');
+      data.status = 'active';
+    }
+
+    // Call the default update controller with modified data
+    ctx.request.body.data = data;
+    return super.update(ctx);
+  },
+
   async matches(ctx) {
     await this.validateQuery(ctx);
     const sanitizedQueryParams = await this.sanitizeQuery(ctx);
