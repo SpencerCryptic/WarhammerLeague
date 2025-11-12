@@ -26,6 +26,25 @@ export default {
         },
       },
     },
+    // Specific routes must come before generic :id routes
+    {
+      method: 'GET',
+      path: '/league-players/:id/matches',
+      handler: 'league-player.matches',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/league-players/:id/faction',
+      handler: 'league-player.updateFaction',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
+    },
     {
       method: 'PUT',
       path: '/league-players/:id',
@@ -40,24 +59,6 @@ export default {
       method: 'DELETE',
       path: '/league-players/:id',
       handler: 'league-player.delete',
-      config: {
-        auth: {
-          required: true,
-        },
-      },
-    },
-    {
-      method: 'GET',
-      path: '/league-players/:id/matches',
-      handler: 'league-player.matches',
-      config: {
-        auth: false,
-      },
-    },
-    {
-      method: 'PUT',
-      path: '/league-players/:id/faction',
-      handler: 'league-player.updateFaction',
       config: {
         auth: {
           required: true,
