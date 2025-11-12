@@ -128,6 +128,14 @@ export default {
           policies: [],
         },
       },
+      {
+        method: 'POST',
+        path: '/leagues/fix-statuses',
+        handler: 'league.fixLeaguePlayerStatuses',
+        config: {
+          auth: false, // Temporarily allow without auth for easy access
+        },
+      },
     ],
   };
   

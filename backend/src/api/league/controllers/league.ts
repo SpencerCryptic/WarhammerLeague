@@ -1067,6 +1067,74 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     }
   },
 
+  async fixLeaguePlayerStatuses(ctx) {
+    try {
+      console.log('🔍 Starting league player status fix...');
+
+      // Find all league players
+      const allLeaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
+        fields: ['id', 'leagueName', 'firstName', 'lastName', 'status'],
+        limit: -1 // Get all records
+      });
+
+      console.log(`📊 Found ${allLeaguePlayers.length} total league players`);
+
+      let fixedCount = 0;
+      let alreadyValidCount = 0;
+      const fixedPlayers = [];
+
+      for (const leaguePlayer of allLeaguePlayers) {
+        const currentStatus = leaguePlayer.status as any;
+        const playerName = leaguePlayer.leagueName || `${leaguePlayer.firstName} ${leaguePlayer.lastName}` || 'Unknown';
+
+        // Check if status is missing, empty, null, undefined, or not a valid enum value
+        if (!currentStatus || currentStatus === '' || currentStatus === 'null' ||
+            (currentStatus !== 'active' && currentStatus !== 'dropped')) {
+          console.log(`🔧 Fixing ${playerName} (ID: ${leaguePlayer.id}) - status: "${currentStatus}" -> "active"`);
+
+          try {
+            await strapi.documents('api::league-player.league-player').update({
+              documentId: leaguePlayer.documentId,
+              data: {
+                status: 'active'
+              }
+            });
+            fixedCount++;
+            fixedPlayers.push({
+              name: playerName,
+              id: leaguePlayer.id,
+              oldStatus: currentStatus,
+              newStatus: 'active'
+            });
+          } catch (error) {
+            console.error(`❌ Failed to update ${playerName}:`, error.message);
+          }
+        } else {
+          alreadyValidCount++;
+        }
+      }
+
+      console.log('✅ Status fix completed!');
+      console.log(`   - Total records: ${allLeaguePlayers.length}`);
+      console.log(`   - Already valid: ${alreadyValidCount}`);
+      console.log(`   - Fixed: ${fixedCount}`);
+
+      return ctx.send({
+        message: `Fixed ${fixedCount} league player status values`,
+        data: {
+          totalRecords: allLeaguePlayers.length,
+          alreadyValid: alreadyValidCount,
+          fixed: fixedCount,
+          fixedPlayers
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error fixing statuses:', error);
+      return ctx.badRequest(`Failed to fix statuses: ${error.message}`);
+    }
+  },
+
 }));
 
 // Helper functions outside the controller
