@@ -125,7 +125,7 @@ export default {
           auth: {
             required: true,
           },
-          policies: [],
+          policies: ['global::isAuthenticated'],
         },
       },
       {
