@@ -57,24 +57,30 @@ export default factories.createCoreController('api::league-player.league-player'
     }
 
     try {
-      // Get the league player with player.user populated
+      // Get the league player
       const leaguePlayer = await strapi.documents('api::league-player.league-player').findOne({
         documentId: leaguePlayerDocumentId,
-        populate: {
-          player: {
-            populate: ['user']
-          },
-          league: true
-        }
+        populate: ['player', 'league']
       });
 
       if (!leaguePlayer) {
         return ctx.notFound('League player not found');
       }
 
+      // Get the player to check the user relation
+      const playerDocumentId = (leaguePlayer.player as any)?.documentId;
+      if (!playerDocumentId) {
+        return ctx.badRequest('League player has no associated player');
+      }
+
+      const player = await strapi.documents('api::player.player').findOne({
+        documentId: playerDocumentId,
+        populate: ['user']
+      });
+
       // Check if user owns this league player
-      const playerUser = (leaguePlayer.player as any)?.user;
-      if (!playerUser || playerUser.id !== userId) {
+      const playerUserId = (player?.user as any)?.id;
+      if (!playerUserId || playerUserId !== userId) {
         return ctx.forbidden('You can only update your own faction');
       }
 
