@@ -1,20 +1,29 @@
 export default {
-  beforeCreate(event) {
+  beforeCreate(event: any) {
     const { data } = event.params;
 
-    // Set default status to 'active' if not provided
-    if (!data.status) {
+    console.log('🔍 LeaguePlayer beforeCreate - status:', data.status);
+
+    // Set default status to 'active' if not provided or empty
+    if (!data.status || data.status === '' || data.status === null || data.status === undefined) {
+      console.log('✅ Setting status to active in beforeCreate');
       data.status = 'active';
     }
   },
 
-  beforeUpdate(event) {
+  beforeUpdate(event: any) {
     const { data } = event.params;
 
-    // Only set default status if the update doesn't include a status value
-    // This ensures we don't override status when it's explicitly being set to something else
-    if (data.hasOwnProperty('status') && !data.status) {
-      data.status = 'active';
+    console.log('🔍 LeaguePlayer beforeUpdate - status:', data.status);
+    console.log('🔍 LeaguePlayer beforeUpdate - data keys:', Object.keys(data));
+
+    // If status is being updated but is empty/null/undefined, set to 'active'
+    // If status is not in the update data at all, don't touch it
+    if (data.hasOwnProperty('status')) {
+      if (!data.status || data.status === '' || data.status === null || data.status === undefined) {
+        console.log('✅ Setting empty status to active in beforeUpdate');
+        data.status = 'active';
+      }
     }
   },
 };
