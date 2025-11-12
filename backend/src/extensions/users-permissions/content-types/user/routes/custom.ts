@@ -11,8 +11,8 @@ export default {
       },
     },
     {
-      method: 'POST',
-      path: '/user/update-profile',
+      method: 'PUT',
+      path: '/user/profile',
       handler: 'user.updateProfile',
       config: {
         auth: {
@@ -22,3 +22,6 @@ export default {
     },
   ],
 };
+
+//this can be used to update a user profile, but not specifically their own profile - which is dangerous
+//so we need to create a custom route to update the logged in user's profile only

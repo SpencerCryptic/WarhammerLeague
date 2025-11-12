@@ -467,6 +467,46 @@ export interface ApiLeaguePlayerLeaguePlayer
         'Questoris Knights',
         'Daemons of the Ruinstorm',
         'Blackshields',
+        'Space Marines (Astartes)',
+        'Black Templars',
+        'Deathwatch',
+        'Grey Knights',
+        'Aeldari',
+        'Aeldari Craftworlds',
+        'Drukhari',
+        'Chaos',
+        'Chaos Daemons',
+        'Chaos Knights',
+        'Chaos Space Marines',
+        'Tyranids',
+        'Tyranid Swarm',
+        'Genestealer Cults',
+        'Imperium',
+        'Adepta Sororitas',
+        'Adeptus Custodes',
+        'Adeptus Mechanicus',
+        'Astra Militarum',
+        'Imperial Knights',
+        'Leagues of Votann',
+        'Orks',
+        "T'au Empire",
+        'Necrons',
+        'Tomb Kings of Khemri',
+        'Kingdom of Bretonnia',
+        'Empire of Man',
+        'Orc & Goblin Tribes',
+        'Dwarfen Mountain Holds',
+        'High Elves',
+        'Wood Elves',
+        'Warriors of Chaos',
+        'Beastmen Brayherds',
+        'Dark Elves',
+        'Skaven',
+        'Vampire Counts',
+        'Lizardmen',
+        'Ogre Kingdoms',
+        'Daemons of Chaos',
+        'Cathay',
       ]
     >;
     firstName: Schema.Attribute.String;
@@ -492,6 +532,8 @@ export interface ApiLeaguePlayerLeaguePlayer
       'oneToMany',
       'api::match.match'
     >;
+    status: Schema.Attribute.Enumeration<['active', 'dropped']> &
+      Schema.Attribute.DefaultTo<'active'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -535,6 +577,7 @@ export interface ApiLeagueLeague extends Struct.CollectionTypeSchema {
         'Warhammer: Kill Team',
         'Warhammer: The Horus Heresy',
         'Warhammer: Necromunda',
+        'Warhammer: The Old World',
         'A Song of Ice and Fire',
         'Middle Earth SBG',
         'Marvel Crisis Protocol',

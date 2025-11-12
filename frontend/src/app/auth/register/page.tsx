@@ -4,7 +4,7 @@ import axios from 'axios';
 import AuthCard from '@/components/AuthCard';
 import { useRouter } from 'next/navigation';
 
-const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 type FormData = {
   username: string;
@@ -42,14 +42,6 @@ const RegisterPage = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    // Validate username: max 24 chars, alphanumeric and underscores only
-    if (name === 'username') {
-      const sanitized = value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 24);
-      setFormData(prev => ({ ...prev, [name]: sanitized }));
-      return;
-    }
-
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -68,29 +60,26 @@ const RegisterPage = () => {
 
       const { jwt, user } = registerRes.data;
       const userId = user.id;
+/*
+      // Step 2: Update user with extra fields
+      await axios.put(
+        `${API_URL}/api/users/${userId}`,
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          dateOfBirth: formData.dateOfBirth,
+          storeLocation: formData.storeLocation,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
 
-      // Step 2: Update user with extra fields using profile API
-      try {
-        await axios.put(
-          `${API_URL}/api/profile/update`,
-          {
-            userId: userId,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            phoneNumber: formData.phoneNumber,
-            dateOfBirth: formData.dateOfBirth,
-            storeLocation: formData.storeLocation,
-          }
-        );
-        console.log('Profile data updated successfully');
-      } catch (profileError: any) {
-        console.error('Profile update failed:', profileError);
-        // Fail registration if profile update fails since these fields are required
-        const profileErrorMsg = profileError?.response?.data?.error?.message || 'Failed to save profile information. Please try again.';
-        setError(profileErrorMsg);
-        return;
-      }
-
+     update me user instead of put user - to match custom route need to create an updatemeProfile controller in user.ts controller file in backend
+*/
       localStorage.setItem('token', jwt);
       localStorage.setItem('user', JSON.stringify(user));
       setSuccess(true);
@@ -104,176 +93,96 @@ const RegisterPage = () => {
 
   return (
     <AuthCard title="Register">
-  <form onSubmit={handleRegister} className="space-y-6">
+  <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-4">
     {error && (
-      <div className="text-red-500 text-center bg-red-100 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-800">
+      <div className="md:col-span-2 text-red-500 text-center">
         {error}
       </div>
     )}
     {success && (
-      <div className="text-green-500 text-center bg-green-100 dark:bg-green-900/30 p-3 rounded-lg border border-green-200 dark:border-green-800">
+      <div className="md:col-span-2 text-green-500 text-center">
         Registered! Redirecting…
       </div>
     )}
 
-    {/* Account Information Section */}
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">
-        Account Information
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Username *
-          </label>
-          <input
-            id="username"
-            name="username"
-            placeholder="Choose a username"
-            type="text"
-            required
-            value={formData.username}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Max 24 characters. Letters, numbers, and underscores only. This will be publicly visible—use something identifiable, maybe not your full government name though.
-          </p>
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Email Address *
-          </label>
-          <input
-            id="email"
-            name="email"
-            placeholder="your.email@example.com"
-            type="email"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Password *
-          </label>
-          <input
-            id="password"
-            name="password"
-            placeholder="Create a secure password"
-            type="password"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-      </div>
-    </div>
+    <input
+      name="username"
+      placeholder="Username"
+      type="text"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="email"
+      placeholder="Email"
+      type="email"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="password"
+      placeholder="Password"
+      type="password"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="firstName"
+      placeholder="First Name"
+      type="text"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="lastName"
+      placeholder="Last Name"
+      type="text"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="phoneNumber"
+      placeholder="Phone Number"
+      type="text"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
+    <input
+      name="dateOfBirth"
+      type="date"
+      required
+      onChange={handleChange}
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white placeholder-gray-400"
+    />
 
-    {/* Personal Information Section */}
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">
-        Personal Information
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            First Name *
-          </label>
-          <input
-            id="firstName"
-            name="firstName"
-            placeholder="Your first name"
-            type="text"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Last Name *
-          </label>
-          <input
-            id="lastName"
-            name="lastName"
-            placeholder="Your last name"
-            type="text"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-        <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Phone Number *
-          </label>
-          <input
-            id="phoneNumber"
-            name="phoneNumber"
-            placeholder="e.g., 07123 456789"
-            type="tel"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-        <div>
-          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Date of Birth *
-          </label>
-          <input
-            id="dateOfBirth"
-            name="dateOfBirth"
-            type="date"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Store Location Section */}
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">
-        Store Location
-      </h3>
-      <div>
-        <label htmlFor="storeLocation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Your Local Store *
-        </label>
-        <select
-          id="storeLocation"
-          name="storeLocation"
-          value={formData.storeLocation}
-          onChange={handleChange}
-          required
-          className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
-        >
-          <option value="">Choose your local store</option>
-          <option value="Cryptic Cabin Bristol">Cryptic Cabin Bristol</option>
-          <option value="Cryptic Cabin Bracknell">Cryptic Cabin Bracknell</option>
-        </select>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          This helps us show you relevant local events and leagues.
-        </p>
-      </div>
-    </div>
+    <select
+      name="storeLocation"
+      value={formData.storeLocation}
+      onChange={handleChange}
+      required
+      className="w-full px-4 py-2 rounded bg-gray-700 text-white col-span-1 md:col-span-2"
+    >
+      <option value="">Select Store</option>
+      <option value="Cryptic Cabin Bristol">Cryptic Cabin Bristol</option>
+      <option value="Cryptic Cabin Bracknell">Cryptic Cabin Bracknell</option>
+    </select>
 
     <button
       type="submit"
-      className="w-full py-3 px-6 bg-orange-600 hover:bg-orange-700 rounded-lg text-white font-semibold text-lg transition-colors focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
+      className="col-span-1 md:col-span-2 py-2 px-4 bg-orange-600 hover:bg-orange-700 rounded text-white font-semibold"
     >
       Create Account
     </button>
 
-    <p className="text-sm text-gray-400 text-center">
+    <p className="col-span-1 md:col-span-2 text-sm text-gray-400 text-center">
       Already registered?{' '}
-      <a href="/auth/login" className="text-orange-400 hover:text-orange-300 underline font-medium">
-        Login here
-      </a>
+      <a href="/auth/login" className="text-orange-400 hover:underline">Login</a>
     </p>
   </form>
 </AuthCard>
