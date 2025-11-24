@@ -119,7 +119,7 @@ export default {
       },
       {
         method: 'PUT',
-        path: '/leagues/players/:leaguePlayerId/faction',
+        path: '/leagues/update-player-faction/:leaguePlayerId',
         handler: 'league.updatePlayerFaction',
         config: {
           auth: {
