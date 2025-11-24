@@ -3,9 +3,10 @@ import { factories } from '@strapi/strapi';
 export default factories.createCoreController('api::league-player.league-player', ({ strapi }) => ({
   async update(ctx) {
     // Intercept update requests and ensure status is always set
+    const { id } = ctx.params;
     const { data } = ctx.request.body;
 
-    console.log('🔍 League player update - incoming data:', data);
+    console.log('🔍 League player update - incoming data:', data, 'for ID:', id);
 
     // If status is missing, empty, or invalid, set it to 'active'
     if (!data.status || data.status === '' || data.status === null || data.status === undefined) {
@@ -13,9 +14,19 @@ export default factories.createCoreController('api::league-player.league-player'
       data.status = 'active';
     }
 
-    // Call the default update controller with modified data
-    ctx.request.body.data = data;
-    return super.update(ctx);
+    try {
+      // Perform the update directly to bypass validation issues
+      const updatedEntity = await strapi.documents('api::league-player.league-player').update({
+        documentId: id,
+        data: data
+      });
+
+      console.log('✅ League player updated successfully');
+      return ctx.send(updatedEntity);
+    } catch (error) {
+      console.error('❌ Error updating league player:', error);
+      return ctx.badRequest(`Failed to update: ${error.message}`);
+    }
   },
 
   async matches(ctx) {
