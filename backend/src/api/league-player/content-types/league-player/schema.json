@@ -141,7 +141,9 @@
         "active",
         "dropped"
       ],
-      "default": "active"
+      "default": "active",
+      "required": false,
+      "private": false
     },
     "firstPlayerMatches": {
       "type": "relation",
