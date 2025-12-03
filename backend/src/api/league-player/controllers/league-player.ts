@@ -11,8 +11,24 @@ export default factories.createCoreController('api::league-player.league-player'
       });
 
       console.log('🔍 findOne - documentId:', id);
-      console.log('🔍 findOne - armyLists:', entity?.armyLists);
+      console.log('🔍 findOne - raw armyLists:', entity?.armyLists);
+      console.log('🔍 findOne - armyLists type:', typeof entity?.armyLists);
       console.log('🔍 findOne - armyLists length:', Array.isArray(entity?.armyLists) ? entity.armyLists.length : 'not an array');
+
+      // Ensure armyLists is properly parsed and sent as an array
+      if (entity && entity.armyLists) {
+        // If it's a string (shouldn't be, but just in case), parse it
+        if (typeof entity.armyLists === 'string') {
+          console.log('⚠️ armyLists is a string, parsing...');
+          entity.armyLists = JSON.parse(entity.armyLists);
+        }
+        // Ensure it's an array
+        if (!Array.isArray(entity.armyLists)) {
+          console.log('⚠️ armyLists is not an array, converting...');
+          entity.armyLists = [];
+        }
+        console.log('✅ Sending armyLists with', entity.armyLists.length, 'lists');
+      }
 
       return ctx.send({ data: entity });
     } catch (error) {
