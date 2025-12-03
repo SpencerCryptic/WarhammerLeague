@@ -12,7 +12,7 @@ export default factories.createCoreController('api::league-player.league-player'
 
       console.log('🔍 findOne - documentId:', id);
       console.log('🔍 findOne - armyLists:', entity?.armyLists);
-      console.log('🔍 findOne - armyLists length:', entity?.armyLists?.length);
+      console.log('🔍 findOne - armyLists length:', Array.isArray(entity?.armyLists) ? entity.armyLists.length : 'not an array');
 
       return ctx.send({ data: entity });
     } catch (error) {
