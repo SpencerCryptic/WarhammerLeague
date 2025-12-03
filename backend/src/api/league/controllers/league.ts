@@ -973,8 +973,16 @@ export default factories.createCoreController('api::league.league', ({ strapi })
         }
       }
 
+      // Finally, delete the replaced player from the league
+      // All matches have been transferred and stats copied, so safe to remove
+      await strapi.documents('api::league-player.league-player').delete({
+        documentId: replacingLeaguePlayerId
+      });
+
+      console.log(`✅ Deleted replaced player ${replacedPlayer.leagueName} from league after successful replacement`);
+
       return ctx.send({
-        message: `Successfully replaced ${replacedPlayer.leagueName} with ${leagueName} in ${league.name}. ${matches.length} matches reassigned.`,
+        message: `Successfully replaced ${replacedPlayer.leagueName} with ${leagueName} in ${league.name}. ${matches.length} matches reassigned. Old player removed from league.`,
         data: {
           leagueName,
           userEmail,
