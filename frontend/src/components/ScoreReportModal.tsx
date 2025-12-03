@@ -63,9 +63,12 @@ export default function ScoreReportModal({
         });
         if (response1.ok) {
           const data1 = await response1.json();
+          console.log('🔍 Player 1 API Response:', data1);
+          console.log('🔍 Player 1 armyLists:', data1.data?.armyLists);
           const lists1 = data1.data?.armyLists || [];
+          console.log('🔍 Player 1 lists count:', lists1.length);
           setPlayer1Lists(lists1);
-          
+
           // Auto-select active list
           const activeList1 = lists1.find((list: any) => list.isActive);
           if (activeList1) {
@@ -81,9 +84,12 @@ export default function ScoreReportModal({
         });
         if (response2.ok) {
           const data2 = await response2.json();
+          console.log('🔍 Player 2 API Response:', data2);
+          console.log('🔍 Player 2 armyLists:', data2.data?.armyLists);
           const lists2 = data2.data?.armyLists || [];
+          console.log('🔍 Player 2 lists count:', lists2.length);
           setPlayer2Lists(lists2);
-          
+
           // Auto-select active list
           const activeList2 = lists2.find((list: any) => list.isActive);
           if (activeList2) {
