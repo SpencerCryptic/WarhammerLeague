@@ -168,7 +168,10 @@ const PlayerDetailsComponent = () => {
         <ArmyListManager
           leaguePlayerId={leaguePlayer.documentId}
           currentFaction={leaguePlayer.faction}
-          onClose={() => setShowArmyListManager(false)}
+          onClose={() => {
+            setShowArmyListManager(false);
+            fetchLeagueData(); // Refresh data when closing
+          }}
         />
       )}
     </div>
