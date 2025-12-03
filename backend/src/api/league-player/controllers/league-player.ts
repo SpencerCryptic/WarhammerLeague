@@ -1,6 +1,26 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::league-player.league-player', ({ strapi }) => ({
+  async findOne(ctx) {
+    const { id } = ctx.params;
+
+    try {
+      const entity = await strapi.documents('api::league-player.league-player').findOne({
+        documentId: id,
+        populate: ['player', 'league']
+      });
+
+      console.log('🔍 findOne - documentId:', id);
+      console.log('🔍 findOne - armyLists:', entity?.armyLists);
+      console.log('🔍 findOne - armyLists length:', entity?.armyLists?.length);
+
+      return ctx.send({ data: entity });
+    } catch (error) {
+      console.error('❌ Error in findOne:', error);
+      return ctx.badRequest(`Failed to fetch: ${error.message}`);
+    }
+  },
+
   async update(ctx) {
     // Intercept update requests and ensure status is always set
     const { id } = ctx.params;
