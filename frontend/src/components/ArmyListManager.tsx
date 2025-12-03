@@ -97,7 +97,7 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
   const toggleListStatus = async (listId: string, currentStatus: boolean) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       // If activating a list, deactivate all others first (only one active at a time)
       const updatedLists = lists.map(list => {
         if (list.id === listId) {
@@ -110,6 +110,8 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
           return list;
         }
       });
+
+      console.log('Toggle - Sending updated lists:', updatedLists);
 
       const response = await fetch(`https://accessible-positivity-e213bb2958.strapiapp.com/api/league-players/${leaguePlayerId}`, {
         method: 'PUT',
@@ -125,10 +127,18 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Toggle - Update successful:', result);
+        alert(`List ${!currentStatus ? 'enabled' : 'disabled'} successfully!`);
         fetchLists(); // Refresh the list
+      } else {
+        const errorData = await response.json();
+        console.error('Toggle - Update failed:', errorData);
+        alert(`Failed to update list: ${errorData.error?.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating list:', error);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -175,15 +185,24 @@ export default function ArmyListManager({ leaguePlayerId, currentFaction, onClos
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Army List Manager</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Army List Manager ({lists.length})</h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={fetchLists}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium"
+                title="Refresh lists"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
