@@ -8,9 +8,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Bulk Data API - Scheduled refresh daily at 6 AM UTC
+# Bulk Data API - Scheduled refresh daily at midnight UK time (GMT/BST)
+# 0 0 * * * = midnight UTC (GMT), during BST this is 1 AM local
 [functions."scheduled-refresh"]
-  schedule = "0 6 * * *"
+  schedule = "0 0 * * *"
 
 # Bulk Data API - CORS headers for JSON files
 [[headers]]
