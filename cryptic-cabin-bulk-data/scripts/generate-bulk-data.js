@@ -228,10 +228,12 @@ async function fetchProductsAdminAPI() {
 
   while (url) {
     try {
+      // Try X-Shopify-Access-Token header first
       const response = await fetch(url, {
         headers: {
           'X-Shopify-Access-Token': CONFIG.shopify.accessToken,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
 
