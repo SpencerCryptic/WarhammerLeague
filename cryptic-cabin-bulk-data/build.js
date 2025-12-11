@@ -116,7 +116,7 @@ const { data, not_found } = await response.json();
     fs.writeFileSync(path.join(bulkDataDir, 'index.html'), html);
 
     // Root redirect
-    fs.writeFileSync(path.join(publicDir, 'index.html'), 
+    fs.writeFileSync(path.join(rootPublicDir, '..', 'index.html'),
       `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/bulk-data/"></head></html>`);
 
     console.log('\n✅ Build complete!');
