@@ -1,0 +1,24 @@
+{
+  "name": "cryptic-cabin-bulk-data",
+  "version": "1.0.0",
+  "description": "Scryfall-compatible bulk data for Cryptic Cabin MTG inventory",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "generate": "node scripts/generate-bulk-data.js",
+    "dev": "npm run generate && npx serve public -l 3001 --cors",
+    "test": "node test.js"
+  },
+  "author": "Cryptic Cabin Ltd",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

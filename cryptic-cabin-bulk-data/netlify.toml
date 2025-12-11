@@ -1,0 +1,68 @@
+[build]
+  command = "node build.js"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# ============================================
+# SCHEDULED FUNCTION - Daily at 6 AM UTC
+# ============================================
+[functions."scheduled-refresh"]
+  schedule = "0 6 * * *"
+
+# ============================================
+# HEADERS - CORS for bulk data files
+# ============================================
+[[headers]]
+  for = "/bulk-data/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json"
+
+[[headers]]
+  for = "/*.json.gz"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json"
+    Content-Encoding = "gzip"
+
+# ============================================
+# REDIRECTS - Clean API URLs
+# ============================================
+
+# Main API endpoint
+[[redirects]]
+  from = "/api/bulk-data"
+  to = "/.netlify/functions/bulk-data"
+  status = 200
+
+# Collection lookup
+[[redirects]]
+  from = "/api/bulk-data/collection"
+  to = "/.netlify/functions/bulk-data-collection"
+  status = 200
+
+# Clean URL for inventory file
+[[redirects]]
+  from = "/inventory.json"
+  to = "/bulk-data/cryptic-cabin-inventory.json"
+  status = 200
+
+# ============================================
+# ENVIRONMENT VARIABLES (set in Netlify UI)
+# ============================================
+# NETLIFY_BUILD_HOOK - Create at: Site settings > Build & deploy > Build hooks
+# SHOPIFY_ACCESS_TOKEN - (recommended) Admin API token for accurate inventory
+#                        Without this, inventory quantities will be unavailable
+#                        Required scopes: read_products, read_inventory
+# SLACK_WEBHOOK_URL - (optional) For failure notifications

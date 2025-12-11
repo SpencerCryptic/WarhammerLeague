@@ -1,0 +1,9 @@
+node_modules/
+.netlify/
+public/bulk-data/*.json
+public/bulk-data/*.gz
+data/
+*.log
+.env
+.env.local
+.DS_Store
