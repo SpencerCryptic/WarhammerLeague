@@ -24,7 +24,7 @@ const CONFIG = {
   shopify: {
     store: process.env.SHOPIFY_STORE || 'tcg-cryptic-cabin',
     accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
-    apiVersion: '2024-01'
+    apiVersion: process.env.SHOPIFY_API_VERSION || '2025-10'
   },
   output: {
     dir: process.env.OUTPUT_DIR || './data',
