@@ -22,7 +22,7 @@ const zlib = require('zlib');
 // Configuration
 const CONFIG = {
   shopify: {
-    store: process.env.SHOPIFY_STORE || 'tcg-cryptic-cabin',
+    store: process.env.SHOPIFY_STORE || 'cryptic-cabin-tcg',
     accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
     apiVersion: process.env.SHOPIFY_API_VERSION || '2025-10'
   },
@@ -220,6 +220,11 @@ async function fetchProductsAdminAPI() {
   let url = `https://${CONFIG.shopify.store}.myshopify.com/admin/api/${CONFIG.shopify.apiVersion}/products.json?limit=250`;
 
   console.log(`  Using Admin API with inventory tracking`);
+  console.log(`  Store: ${CONFIG.shopify.store}`);
+  console.log(`  API Version: ${CONFIG.shopify.apiVersion}`);
+  console.log(`  Token present: ${!!CONFIG.shopify.accessToken}`);
+  console.log(`  Token length: ${CONFIG.shopify.accessToken?.length || 0}`);
+  console.log(`  Request URL: ${url}`);
 
   while (url) {
     try {
