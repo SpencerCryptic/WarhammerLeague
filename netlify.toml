@@ -1,9 +1,31 @@
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "cd ../cryptic-cabin-bulk-data && npm install && node build.js && cd ../frontend && npm run build"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+
+# Bulk Data API - Scheduled refresh daily at 6 AM UTC
+[functions."scheduled-refresh"]
+  schedule = "0 6 * * *"
+
+# Bulk Data API - CORS headers for JSON files
+[[headers]]
+  for = "/bulk-data/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
+# Bulk Data API - Endpoint redirects
+[[redirects]]
+  from = "/api/bulk-data"
+  to = "/.netlify/functions/bulk-data"
+  status = 200
+
+[[redirects]]
+  from = "/api/bulk-data/collection"
+  to = "/.netlify/functions/bulk-data-collection"
+  status = 200

@@ -12,18 +12,26 @@ const zlib = require('zlib');
 async function build() {
   console.log('🔨 Cryptic Cabin Bulk Data Build\n');
 
-  const publicDir = path.join(__dirname, 'public');
-  const bulkDataDir = path.join(publicDir, 'bulk-data');
+  // Output to BOTH locations:
+  // 1. Repo root public/ for Netlify functions to read
+  // 2. Frontend public/ for Next.js to serve as static files
+  const rootPublicDir = path.join(__dirname, '../public/bulk-data');
+  const frontendPublicDir = path.join(__dirname, '../frontend/public/bulk-data');
 
-  fs.mkdirSync(bulkDataDir, { recursive: true });
+  fs.mkdirSync(rootPublicDir, { recursive: true });
+  fs.mkdirSync(frontendPublicDir, { recursive: true });
 
   try {
     const bulkData = await generateBulkData();
     const json = JSON.stringify(bulkData);
 
-    // Write files
-    fs.writeFileSync(path.join(bulkDataDir, 'cryptic-cabin-inventory.json'), json);
-    fs.writeFileSync(path.join(bulkDataDir, 'cryptic-cabin-inventory.json.gz'), zlib.gzipSync(json));
+    // Write files to BOTH locations
+    fs.writeFileSync(path.join(rootPublicDir, 'cryptic-cabin-inventory.json'), json);
+    fs.writeFileSync(path.join(rootPublicDir, 'cryptic-cabin-inventory.json.gz'), zlib.gzipSync(json));
+    fs.writeFileSync(path.join(frontendPublicDir, 'cryptic-cabin-inventory.json'), json);
+    fs.writeFileSync(path.join(frontendPublicDir, 'cryptic-cabin-inventory.json.gz'), zlib.gzipSync(json));
+
+    const bulkDataDir = rootPublicDir; // Use root for metadata/HTML
 
     // Metadata
     const metadata = {
