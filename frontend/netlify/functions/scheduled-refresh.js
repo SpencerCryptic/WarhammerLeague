@@ -5,7 +5,7 @@
  * Schedule configured in netlify.toml
  */
 
-const fetch = require('node-fetch');
+// Use native fetch (Node 18+)
 
 exports.handler = async (event, context) => {
   console.log('⏰ Scheduled refresh triggered');
