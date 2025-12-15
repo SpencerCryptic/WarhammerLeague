@@ -37,7 +37,7 @@ const CONFIG = {
 const SET_CODE_OVERRIDES = {
   // Promos
   'babp': 'pbook', // Buy a Box - adjust as needed
-  'ltrh': 'ltr',
+  // Note: ltrh (Holiday Release) contains cards from both ltr AND ltc sets - handled specially in matchToScryfall
   'znl': 'plst',
   'sldfs': 'sld',
 
@@ -396,6 +396,24 @@ async function loadScryfallData() {
   }
 }
 
+// Sets that can map to multiple Scryfall sets (check all and verify by name)
+const MULTI_SET_MAPPINGS = {
+  'ltrh': ['ltr', 'ltc']  // LotR Holiday Release contains cards from both main set and Commander
+};
+
+/**
+ * Normalize card name for comparison (handle special characters)
+ */
+function normalizeCardName(name) {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')  // Remove diacritics
+    .replace(/[^a-z0-9\s]/g, '')      // Remove special chars
+    .trim();
+}
+
 /**
  * Match card to Scryfall
  */
@@ -403,6 +421,34 @@ function matchToScryfall(parsed, scryfallData) {
   if (!scryfallData) return null;
 
   let setCode = parsed.setCode;
+  const normalizedName = normalizeCardName(parsed.cardName);
+
+  // Handle sets that map to multiple Scryfall sets
+  if (setCode && MULTI_SET_MAPPINGS[setCode]) {
+    const possibleSets = MULTI_SET_MAPPINGS[setCode];
+
+    // Try each possible set with collector number
+    if (parsed.collectorNumber) {
+      for (const trySet of possibleSets) {
+        const key = `${trySet}-${parsed.collectorNumber}`;
+        const match = scryfallData.bySetNumber.get(key);
+        // Verify the name matches (to avoid wrong card with same collector number)
+        if (match && normalizeCardName(match.name) === normalizedName) {
+          return match;
+        }
+      }
+    }
+
+    // Try name + each possible set
+    if (parsed.cardName) {
+      for (const trySet of possibleSets) {
+        const match = scryfallData.byNameSet.get(`${parsed.cardName.toLowerCase()}-${trySet}`);
+        if (match) return match;
+      }
+    }
+  }
+
+  // Standard single-set mapping
   if (setCode && SET_CODE_OVERRIDES[setCode]) {
     setCode = SET_CODE_OVERRIDES[setCode];
   }
