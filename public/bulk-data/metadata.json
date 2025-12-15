@@ -6,23 +6,23 @@
   "description": "Magic: The Gathering singles from Cryptic Cabin UK",
   "download_uri": "/bulk-data/cryptic-cabin-inventory.json",
   "content_type": "application/json",
-  "updated_at": "2025-12-15T16:12:47.047Z",
-  "size": 6639091,
-  "total_cards": 2430,
+  "updated_at": "2025-12-15T17:37:19.915Z",
+  "size": 6970158,
+  "total_cards": 2545,
   "statistics": {
-    "products_processed": 2255,
-    "total_listings": 2430,
-    "scryfall_matched": 2430,
+    "products_processed": 2352,
+    "total_listings": 2545,
+    "scryfall_matched": 2545,
     "scryfall_unmatched": 0,
     "match_rate": "100.0%",
-    "in_stock": 2390,
-    "out_of_stock": 40,
+    "in_stock": 0,
+    "out_of_stock": 2545,
     "by_condition": {
-      "NM": 2430
+      "NM": 2545
     },
     "by_finish": {
-      "nonfoil": 2087,
-      "foil": 343
+      "foil": 358,
+      "nonfoil": 2187
     }
   }
 }
