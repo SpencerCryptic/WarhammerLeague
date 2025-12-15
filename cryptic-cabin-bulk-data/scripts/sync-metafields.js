@@ -14,7 +14,7 @@ const BULK_DATA_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE || 'cryptic-cabin-tcg';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 const API_VERSION = '2025-01';
-const RATE_LIMIT_DELAY = 300; // ms between requests
+const RATE_LIMIT_DELAY = 50; // ms between requests (Shopify allows 40 req/sec)
 
 // Test mode - set to a number to limit products, or false for full sync
 const TEST_BATCH_SIZE = process.argv.includes('--test') ? 20 : false;
