@@ -191,6 +191,7 @@ function findCard(inventory, query) {
  */
 /**
  * Build Shopify cart URL with optional affiliate tracking
+ * Uses /cart/add to add items then redirects to /cart (not checkout)
  * @param {Array} items - Cart items with variant_id and quantity
  * @param {string} source - Affiliate source (e.g., 'moxfield', 'archidekt')
  */
@@ -199,19 +200,26 @@ function buildCartUrl(items, source = null) {
     return `${STORE_URL}/cart`;
   }
 
-  const cartItems = items
-    .map(item => `${item.variant_id}:${item.quantity}`)
-    .join(',');
+  // Build query params for /cart/add
+  // Format: /cart/add?id[]=VARIANT&quantity[]=QTY&id[]=VARIANT2&quantity[]=QTY2
+  const params = new URLSearchParams();
 
-  let url = `${STORE_URL}/cart/${cartItems}`;
-
-  // Add cart attributes for affiliate tracking (saved on order)
-  if (source) {
-    const timestamp = Date.now();
-    url += `?attributes[affiliate_source]=${encodeURIComponent(source)}&attributes[affiliate_timestamp]=${timestamp}`;
+  for (const item of items) {
+    params.append('id[]', item.variant_id);
+    params.append('quantity[]', item.quantity);
   }
 
-  return url;
+  // Add affiliate tracking as cart attributes
+  if (source) {
+    const timestamp = Date.now();
+    params.append('attributes[affiliate_source]', source);
+    params.append('attributes[affiliate_timestamp]', timestamp);
+  }
+
+  // Redirect to cart page after adding (not checkout)
+  params.append('return_to', '/cart');
+
+  return `${STORE_URL}/cart/add?${params.toString()}`;
 }
 
 /**
