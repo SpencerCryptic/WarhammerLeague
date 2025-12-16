@@ -95,14 +95,46 @@ async function getInventory() {
 }
 
 /**
+ * Filter cards by finish preference
+ * @param {Array} cards - Cards to filter
+ * @param {string} finish - Preferred finish: 'foil', 'nonfoil', 'etched', or null for any
+ * @param {number} quantity - Required quantity
+ * @returns {Array} Filtered and sorted cards
+ */
+function filterByFinish(cards, finish, quantity) {
+  let filtered = cards.filter(c =>
+    c.cryptic_cabin?.in_stock &&
+    c.cryptic_cabin.quantity >= (quantity || 1)
+  );
+
+  // If finish preference specified, try to match it
+  if (finish) {
+    const finishLower = finish.toLowerCase();
+    const withFinish = filtered.filter(c => c.cryptic_cabin?.finish === finishLower);
+    if (withFinish.length > 0) {
+      filtered = withFinish;
+    }
+    // If no match for preferred finish, fall back to any available
+  }
+
+  // Sort by price (cheapest first)
+  return filtered.sort((a, b) => a.cryptic_cabin.price_gbp - b.cryptic_cabin.price_gbp);
+}
+
+/**
  * Find best available card match
  * Priority: exact scryfall_id > set+collector > oracle_id (cheapest in stock) > name (cheapest in stock)
+ * Supports finish preference: 'foil', 'nonfoil', 'etched'
  */
 function findCard(inventory, query) {
+  const finish = query.finish || null;
+  const quantity = query.quantity || 1;
+
   // 1. Exact Scryfall ID match
   if (query.scryfall_id) {
     const card = inventory.byScryfall.get(query.scryfall_id);
     if (card && card.cryptic_cabin?.in_stock) {
+      // For exact scryfall_id, ignore finish preference (they want this specific card)
       return card;
     }
   }
@@ -116,28 +148,24 @@ function findCard(inventory, query) {
     }
   }
 
-  // 3. Oracle ID match (find cheapest in stock)
+  // 3. Oracle ID match (find cheapest in stock, respecting finish preference)
   if (query.oracle_id) {
     const cards = inventory.byOracle.get(query.oracle_id) || [];
-    const inStock = cards
-      .filter(c => c.cryptic_cabin?.in_stock && c.cryptic_cabin.quantity >= (query.quantity || 1))
-      .sort((a, b) => a.cryptic_cabin.price_gbp - b.cryptic_cabin.price_gbp);
+    const filtered = filterByFinish(cards, finish, quantity);
 
-    if (inStock.length > 0) {
-      return inStock[0];
+    if (filtered.length > 0) {
+      return filtered[0];
     }
   }
 
-  // 4. Name match (find cheapest in stock)
+  // 4. Name match (find cheapest in stock, respecting finish preference)
   if (query.name) {
     const nameLower = query.name.toLowerCase();
     const cards = inventory.byName.get(nameLower) || [];
-    const inStock = cards
-      .filter(c => c.cryptic_cabin?.in_stock && c.cryptic_cabin.quantity >= (query.quantity || 1))
-      .sort((a, b) => a.cryptic_cabin.price_gbp - b.cryptic_cabin.price_gbp);
+    const filtered = filterByFinish(cards, finish, quantity);
 
-    if (inStock.length > 0) {
-      return inStock[0];
+    if (filtered.length > 0) {
+      return filtered[0];
     }
   }
 
@@ -146,12 +174,10 @@ function findCard(inventory, query) {
     const nameLower = query.name.toLowerCase();
     for (const [cardName, cards] of inventory.byName) {
       if (cardName.includes(nameLower) || nameLower.includes(cardName)) {
-        const inStock = cards
-          .filter(c => c.cryptic_cabin?.in_stock && c.cryptic_cabin.quantity >= (query.quantity || 1))
-          .sort((a, b) => a.cryptic_cabin.price_gbp - b.cryptic_cabin.price_gbp);
+        const filtered = filterByFinish(cards, finish, quantity);
 
-        if (inStock.length > 0) {
-          return inStock[0];
+        if (filtered.length > 0) {
+          return filtered[0];
         }
       }
     }
@@ -292,6 +318,8 @@ async function handlePost(body, origin) {
           set_name: card.set_name,
           collector_number: card.collector_number,
           scryfall_id: card.scryfall_id,
+          finish: card.cryptic_cabin.finish,
+          condition: card.cryptic_cabin.condition,
           price_gbp: card.cryptic_cabin.price_gbp,
           available_quantity: card.cryptic_cabin.quantity,
           quantity_added: availableQty,

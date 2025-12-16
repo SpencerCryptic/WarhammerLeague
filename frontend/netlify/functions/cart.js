@@ -29,12 +29,13 @@ exports.handler = async (event, context) => {
           description: 'Import cards to cart',
           body: {
             cards: [
-              { scryfall_id: 'string', quantity: 'number' },
-              { oracle_id: 'string', quantity: 'number' },
-              { name: 'string', set: 'string?', collector_number: 'string?', quantity: 'number' }
+              { scryfall_id: 'string', quantity: 'number', finish: 'foil|nonfoil|etched (optional)' },
+              { oracle_id: 'string', quantity: 'number', finish: 'foil|nonfoil|etched (optional)' },
+              { name: 'string', set: 'string?', collector_number: 'string?', quantity: 'number', finish: 'foil|nonfoil|etched (optional)' }
             ],
             decklist: 'Plain text decklist string (alternative to cards array)'
-          }
+          },
+          notes: 'finish parameter filters by card finish. Falls back to any available if preferred finish not in stock.'
         },
         'GET /api/cart/import': {
           description: 'Redirect to cart with cards',
