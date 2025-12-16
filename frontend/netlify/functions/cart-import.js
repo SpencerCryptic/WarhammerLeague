@@ -189,7 +189,12 @@ function findCard(inventory, query) {
 /**
  * Build Shopify cart URL
  */
-function buildCartUrl(items) {
+/**
+ * Build Shopify cart URL with optional affiliate tracking
+ * @param {Array} items - Cart items with variant_id and quantity
+ * @param {string} source - Affiliate source (e.g., 'moxfield', 'archidekt')
+ */
+function buildCartUrl(items, source = null) {
   if (items.length === 0) {
     return `${STORE_URL}/cart`;
   }
@@ -198,7 +203,15 @@ function buildCartUrl(items) {
     .map(item => `${item.variant_id}:${item.quantity}`)
     .join(',');
 
-  return `${STORE_URL}/cart/${cartItems}`;
+  let url = `${STORE_URL}/cart/${cartItems}`;
+
+  // Add cart attributes for affiliate tracking (saved on order)
+  if (source) {
+    const timestamp = Date.now();
+    url += `?attributes[affiliate_source]=${encodeURIComponent(source)}&attributes[affiliate_timestamp]=${timestamp}`;
+  }
+
+  return url;
 }
 
 /**
@@ -282,6 +295,9 @@ async function handlePost(body, origin) {
   const inventory = await getInventory();
   let cards = [];
 
+  // Get affiliate source for tracking (e.g., 'moxfield', 'archidekt')
+  const source = body.source || null;
+
   // Parse input format
   if (body.cards && Array.isArray(body.cards)) {
     cards = body.cards;
@@ -350,7 +366,7 @@ async function handlePost(body, origin) {
     }
   }
 
-  const cartUrl = buildCartUrl(cartItems);
+  const cartUrl = buildCartUrl(cartItems, source);
 
   return {
     statusCode: 200,
@@ -377,6 +393,9 @@ async function handlePost(body, origin) {
 async function handleGet(queryParams, origin) {
   const inventory = await getInventory();
   const cards = [];
+
+  // Get affiliate source for tracking
+  const source = queryParams.source || null;
 
   // Parse query string format: cards=id:qty,id:qty
   if (queryParams.cards) {
@@ -407,7 +426,7 @@ async function handleGet(queryParams, origin) {
     }
   }
 
-  const cartUrl = buildCartUrl(cartItems);
+  const cartUrl = buildCartUrl(cartItems, source);
 
   return {
     statusCode: 302,

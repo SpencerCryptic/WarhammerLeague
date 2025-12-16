@@ -33,9 +33,10 @@ exports.handler = async (event, context) => {
               { oracle_id: 'string', quantity: 'number', finish: 'foil|nonfoil|etched (optional)' },
               { name: 'string', set: 'string?', collector_number: 'string?', quantity: 'number', finish: 'foil|nonfoil|etched (optional)' }
             ],
-            decklist: 'Plain text decklist string (alternative to cards array)'
+            decklist: 'Plain text decklist string (alternative to cards array)',
+            source: 'Affiliate source for tracking (e.g., "moxfield", "archidekt")'
           },
-          notes: 'finish parameter filters by card finish. Falls back to any available if preferred finish not in stock.'
+          notes: 'finish filters by card finish. source adds affiliate tracking to cart URL as Shopify cart attributes.'
         },
         'GET /api/cart/import': {
           description: 'Redirect to cart with cards',
