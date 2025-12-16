@@ -57,7 +57,8 @@ exports.handler = async (event, context) => {
         'deckstats.net',
         'manabox.app',
         'fabrary.net'
-      ]
+      ],
+      contact: 'contact@crypticcabin.com'
     }, null, 2)
   };
 };
