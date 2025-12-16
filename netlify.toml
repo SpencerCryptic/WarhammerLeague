@@ -30,3 +30,19 @@
   from = "/api/bulk-data/collection"
   to = "/.netlify/functions/bulk-data-collection"
   status = 200
+
+# Cart Import API - For deck builder integrations (Moxfield, Archidekt, etc.)
+[[redirects]]
+  from = "/api/cart"
+  to = "/.netlify/functions/cart"
+  status = 200
+
+[[redirects]]
+  from = "/api/cart/import"
+  to = "/.netlify/functions/cart-import"
+  status = 200
+
+[[redirects]]
+  from = "/api/cart/lookup"
+  to = "/.netlify/functions/cart-lookup"
+  status = 200
