@@ -449,6 +449,29 @@ export default function TicketDetailPage() {
   };
 
   const [markingRead, setMarkingRead] = useState(false);
+  const [hasUnreadEmails, setHasUnreadEmails] = useState(false);
+
+  // Check if there are unread emails (new since last Mark Read)
+  useEffect(() => {
+    if (!ticket?.messages || !ticketId) return;
+
+    const inboundMessages = ticket.messages.filter(m => m.direction === 'inbound' && m.messageId);
+    if (inboundMessages.length === 0) {
+      setHasUnreadEmails(false);
+      return;
+    }
+
+    const lastMarkedRead = localStorage.getItem(`ticket-${ticketId}-lastMarkedRead`);
+    if (!lastMarkedRead) {
+      // Never marked read - show as unread
+      setHasUnreadEmails(true);
+      return;
+    }
+
+    const lastMarkedTime = new Date(lastMarkedRead).getTime();
+    const latestInbound = Math.max(...inboundMessages.map(m => new Date(m.createdAt).getTime()));
+    setHasUnreadEmails(latestInbound > lastMarkedTime);
+  }, [ticket?.messages, ticketId]);
 
   const markEmailsAsRead = async () => {
     if (!ticket?.messages) return;
@@ -473,6 +496,9 @@ export default function TicketDetailPage() {
       if (response.ok) {
         const result = await response.json();
         const successCount = result.results?.filter((r: any) => r.success).length || 0;
+        // Store timestamp of when we marked read
+        localStorage.setItem(`ticket-${ticketId}-lastMarkedRead`, new Date().toISOString());
+        setHasUnreadEmails(false);
         alert(`Marked ${successCount} email(s) as read in Gmail`);
       } else {
         alert('Failed to mark emails as read');
@@ -644,9 +670,13 @@ export default function TicketDetailPage() {
               <button
                 onClick={markEmailsAsRead}
                 disabled={markingRead}
-                className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                className={`flex-1 px-3 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm ${
+                  hasUnreadEmails
+                    ? 'bg-green-600 hover:bg-green-500 animate-pulse shadow-lg shadow-green-500/50'
+                    : 'bg-gray-600 hover:bg-gray-500'
+                }`}
               >
-                {markingRead ? 'Marking...' : 'Mark Read'}
+                {markingRead ? 'Marking...' : hasUnreadEmails ? '● Mark Read' : 'Mark Read'}
               </button>
             )}
             {ticket.customerEmail && (
