@@ -101,10 +101,10 @@ export default function HelpdeskLayout({
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0F1117' }}>
-      <div className="flex">
+    <div className="fixed inset-0 top-16 z-40" style={{ backgroundColor: '#0F1117' }}>
+      <div className="flex h-full">
         {/* Sidebar */}
-        <aside className="w-64 min-h-screen border-r" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
+        <aside className="w-64 h-full border-r overflow-y-auto flex-shrink-0" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           <div className="p-6">
             <h1 className="text-2xl font-bold text-white mb-2">Helpdesk</h1>
             <p className="text-gray-400 text-sm">Support Tickets</p>
@@ -215,7 +215,7 @@ export default function HelpdeskLayout({
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 overflow-y-auto">
           {children}
         </main>
       </div>
