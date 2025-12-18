@@ -12,7 +12,7 @@ interface Ticket {
   subject: string;
   status: 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  channel: 'email' | 'messenger' | 'instagram';
+  channel: 'email' | 'messenger' | 'instagram' | 'web';
   customerName: string;
   customerEmail: string;
   lastMessageAt: string;
@@ -40,7 +40,8 @@ const priorityColors: Record<string, string> = {
 const channelIcons: Record<string, string> = {
   email: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
   messenger: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-  instagram: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
+  instagram: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+  web: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'
 };
 
 export default function HelpdeskPage() {
@@ -174,6 +175,7 @@ export default function HelpdeskPage() {
         >
           <option value="">All Channels</option>
           <option value="email">Email</option>
+          <option value="web">Contact Form</option>
           <option value="messenger">Messenger</option>
           <option value="instagram">Instagram</option>
         </select>

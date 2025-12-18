@@ -22,7 +22,7 @@ interface Ticket {
   subject: string;
   status: 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  channel: 'email' | 'messenger' | 'instagram';
+  channel: 'email' | 'messenger' | 'instagram' | 'web';
   channelId: string;
   customerName: string;
   customerEmail: string;
@@ -54,6 +54,92 @@ const statusColors: Record<string, string> = {
   resolved: 'bg-gray-500',
   closed: 'bg-gray-600'
 };
+
+/**
+ * Format email content for better display
+ * - Removes forwarded message headers
+ * - Extracts key fields from contact forms
+ * - Cleans up formatting
+ */
+function formatMessageContent(content: string): { formatted: string; fields?: Record<string, string> } {
+  if (!content) return { formatted: '' };
+
+  // Check if this looks like a contact form submission
+  const isContactForm = content.includes('First Name:') ||
+                        content.includes('Last Name:') ||
+                        content.includes('Email:') ||
+                        content.includes('Message:');
+
+  if (isContactForm) {
+    // Extract fields from contact form
+    const fields: Record<string, string> = {};
+    const lines = content.split('\n');
+    let currentField = '';
+    let messageLines: string[] = [];
+    let inMessage = false;
+
+    for (const line of lines) {
+      // Skip forwarded message headers
+      if (line.includes('---------- Forwarded message') ||
+          line.startsWith('From:') && line.includes('@') ||
+          line.startsWith('Date:') ||
+          line.startsWith('Subject:') && lines.indexOf(line) < 10 ||
+          line.startsWith('To:')) {
+        continue;
+      }
+
+      // Check for field patterns
+      const fieldMatch = line.match(/^(First ?Name|Last ?Name|Name|Email|Phone|Subject|Message|Other)[:\s]+(.*)$/i);
+      if (fieldMatch) {
+        currentField = fieldMatch[1].toLowerCase().replace(' ', '');
+        const value = fieldMatch[2].trim();
+        if (currentField === 'message') {
+          inMessage = true;
+          if (value) messageLines.push(value);
+        } else if (value) {
+          fields[currentField] = value;
+        }
+      } else if (inMessage) {
+        messageLines.push(line);
+      } else if (currentField && line.trim()) {
+        // This might be a continuation of the previous field
+        fields[currentField] = (fields[currentField] || '') + ' ' + line.trim();
+      }
+    }
+
+    if (messageLines.length > 0) {
+      fields['message'] = messageLines.join('\n').trim();
+    }
+
+    // Build formatted output
+    let formatted = '';
+    if (fields['firstname'] || fields['lastname']) {
+      formatted += `**Name:** ${fields['firstname'] || ''} ${fields['lastname'] || ''}\n`;
+    } else if (fields['name']) {
+      formatted += `**Name:** ${fields['name']}\n`;
+    }
+    if (fields['email']) formatted += `**Email:** ${fields['email']}\n`;
+    if (fields['phone']) formatted += `**Phone:** ${fields['phone']}\n`;
+    if (fields['subject']) formatted += `**Subject:** ${fields['subject']}\n`;
+    if (fields['message']) {
+      formatted += `\n${fields['message']}`;
+    }
+
+    return { formatted: formatted.trim() || content, fields };
+  }
+
+  // For regular emails, just clean up forwarded headers
+  let cleaned = content
+    .replace(/---------- Forwarded message ---------[\s\S]*?(?=\n\n|\n[A-Z])/gi, '')
+    .replace(/^From:.*$/gm, '')
+    .replace(/^Date:.*$/gm, '')
+    .replace(/^Subject:.*$/gm, '')
+    .replace(/^To:.*$/gm, '')
+    .replace(/^\n+/, '')
+    .trim();
+
+  return { formatted: cleaned || content };
+}
 
 export default function TicketDetailPage() {
   const params = useParams();
@@ -221,15 +307,18 @@ export default function TicketDetailPage() {
 
       if (messageResponse.ok) {
         // Send via the appropriate channel using our Netlify function
+        // For web/contact form submissions, reply via email
+        const replyChannel = ticket.channel === 'web' ? 'email' : ticket.channel;
         const replyResponse = await fetch('/api/helpdesk/reply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ticketId: ticket.documentId,
-            channel: ticket.channel,
+            channel: replyChannel,
             channelId: ticket.channelId,
             content: replyContent,
-            customerEmail: ticket.customerEmail
+            customerEmail: ticket.customerEmail,
+            subject: ticket.subject
           })
         });
 
@@ -335,7 +424,7 @@ export default function TicketDetailPage() {
             <span className={`px-2 py-1 rounded text-xs text-white ${statusColors[ticket.status]}`}>
               {ticket.status.replace('_', ' ')}
             </span>
-            <span>via {ticket.channel}</span>
+            <span>via {ticket.channel === 'web' ? 'contact form' : ticket.channel}</span>
             <span>-</span>
             <span>Created {formatDate(ticket.createdAt)}</span>
           </div>
@@ -347,32 +436,46 @@ export default function TicketDetailPage() {
             <h2 className="text-lg font-semibold text-white">Conversation</h2>
           </div>
 
-          <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+          <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
             {ticket.messages && ticket.messages.length > 0 ? (
-              ticket.messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
-                >
+              ticket.messages.map((message) => {
+                const { formatted } = formatMessageContent(message.content);
+                return (
                   <div
-                    className={`max-w-[70%] rounded-lg p-4 ${
-                      message.direction === 'outbound'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-700 text-white'
-                    }`}
+                    key={message.id}
+                    className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className="text-xs opacity-70 mb-1">
-                      {message.senderName} - {formatDate(message.createdAt)}
-                    </div>
-                    <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: message.content }} />
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className="mt-2 text-xs">
-                        {message.attachments.length} attachment(s)
+                    <div
+                      className={`max-w-[80%] rounded-lg p-4 ${
+                        message.direction === 'outbound'
+                          ? 'bg-purple-600 text-white'
+                          : message.senderType === 'system'
+                          ? 'bg-gray-600 text-gray-300 italic'
+                          : 'bg-gray-700 text-white'
+                      }`}
+                    >
+                      <div className="text-xs opacity-70 mb-2 flex items-center gap-2">
+                        <span className="font-medium">{message.senderName}</span>
+                        <span>•</span>
+                        <span>{formatDate(message.createdAt)}</span>
                       </div>
-                    )}
+                      <div
+                        className="whitespace-pre-wrap text-sm leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: formatted
+                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br />')
+                        }}
+                      />
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-white/20 text-xs">
+                          📎 {message.attachments.length} attachment(s)
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center text-gray-500 py-8">
                 No messages yet
@@ -392,7 +495,7 @@ export default function TicketDetailPage() {
           />
           <div className="flex justify-between items-center mt-4">
             <div className="text-gray-400 text-sm">
-              Reply will be sent via {ticket.channel}
+              Reply will be sent via {ticket.channel === 'web' ? 'email' : ticket.channel}
             </div>
             <button
               onClick={sendReply}

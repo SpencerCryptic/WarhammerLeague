@@ -174,15 +174,17 @@ function extractName(fromString) {
 /**
  * Find or create a ticket for this email
  */
-async function findOrCreateTicket(email) {
+async function findOrCreateTicket(email, contactFormData = null) {
   const headers = {
     'Authorization': `Bearer ${STRAPI_API_TOKEN}`,
     'Content-Type': 'application/json'
   };
 
+  // Use contact form data if available, otherwise parse from email
   const fromRaw = email.from || '';
-  const fromAddress = extractEmail(fromRaw) || fromRaw;
-  const fromName = email.fromName || extractName(fromRaw) || 'Unknown';
+  const fromAddress = contactFormData?.customerEmail || extractEmail(fromRaw) || fromRaw;
+  const fromName = contactFormData?.customerName || email.fromName || extractName(fromRaw) || 'Unknown';
+  const subject = contactFormData?.subject || email.subject || 'No Subject';
 
   // Check for existing open ticket from this email
   const searchResponse = await fetch(
@@ -198,8 +200,6 @@ async function findOrCreateTicket(email) {
   }
 
   // Create new ticket
-  const subject = email.subject || 'No Subject';
-
   const createResponse = await fetch(`${STRAPI_URL}/api/support-tickets`, {
     method: 'POST',
     headers,
@@ -208,7 +208,7 @@ async function findOrCreateTicket(email) {
         subject: subject,
         status: 'open',
         priority: 'medium',
-        channel: 'email',
+        channel: contactFormData?.isContactForm ? 'web' : 'email',
         channelId: fromAddress,
         customerName: fromName,
         customerEmail: fromAddress,
@@ -289,6 +289,111 @@ async function addMessageToTicket(ticket, email) {
 
   console.log(`Added message to ticket ${ticket.id}`);
   return { success: true };
+}
+
+/**
+ * Check if email is from a contact form service and extract real customer email
+ */
+function parseContactForm(email) {
+  const fromAddress = extractEmail(email.from) || email.from;
+  const body = email.body || '';
+
+  // Known contact form services
+  const contactFormServices = [
+    'formsubmitapp.com',
+    'formsubmit.co',
+    'formspree.io',
+    'getform.io',
+    'typeform.com',
+    'jotform.com'
+  ];
+
+  const isContactForm = contactFormServices.some(service =>
+    fromAddress.toLowerCase().includes(service)
+  ) || email.subject?.toLowerCase().includes('contact form');
+
+  if (!isContactForm) {
+    return null;
+  }
+
+  console.log('Detected contact form submission');
+
+  // Try to extract customer email from body
+  // Common patterns: "Email: customer@email.com", "Email\ncustomer@email.com", "From: customer@email.com"
+  const emailPatterns = [
+    /Email[:\s]+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i,
+    /From[:\s]+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i,
+    /Reply[- ]?to[:\s]+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i,
+    /Customer[:\s]+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i
+  ];
+
+  let customerEmail = '';
+  for (const pattern of emailPatterns) {
+    const match = body.match(pattern);
+    if (match) {
+      customerEmail = match[1];
+      break;
+    }
+  }
+
+  // Try to extract customer name
+  // Common patterns: "First Name: John", "Name: John Smith", "First Name:\nJohn\nLast Name:\nSmith"
+  let customerName = '';
+
+  // Try "Name: X" pattern first
+  const nameMatch = body.match(/(?:Full )?Name[:\s]+([^\n\r]+)/i);
+  if (nameMatch) {
+    customerName = nameMatch[1].trim();
+  } else {
+    // Try First Name + Last Name pattern
+    const firstNameMatch = body.match(/First ?Name[:\s]+([^\n\r]+)/i);
+    const lastNameMatch = body.match(/Last ?Name[:\s]+([^\n\r]+)/i);
+
+    if (firstNameMatch || lastNameMatch) {
+      const firstName = firstNameMatch ? firstNameMatch[1].trim() : '';
+      const lastName = lastNameMatch ? lastNameMatch[1].trim() : '';
+      customerName = `${firstName} ${lastName}`.trim();
+    }
+  }
+
+  // Try to extract subject/message
+  let subject = email.subject || '';
+  const subjectMatch = body.match(/Subject[:\s]+([^\n\r]+)/i);
+  if (subjectMatch) {
+    subject = subjectMatch[1].trim();
+  }
+
+  // Clean up subject - remove "Fwd:", "New Contact Form submission" etc
+  subject = subject
+    .replace(/^(Fwd|Fw|Re):\s*/gi, '')
+    .replace(/New Contact Form submission received on .+/i, 'Contact Form')
+    .trim();
+
+  if (!subject || subject === 'Contact Form') {
+    subject = customerName ? `Contact from ${customerName}` : 'Contact Form Submission';
+  }
+
+  // Try to extract the actual message
+  let message = '';
+  const messageMatch = body.match(/Message[:\s]+([^]*?)(?=\n\n|\n[A-Z][a-z]+:|$)/i);
+  if (messageMatch) {
+    message = messageMatch[1].trim();
+  }
+
+  // Format the body nicely if we extracted fields
+  let formattedBody = body;
+  if (customerEmail || customerName) {
+    // Keep original body but note it's a contact form
+    formattedBody = body;
+  }
+
+  return {
+    customerEmail: customerEmail || fromAddress,
+    customerName: customerName || (customerEmail ? customerEmail.split('@')[0] : 'Unknown'),
+    subject: subject,
+    body: formattedBody,
+    isContactForm: true
+  };
 }
 
 /**
@@ -391,10 +496,15 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Check blocklist
-    const fromAddress = extractEmail(email.from) || email.from;
-    if (await isBlocklisted(fromAddress)) {
-      console.log(`Blocked email from: ${fromAddress}`);
+    // Check if this is a contact form submission and extract real customer info
+    const contactFormData = parseContactForm(email);
+
+    // Determine the actual customer email (from contact form or original email)
+    const customerEmail = contactFormData?.customerEmail || extractEmail(email.from) || email.from;
+
+    // Check blocklist using the real customer email
+    if (await isBlocklisted(customerEmail)) {
+      console.log(`Blocked email from: ${customerEmail}`);
       return {
         statusCode: 200,
         headers,
@@ -406,8 +516,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Find or create ticket
-    const { ticket, isNew } = await findOrCreateTicket(email);
+    // Find or create ticket (pass contact form data if available)
+    const { ticket, isNew } = await findOrCreateTicket(email, contactFormData);
 
     // Add message to ticket
     const result = await addMessageToTicket(ticket, email);
@@ -415,8 +525,7 @@ exports.handler = async (event, context) => {
     // Send auto-response for new tickets (not duplicates)
     if (isNew && !result.duplicate) {
       const settings = await getHelpdeskSettings();
-      const fromAddress = extractEmail(email.from) || email.from;
-      await sendAutoResponse(fromAddress, email.subject || 'Your Support Request', settings);
+      await sendAutoResponse(customerEmail, contactFormData?.subject || email.subject || 'Your Support Request', settings);
     }
 
     return {
