@@ -79,7 +79,10 @@ export default function HelpdeskSettingsPage() {
           setSettings({
             ...defaultSettings,
             ...data.data,
-            businessDays: data.data.businessDays || defaultSettings.businessDays
+            businessDays: data.data.businessDays || defaultSettings.businessDays,
+            // Convert time format from Strapi (HH:mm:ss.SSS) to display (HH:mm)
+            businessHoursStart: data.data.businessHoursStart ? data.data.businessHoursStart.substring(0, 5) : defaultSettings.businessHoursStart,
+            businessHoursEnd: data.data.businessHoursEnd ? data.data.businessHoursEnd.substring(0, 5) : defaultSettings.businessHoursEnd
           });
         }
       }
@@ -90,6 +93,22 @@ export default function HelpdeskSettingsPage() {
     }
   };
 
+  // Convert HH:mm to HH:mm:ss.SSS format for Strapi
+  const formatTimeForStrapi = (time: string) => {
+    if (!time) return null;
+    // If already in full format, return as-is
+    if (time.includes('.')) return time;
+    // Convert HH:mm to HH:mm:ss.SSS
+    return `${time}:00.000`;
+  };
+
+  // Convert HH:mm:ss.SSS to HH:mm for display
+  const formatTimeForDisplay = (time: string) => {
+    if (!time) return '';
+    // Extract just HH:mm
+    return time.substring(0, 5);
+  };
+
   const saveSettings = async () => {
     setSaving(true);
     setMessage(null);
@@ -98,13 +117,20 @@ export default function HelpdeskSettingsPage() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
+      // Prepare data with properly formatted times
+      const dataToSave = {
+        ...settings,
+        businessHoursStart: formatTimeForStrapi(settings.businessHoursStart),
+        businessHoursEnd: formatTimeForStrapi(settings.businessHoursEnd)
+      };
+
       const response = await fetch(`${API_URL}/api/helpdesk-setting`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ data: settings })
+        body: JSON.stringify({ data: dataToSave })
       });
 
       if (response.ok) {

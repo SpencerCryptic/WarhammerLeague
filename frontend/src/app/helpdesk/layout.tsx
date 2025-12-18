@@ -101,8 +101,8 @@ export default function HelpdeskLayout({
   }
 
   return (
-    <div className="fixed inset-0 top-16 z-40" style={{ backgroundColor: '#0F1117' }}>
-      <div className="flex h-full">
+    <div className="fixed inset-x-0 top-[60px] bottom-0 z-40" style={{ backgroundColor: '#0F1117' }}>
+      <div className="flex h-full w-full">
         {/* Sidebar */}
         <aside className="w-64 h-full border-r overflow-y-auto flex-shrink-0" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
           <div className="p-6">
