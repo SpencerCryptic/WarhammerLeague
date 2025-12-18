@@ -681,7 +681,10 @@ export default function TicketDetailPage() {
 
                   <div className="mb-6 whitespace-pre-wrap">{replyContent}</div>
 
+                  <p className="text-gray-500 mb-4">If you have any further questions, please don't hesitate to reply to this email.</p>
+
                   <div className="border-t border-gray-200 pt-4">
+                    <div className="text-gray-600 mb-1">Best regards,</div>
                     <div className="font-semibold text-gray-800">
                       {currentUser?.firstName || currentUser?.username || 'The Support Team'}
                     </div>

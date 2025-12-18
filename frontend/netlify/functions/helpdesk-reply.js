@@ -83,6 +83,8 @@ async function sendEmailReply(to, subject, content, ticketId, options = {}) {
 
 ${content}
 
+If you have any further questions, please don't hesitate to reply to this email.
+
 Best regards,
 ${agentName}
 Cryptic Cabin Support
@@ -120,7 +122,10 @@ Ref: ${ticketRef}`;
 
     <div class="content">${content.replace(/\n/g, '<br>')}</div>
 
+    <p style="color: #666; margin-top: 24px;">If you have any further questions, please don't hesitate to reply to this email.</p>
+
     <div class="signature">
+      <p style="margin-bottom: 4px;">Best regards,</p>
       <div class="signature-name">${agentName}</div>
       <div class="signature-team">Cryptic Cabin Support</div>
     </div>
