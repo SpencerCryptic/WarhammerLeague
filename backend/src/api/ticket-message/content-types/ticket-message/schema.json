@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ticket_messages",
+  "info": {
+    "singularName": "ticket-message",
+    "pluralName": "ticket-messages",
+    "displayName": "Ticket Message",
+    "description": "Individual messages within a support ticket"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "ticket": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::support-ticket.support-ticket",
+      "inversedBy": "messages"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "direction": {
+      "type": "enumeration",
+      "enum": ["inbound", "outbound"],
+      "required": true
+    },
+    "senderType": {
+      "type": "enumeration",
+      "enum": ["customer", "agent", "system"],
+      "required": true
+    },
+    "senderName": {
+      "type": "string"
+    },
+    "attachments": {
+      "type": "json",
+      "default": []
+    },
+    "messageId": {
+      "type": "string"
+    }
+  }
+}

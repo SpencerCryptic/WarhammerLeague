@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "support_tickets",
+  "info": {
+    "singularName": "support-ticket",
+    "pluralName": "support-tickets",
+    "displayName": "Support Ticket",
+    "description": "Customer support tickets from email, Messenger, Instagram"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "subject": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["open", "in_progress", "waiting", "resolved", "closed"],
+      "default": "open",
+      "required": true
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": ["low", "medium", "high", "urgent"],
+      "default": "medium"
+    },
+    "channel": {
+      "type": "enumeration",
+      "enum": ["email", "messenger", "instagram"],
+      "required": true
+    },
+    "channelId": {
+      "type": "string"
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "customerEmail": {
+      "type": "email"
+    },
+    "assignee": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "resolvedAt": {
+      "type": "datetime"
+    },
+    "lastMessageAt": {
+      "type": "datetime"
+    },
+    "messages": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ticket-message.ticket-message",
+      "mappedBy": "ticket"
+    }
+  }
+}

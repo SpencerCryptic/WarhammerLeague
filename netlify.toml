@@ -46,3 +46,22 @@
   from = "/api/cart/lookup"
   to = "/.netlify/functions/cart-lookup"
   status = 200
+
+# Helpdesk API - Support ticket system
+[functions."helpdesk-email-poll"]
+  schedule = "*/5 * * * *"
+
+[[redirects]]
+  from = "/api/helpdesk/reply"
+  to = "/.netlify/functions/helpdesk-reply"
+  status = 200
+
+[[redirects]]
+  from = "/api/helpdesk/webhook/messenger"
+  to = "/.netlify/functions/helpdesk-messenger-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/helpdesk/webhook/instagram"
+  to = "/.netlify/functions/helpdesk-instagram-webhook"
+  status = 200
