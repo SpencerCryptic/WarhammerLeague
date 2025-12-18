@@ -64,10 +64,13 @@ export default function HelpdeskPage() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      let url = `${API_URL}/api/support-tickets?populate=assignee&sort=lastMessageAt:desc`;
+      let url = `${API_URL}/api/support-tickets?populate=assignee&sort=lastMessageAt:desc&pagination[limit]=1000`;
 
       if (filter.status) {
         url += `&filters[status][$eq]=${filter.status}`;
+      } else {
+        // By default, exclude closed tickets from "All Tickets"
+        url += `&filters[status][$ne]=closed`;
       }
       if (filter.priority) {
         url += `&filters[priority][$eq]=${filter.priority}`;

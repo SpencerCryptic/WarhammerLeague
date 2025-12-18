@@ -171,6 +171,22 @@ export default function TicketDetailPage() {
             }).catch(err => console.error('Failed to send notification:', err));
           }
         }
+
+        // Send resolved notification when status changes to resolved
+        if (field === 'status' && value === 'resolved' && ticket.customerEmail) {
+          fetch('/api/helpdesk/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'resolved',
+              ticketId: ticket.documentId,
+              ticketSubject: ticket.subject,
+              customerEmail: ticket.customerEmail,
+              channel: ticket.channel,
+              channelId: ticket.channelId
+            })
+          }).catch(err => console.error('Failed to send resolved notification:', err));
+        }
       }
     } catch (error) {
       console.error('Failed to update ticket:', error);

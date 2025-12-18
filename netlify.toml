@@ -51,6 +51,10 @@
 [functions."helpdesk-email-poll"]
   schedule = "*/5 * * * *"
 
+# Helpdesk - Auto-close inactive tickets daily at 6 AM UTC
+[functions."helpdesk-auto-close"]
+  schedule = "0 6 * * *"
+
 [[redirects]]
   from = "/api/helpdesk/reply"
   to = "/.netlify/functions/helpdesk-reply"

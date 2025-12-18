@@ -13,7 +13,7 @@ export default function HelpdeskLayout({
 }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [ticketCounts, setTicketCounts] = useState({ open: 0, inProgress: 0, total: 0 });
+  const [ticketCounts, setTicketCounts] = useState({ open: 0, inProgress: 0, waiting: 0, resolved: 0, closed: 0, total: 0 });
   const pathname = usePathname();
 
   useEffect(() => {
@@ -69,10 +69,14 @@ export default function HelpdeskLayout({
       if (response.ok) {
         const data = await response.json();
         const tickets = data.data || [];
+        const closed = tickets.filter((t: any) => t.status === 'closed').length;
         setTicketCounts({
           open: tickets.filter((t: any) => t.status === 'open').length,
           inProgress: tickets.filter((t: any) => t.status === 'in_progress').length,
-          total: tickets.length
+          waiting: tickets.filter((t: any) => t.status === 'waiting').length,
+          resolved: tickets.filter((t: any) => t.status === 'resolved').length,
+          closed: closed,
+          total: tickets.length - closed // Active tickets (excludes closed)
         });
       }
     } catch (error) {
@@ -148,6 +152,65 @@ export default function HelpdeskLayout({
                 {ticketCounts.inProgress}
               </span>
             </Link>
+
+            <Link
+              href="/helpdesk?status=waiting"
+              className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                pathname === '/helpdesk' && typeof window !== 'undefined' && window.location.search.includes('status=waiting')
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <span>Waiting</span>
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                {ticketCounts.waiting}
+              </span>
+            </Link>
+
+            <Link
+              href="/helpdesk?status=resolved"
+              className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                pathname === '/helpdesk' && typeof window !== 'undefined' && window.location.search.includes('status=resolved')
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <span>Resolved</span>
+              <span className="bg-gray-500 text-white text-xs px-2 py-1 rounded-full">
+                {ticketCounts.resolved}
+              </span>
+            </Link>
+
+            <Link
+              href="/helpdesk?status=closed"
+              className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                pathname === '/helpdesk' && typeof window !== 'undefined' && window.location.search.includes('status=closed')
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <span>Closed</span>
+              <span className="bg-gray-600 text-white text-xs px-2 py-1 rounded-full">
+                {ticketCounts.closed}
+              </span>
+            </Link>
+
+            <div className="border-t mt-4 pt-4" style={{ borderColor: 'rgba(168, 85, 247, 0.15)' }}>
+              <Link
+                href="/helpdesk/settings"
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${
+                  pathname === '/helpdesk/settings'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Settings</span>
+              </Link>
+            </div>
           </nav>
 
           <div className="absolute bottom-0 left-0 w-64 p-4 border-t" style={{ borderColor: 'rgba(168, 85, 247, 0.15)' }}>

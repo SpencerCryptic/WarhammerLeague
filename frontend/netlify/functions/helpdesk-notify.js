@@ -1,12 +1,15 @@
 /**
  * Helpdesk Notify - Netlify Function
  *
- * Sends email notifications to support staff for:
- * - Ticket assignment
- * - New ticket (optional)
+ * Sends email notifications for:
+ * - Ticket assignment (to staff)
+ * - Ticket resolved (to customer)
  */
 
 const nodemailer = require('nodemailer');
+
+const STRAPI_URL = process.env.STRAPI_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 
 // Use same SMTP env vars as backend, with HELPDESK_ prefix as fallback
 const SMTP_CONFIG = {
@@ -22,6 +25,67 @@ const SMTP_CONFIG = {
 const FROM_EMAIL = process.env.SMTP_FROM || process.env.HELPDESK_FROM_EMAIL || SMTP_CONFIG.auth.user;
 const FROM_NAME = process.env.HELPDESK_FROM_NAME || 'Cryptic Cabin Support';
 const HELPDESK_URL = 'https://leagues.crypticcabin.com/helpdesk';
+
+/**
+ * Get helpdesk settings from Strapi
+ */
+async function getHelpdeskSettings() {
+  try {
+    const response = await fetch(`${STRAPI_URL}/api/helpdesk-setting`, {
+      headers: {
+        'Authorization': `Bearer ${STRAPI_API_TOKEN}`
+      }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.data || null;
+    }
+  } catch (error) {
+    console.error('Error fetching helpdesk settings:', error);
+  }
+  return null;
+}
+
+/**
+ * Send resolved notification to customer
+ */
+async function sendResolvedNotification({ ticketId, ticketSubject, customerEmail, channel, channelId }) {
+  const settings = await getHelpdeskSettings();
+
+  if (!settings?.resolvedMessageEnabled) {
+    console.log('Resolved notification disabled');
+    return { success: true, skipped: true };
+  }
+
+  if (!SMTP_CONFIG.host || !SMTP_CONFIG.auth.user) {
+    console.log('SMTP not configured, skipping notification');
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  const transporter = nodemailer.createTransport(SMTP_CONFIG);
+
+  let body = settings.resolvedMessage || 'Your support ticket has been marked as resolved. If you have any further questions, please reply to this email.';
+
+  // Add signature if enabled
+  if (settings?.signatureEnabled && settings?.emailSignature) {
+    body += '\n\n--\n' + settings.emailSignature;
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      to: customerEmail,
+      subject: `Re: ${ticketSubject} - Resolved`,
+      text: body
+    });
+
+    console.log('Resolved notification sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Failed to send resolved notification:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * Send assignment notification email
@@ -103,6 +167,9 @@ exports.handler = async (event, context) => {
     switch (type) {
       case 'assignment':
         result = await sendAssignmentNotification(body);
+        break;
+      case 'resolved':
+        result = await sendResolvedNotification(body);
         break;
       default:
         return {

@@ -9,9 +9,18 @@
  * - Form-encoded format
  */
 
+const nodemailer = require('nodemailer');
+
 const STRAPI_URL = process.env.STRAPI_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const WEBHOOK_SECRET = process.env.HELPDESK_WEBHOOK_SECRET;
+
+// SMTP Configuration
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = process.env.SMTP_PORT || 587;
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
+const SMTP_FROM = process.env.SMTP_FROM || 'support@crypticcabin.com';
 
 // Hardcoded blocklist as fallback (Strapi blocklist takes priority)
 const DEFAULT_BLOCKLIST = [
@@ -39,6 +48,70 @@ const DEFAULT_BLOCKLIST = [
   'news@typeform.com',
   'updates@allevents.in'
 ];
+
+/**
+ * Get helpdesk settings from Strapi
+ */
+async function getHelpdeskSettings() {
+  try {
+    const response = await fetch(`${STRAPI_URL}/api/helpdesk-setting`, {
+      headers: {
+        'Authorization': `Bearer ${STRAPI_API_TOKEN}`
+      }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.data || null;
+    }
+  } catch (error) {
+    console.error('Error fetching helpdesk settings:', error);
+  }
+  return null;
+}
+
+/**
+ * Send auto-response email
+ */
+async function sendAutoResponse(toEmail, subject, settings) {
+  if (!settings?.autoResponseEnabled || !settings?.autoResponseMessage) {
+    console.log('Auto-response disabled or no message configured');
+    return;
+  }
+
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+    console.log('SMTP not configured, skipping auto-response');
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: parseInt(SMTP_PORT),
+    secure: parseInt(SMTP_PORT) === 465,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASSWORD
+    }
+  });
+
+  let body = settings.autoResponseMessage;
+
+  // Add signature if enabled
+  if (settings?.signatureEnabled && settings?.emailSignature) {
+    body += '\n\n--\n' + settings.emailSignature;
+  }
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: toEmail,
+      subject: `Re: ${subject}`,
+      text: body
+    });
+    console.log(`Auto-response sent to ${toEmail}`);
+  } catch (error) {
+    console.error('Failed to send auto-response:', error);
+  }
+}
 
 /**
  * Check if email is blocklisted
@@ -120,7 +193,7 @@ async function findOrCreateTicket(email) {
   if (searchResponse.ok) {
     const searchData = await searchResponse.json();
     if (searchData.data?.length > 0) {
-      return searchData.data[0];
+      return { ticket: searchData.data[0], isNew: false };
     }
   }
 
@@ -151,7 +224,7 @@ async function findOrCreateTicket(email) {
 
   const createData = await createResponse.json();
   console.log(`Created new ticket: ${createData.data.id} for ${fromAddress}`);
-  return createData.data;
+  return { ticket: createData.data, isNew: true };
 }
 
 /**
@@ -334,10 +407,17 @@ exports.handler = async (event, context) => {
     }
 
     // Find or create ticket
-    const ticket = await findOrCreateTicket(email);
+    const { ticket, isNew } = await findOrCreateTicket(email);
 
     // Add message to ticket
     const result = await addMessageToTicket(ticket, email);
+
+    // Send auto-response for new tickets (not duplicates)
+    if (isNew && !result.duplicate) {
+      const settings = await getHelpdeskSettings();
+      const fromAddress = extractEmail(email.from) || email.from;
+      await sendAutoResponse(fromAddress, email.subject || 'Your Support Request', settings);
+    }
 
     return {
       statusCode: 200,
@@ -345,6 +425,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         ticketId: ticket.documentId || ticket.id,
+        isNewTicket: isNew,
         ...result
       })
     };

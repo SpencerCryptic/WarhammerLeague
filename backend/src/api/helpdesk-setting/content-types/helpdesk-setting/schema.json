@@ -1,0 +1,72 @@
+{
+  "kind": "singleType",
+  "collectionName": "helpdesk_settings",
+  "info": {
+    "singularName": "helpdesk-setting",
+    "pluralName": "helpdesk-settings",
+    "displayName": "Helpdesk Settings",
+    "description": "Configuration for helpdesk automation and messaging"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "autoResponseEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoResponseMessage": {
+      "type": "richtext"
+    },
+    "autoCloseEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoCloseDays": {
+      "type": "integer",
+      "default": 7,
+      "min": 1,
+      "max": 90
+    },
+    "autoCloseMessage": {
+      "type": "richtext"
+    },
+    "resolvedMessageEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "resolvedMessage": {
+      "type": "richtext"
+    },
+    "businessHoursEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "businessHoursStart": {
+      "type": "time"
+    },
+    "businessHoursEnd": {
+      "type": "time"
+    },
+    "businessDays": {
+      "type": "json"
+    },
+    "outOfHoursMessage": {
+      "type": "richtext"
+    },
+    "signatureEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "emailSignature": {
+      "type": "richtext"
+    },
+    "satisfactionSurveyEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "satisfactionSurveyMessage": {
+      "type": "richtext"
+    }
+  }
+}
