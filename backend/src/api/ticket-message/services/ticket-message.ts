@@ -4,4 +4,4 @@
 
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreService('api::ticket-message.ticket-message');
+export default factories.createCoreService('api::ticket-message.ticket-message' as any);
