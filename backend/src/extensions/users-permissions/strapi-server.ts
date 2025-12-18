@@ -27,14 +27,12 @@ export default (plugin) => {
         data: updateData,
       });
 
-      const sanitizedUser = await strapi
-        .plugin('users-permissions')
-        .service('user')
-        .sanitizeUser(updatedUser);
-
-      ctx.send(sanitizedUser);
+      // Return user data without sensitive fields
+      const { password, resetPasswordToken, confirmationToken, ...safeUser } = updatedUser as any;
+      return ctx.send(safeUser);
     } catch (error) {
-      ctx.badRequest('Failed to update profile');
+      console.error('Profile update error:', error);
+      return ctx.badRequest('Failed to update profile');
     }
   };
 
