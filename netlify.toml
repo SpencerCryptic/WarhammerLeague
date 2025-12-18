@@ -48,8 +48,9 @@
   status = 200
 
 # Helpdesk API - Support ticket system
-[functions."helpdesk-email-poll"]
-  schedule = "*/5 * * * *"
+# DISABLED: Using Google Apps Script for email forwarding instead of IMAP polling
+# [functions."helpdesk-email-poll"]
+#   schedule = "*/5 * * * *"
 
 # Helpdesk - Auto-close inactive tickets daily at 6 AM UTC
 [functions."helpdesk-auto-close"]
