@@ -60,26 +60,29 @@ const RegisterPage = () => {
 
       const { jwt, user } = registerRes.data;
       const userId = user.id;
-/*
-      // Step 2: Update user with extra fields
-      await axios.put(
-        `${API_URL}/api/users/${userId}`,
-        {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth,
-          storeLocation: formData.storeLocation,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      );
 
-     update me user instead of put user - to match custom route need to create an updatemeProfile controller in user.ts controller file in backend
-*/
+      // Step 2: Update user with extra fields
+      try {
+        await axios.put(
+          `${API_URL}/api/users/${userId}`,
+          {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phoneNumber: formData.phoneNumber,
+            dateOfBirth: formData.dateOfBirth,
+            storeLocation: formData.storeLocation,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          }
+        );
+      } catch (updateErr) {
+        console.error('Failed to update extra fields:', updateErr);
+        // Continue anyway - user is registered, just missing extra fields
+      }
+
       localStorage.setItem('token', jwt);
       localStorage.setItem('user', JSON.stringify(user));
       setSuccess(true);
