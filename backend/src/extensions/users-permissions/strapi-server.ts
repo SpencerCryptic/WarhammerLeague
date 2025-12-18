@@ -23,13 +23,21 @@ export default (plugin) => {
     if (storeLocation !== undefined) updateData.storeLocation = storeLocation;
 
     try {
-      const updatedUser = await strapi.entityService.update('plugin::users-permissions.user', user.id, {
+      await strapi.entityService.update('plugin::users-permissions.user', user.id, {
         data: updateData,
       });
 
-      // Return user data without sensitive fields
-      const { password, resetPasswordToken, confirmationToken, ...safeUser } = updatedUser as any;
-      return ctx.send(safeUser);
+      // Fetch fresh user data to return
+      const freshUser = await strapi.entityService.findOne('plugin::users-permissions.user', user.id);
+
+      // Remove sensitive fields if they exist
+      if (freshUser) {
+        delete (freshUser as any).password;
+        delete (freshUser as any).resetPasswordToken;
+        delete (freshUser as any).confirmationToken;
+      }
+
+      return ctx.send(freshUser);
     } catch (error) {
       console.error('Profile update error:', error);
       return ctx.badRequest('Failed to update profile');
