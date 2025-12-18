@@ -66,6 +66,7 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
     fetchTicket();
@@ -234,6 +235,53 @@ export default function TicketDetailPage() {
     }
   };
 
+  const blockSender = async () => {
+    if (!ticket?.customerEmail) return;
+
+    if (!confirm(`Block all future emails from ${ticket.customerEmail}? This ticket will be closed.`)) {
+      return;
+    }
+
+    setBlocking(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Add to blocklist in Strapi
+      const response = await fetch(`${API_URL}/api/email-blocklists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: {
+            email: ticket.customerEmail,
+            reason: `Blocked from ticket #${ticket.id}: ${ticket.subject}`
+          }
+        })
+      });
+
+      if (response.ok) {
+        // Close this ticket
+        await updateTicket('status', 'closed');
+        alert(`${ticket.customerEmail} has been blocked. Future emails from this address will be ignored.`);
+      } else {
+        const error = await response.json();
+        if (error.error?.message?.includes('unique')) {
+          alert('This email is already blocked.');
+        } else {
+          alert('Failed to block sender: ' + (error.error?.message || 'Unknown error'));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to block sender:', error);
+      alert('Failed to block sender');
+    } finally {
+      setBlocking(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -360,6 +408,15 @@ export default function TicketDetailPage() {
               <div className="text-white text-xs break-all">{ticket.channelId || 'N/A'}</div>
             </div>
           </div>
+          {ticket.customerEmail && (
+            <button
+              onClick={blockSender}
+              disabled={blocking}
+              className="w-full mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+            >
+              {blocking ? 'Blocking...' : 'Block Sender'}
+            </button>
+          )}
         </div>
 
         {/* Ticket Properties */}

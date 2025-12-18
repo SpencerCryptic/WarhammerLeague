@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "email_blocklists",
+  "info": {
+    "singularName": "email-blocklist",
+    "pluralName": "email-blocklists",
+    "displayName": "Email Blocklist",
+    "description": "Blocked email addresses for helpdesk"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "email": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "reason": {
+      "type": "string"
+    }
+  }
+}

@@ -13,6 +13,69 @@ const STRAPI_URL = process.env.STRAPI_URL || 'https://accessible-positivity-e213
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const WEBHOOK_SECRET = process.env.HELPDESK_WEBHOOK_SECRET;
 
+// Hardcoded blocklist as fallback (Strapi blocklist takes priority)
+const DEFAULT_BLOCKLIST = [
+  'noreply@crypticcabin.com',
+  'service@paypal.co.uk',
+  'notify-noreply@google.com',
+  'sales@nextdaycatering.co.uk',
+  'neil.jagger@battlefront.co.nz',
+  'no-reply@accounts.google.com',
+  'support@stripe.com',
+  'shopify-capital-offers@email.shopify.com',
+  'shopper@worldpay.com',
+  'george@blissdistribution.co.uk',
+  'accounts@asmodee.co.uk',
+  'info@londoncardshow.co.uk',
+  'noreply@youtube.com',
+  'store+95349997945@t.shopifyemail.com',
+  'no-reply@goaffpro.com',
+  'hello@info.tide.co',
+  'store+88385716565@m.shopifyemail.com',
+  'rob.d@steamforged.com',
+  'help@japan2uk.com',
+  'siegestudiosuk@39695361.mailchimpapp.com',
+  'donotreply.sales@asmodee.co.uk',
+  'news@typeform.com',
+  'updates@allevents.in'
+];
+
+/**
+ * Check if email is blocklisted
+ */
+async function isBlocklisted(email) {
+  if (!email) return false;
+  const emailLower = email.toLowerCase();
+
+  // Check hardcoded blocklist first
+  if (DEFAULT_BLOCKLIST.some(blocked => emailLower === blocked.toLowerCase())) {
+    return true;
+  }
+
+  // Check Strapi blocklist
+  try {
+    const response = await fetch(
+      `${STRAPI_URL}/api/email-blocklists?filters[email][$eqi]=${encodeURIComponent(email)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${STRAPI_API_TOKEN}`
+        }
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data?.length > 0) {
+        return true;
+      }
+    }
+  } catch (error) {
+    console.error('Error checking blocklist:', error);
+  }
+
+  return false;
+}
+
 /**
  * Extract email address from "Name <email@example.com>" format
  */
@@ -252,6 +315,21 @@ exports.handler = async (event, context) => {
         statusCode: 400,
         headers,
         body: JSON.stringify({ error: 'No email data provided' })
+      };
+    }
+
+    // Check blocklist
+    const fromAddress = extractEmail(email.from) || email.from;
+    if (await isBlocklisted(fromAddress)) {
+      console.log(`Blocked email from: ${fromAddress}`);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          blocked: true,
+          reason: 'Email address is blocklisted'
+        })
       };
     }
 
