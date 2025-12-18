@@ -55,7 +55,9 @@ async function sendEmail(to, subject, body, ticketId) {
 
   const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
-  const ticketRef = `[Ticket #${ticketId}]`;
+  // Use short ticket reference (first 6 chars)
+  const shortId = String(ticketId).substring(0, 6).toUpperCase();
+  const ticketRef = `#${shortId}`;
 
   const htmlBody = `
 <!DOCTYPE html>

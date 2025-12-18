@@ -71,7 +71,9 @@ async function sendResolvedNotification({ ticketId, ticketSubject, customerEmail
     body += '\n\n' + settings.emailSignature;
   }
 
-  const ticketRef = `[Ticket #${ticketId}]`;
+  // Use short ticket reference (first 6 chars)
+  const shortId = String(ticketId).substring(0, 6).toUpperCase();
+  const ticketRef = `#${shortId}`;
 
   const htmlBody = `
 <!DOCTYPE html>

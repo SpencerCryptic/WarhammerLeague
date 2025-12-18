@@ -91,14 +91,18 @@ async function sendAutoResponse(toEmail, subject, ticketId, settings) {
 
   const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
+  // Use short ticket reference (first 6 chars)
+  const shortId = String(ticketId).substring(0, 6).toUpperCase();
+  const ticketRef = `#${shortId}`;
+
   let body = settings.autoResponseMessage;
 
-  // Add signature if enabled
+  // Add signature if enabled (don't add default - only use configured signature)
   if (settings?.signatureEnabled && settings?.emailSignature) {
     body += '\n\n' + settings.emailSignature;
   }
 
-  const ticketRef = `[Ticket #${ticketId}]`;
+  body += `\n\n---\nRef: ${ticketRef}`;
 
   const htmlBody = `
 <!DOCTYPE html>
@@ -110,7 +114,7 @@ async function sendAutoResponse(toEmail, subject, ticketId, settings) {
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     .content { margin-bottom: 24px; white-space: pre-wrap; }
     .signature { margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; color: #666; font-size: 14px; white-space: pre-wrap; }
-    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #888; }
+    .footer { margin-top: 24px; font-size: 12px; color: #999; }
   </style>
 </head>
 <body>
@@ -123,15 +127,10 @@ async function sendAutoResponse(toEmail, subject, ticketId, settings) {
     <div class="signature">
       ${settings.emailSignature.replace(/\n/g, '<br>')}
     </div>
-    ` : `
-    <div class="signature">
-      Cryptic Cabin Support
-    </div>
-    `}
+    ` : ''}
 
     <div class="footer">
-      Ticket Reference: ${ticketRef}<br>
-      Please reply to this email if you need further assistance.
+      Ref: ${ticketRef}
     </div>
   </div>
 </body>
@@ -141,7 +140,7 @@ async function sendAutoResponse(toEmail, subject, ticketId, settings) {
     await transporter.sendMail({
       from: `"${FROM_NAME}" <${SMTP_FROM}>`,
       to: toEmail,
-      subject: `Re: ${subject} ${ticketRef}`,
+      subject: `Re: ${subject} [${ticketRef}]`,
       text: body,
       html: htmlBody
     });

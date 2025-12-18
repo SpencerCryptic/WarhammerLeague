@@ -131,13 +131,42 @@ function formatMessageContent(content: string): { formatted: string; fields?: Re
     return { formatted: formatted.trim() || content, fields };
   }
 
-  // For regular emails, just clean up forwarded headers
+  // For regular emails, clean up forwarded headers and quoted text
   let cleaned = content
+    // Remove forwarded message headers
     .replace(/---------- Forwarded message ---------[\s\S]*?(?=\n\n|\n[A-Z])/gi, '')
     .replace(/^From:.*$/gm, '')
     .replace(/^Date:.*$/gm, '')
     .replace(/^Subject:.*$/gm, '')
-    .replace(/^To:.*$/gm, '')
+    .replace(/^To:.*$/gm, '');
+
+  // Remove "On ... wrote:" lines and everything after (quoted reply)
+  const onWroteMatch = cleaned.match(/\n*On .+? wrote:[\s\S]*/i);
+  if (onWroteMatch) {
+    cleaned = cleaned.replace(onWroteMatch[0], '');
+  }
+
+  // Remove lines starting with > (quoted text)
+  cleaned = cleaned
+    .split('\n')
+    .filter(line => !line.trim().startsWith('>'))
+    .join('\n');
+
+  // Remove signature dividers and everything after
+  const sigDividerMatch = cleaned.match(/\n---+\s*\n[\s\S]*/);
+  if (sigDividerMatch) {
+    cleaned = cleaned.replace(sigDividerMatch[0], '');
+  }
+
+  // Remove "Ref: #" lines
+  cleaned = cleaned.replace(/^Ref:\s*#\w+.*$/gm, '');
+
+  // Remove "Ticket Reference:" lines
+  cleaned = cleaned.replace(/^Ticket Reference:.*$/gm, '');
+
+  // Clean up multiple newlines and trim
+  cleaned = cleaned
+    .replace(/\n{3,}/g, '\n\n')
     .replace(/^\n+/, '')
     .trim();
 

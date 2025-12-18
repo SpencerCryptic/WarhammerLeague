@@ -79,7 +79,9 @@ async function sendAutoResponse(ticket, settings) {
 
   const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
-  const ticketRef = `[Ticket #${ticket.documentId}]`;
+  // Use short ticket reference (first 6 chars)
+  const shortId = String(ticket.documentId).substring(0, 6).toUpperCase();
+  const ticketRef = `#${shortId}`;
   let body = settings.autoResponseMessage;
 
   // Add signature if enabled

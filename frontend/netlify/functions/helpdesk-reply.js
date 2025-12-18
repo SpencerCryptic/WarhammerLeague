@@ -56,11 +56,14 @@ async function sendEmailReply(to, subject, content, ticketId, options = {}) {
   const fromAddress = process.env.SMTP_FROM || process.env.HELPDESK_FROM_EMAIL || SMTP_CONFIG.auth.user;
   const fromName = process.env.HELPDESK_FROM_NAME || 'Cryptic Cabin Support';
 
+  // Use short ticket reference (first 6 chars)
+  const shortId = String(ticketId).substring(0, 6).toUpperCase();
+  const ticketRef = `#${shortId}`;
+
   // Add ticket reference to subject if not already present
-  const ticketRef = `[Ticket #${ticketId}]`;
-  const replySubject = subject.includes(ticketRef)
+  const replySubject = subject.includes(ticketRef) || subject.includes('[#')
     ? subject
-    : `Re: ${subject} ${ticketRef}`;
+    : `Re: ${subject} [${ticketRef}]`;
 
   // Agent's first name for sign-off
   const agentName = options.agentFirstName || 'The Support Team';
@@ -86,8 +89,7 @@ On ${originalDateFormatted}, you wrote:
 ${originalMessageFormatted}
 ` : ''}
 ---
-Ticket Reference: ${ticketRef}
-Please reply to this email if you need further assistance.`;
+Ref: ${ticketRef}`;
 
   // Build HTML email
   const htmlBody = `
@@ -127,8 +129,7 @@ Please reply to this email if you need further assistance.`;
     ` : ''}
 
     <div class="footer">
-      Ticket Reference: ${ticketRef}<br>
-      Please reply to this email if you need further assistance.
+      Ref: ${ticketRef}
     </div>
   </div>
 </body>
