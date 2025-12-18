@@ -7,8 +7,10 @@ This script forwards emails from your Gmail inbox to the helpdesk webhook. It do
 1. Go to [Google Apps Script](https://script.google.com)
 2. Create a new project called "Helpdesk Email Forwarder"
 3. Replace the default code with the script below
-4. Run `setupTrigger()` once to create the scheduled trigger (runs every 1 minute)
-5. Authorize the script when prompted
+4. Run `resetCutoffToToday()` once to set the start date (only emails from today onwards will be processed)
+5. Run `setupTrigger()` once to create the scheduled trigger (runs every 1 minute)
+6. Authorize the script when prompted
+7. Deploy as Web App (see below)
 
 > **Note:** Google Apps Script doesn't support true "on email received" triggers. 1 minute is the fastest polling interval available.
 
@@ -26,8 +28,22 @@ function processNewEmails() {
     label = GmailApp.createLabel(LABEL_PROCESSED);
   }
 
-  // Search for unread emails not already processed
-  const threads = GmailApp.search('is:unread -label:' + LABEL_PROCESSED, 0, 50);
+  // Get the cutoff date from script properties (or set it to NOW on first run)
+  const props = PropertiesService.getScriptProperties();
+  let cutoffDate = props.getProperty('CUTOFF_DATE');
+
+  if (!cutoffDate) {
+    // First run - set cutoff to NOW, so only future emails are processed
+    cutoffDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    props.setProperty('CUTOFF_DATE', cutoffDate);
+    Logger.log('First run - set cutoff date to: ' + cutoffDate);
+    Logger.log('Only emails from today onwards will be processed');
+    return; // Exit on first run to avoid processing old emails
+  }
+
+  // Search for unread emails not already processed, after the cutoff date
+  const searchQuery = 'is:unread -label:' + LABEL_PROCESSED + ' after:' + cutoffDate;
+  const threads = GmailApp.search(searchQuery, 0, 50);
 
   if (threads.length === 0) {
     return; // No new emails, exit quickly
@@ -103,21 +119,16 @@ function setupTrigger() {
 
   Logger.log('Trigger created - will run every 1 minute');
 }
-```
 
-## How It Works
+// Run this to reset and start fresh from TODAY (ignores all older emails)
+function resetCutoffToToday() {
+  const props = PropertiesService.getScriptProperties();
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+  props.setProperty('CUTOFF_DATE', today);
+  Logger.log('Cutoff date reset to: ' + today);
+  Logger.log('Only emails from today onwards will be processed');
+}
 
-1. Runs every 1 minute (fastest Google allows)
-2. Searches for unread emails without the `Helpdesk-Processed` label
-3. Sends each email to the webhook
-4. Adds the `Helpdesk-Processed` label (but does NOT mark as read)
-5. Emails stay unread in Gmail until manually marked or handled by the app
-
-## Mark as Read Web App
-
-Add this to the same script to enable marking emails as read from the helpdesk app:
-
-```javascript
 // Web app endpoint to mark emails as read when ticket is assigned
 function doPost(e) {
   try {
@@ -126,7 +137,7 @@ function doPost(e) {
     const secret = data.secret;
 
     // Simple security check - set this same secret in your Netlify env vars
-    if (secret !== 'YOUR_SHARED_SECRET_HERE') {
+    if (secret !== 'beneatsalasagneaday') {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
         error: 'Invalid secret'
@@ -167,7 +178,16 @@ function doGet(e) {
 }
 ```
 
-### Deploy as Web App
+## Initial Setup Steps
+
+1. **Paste the script** into Google Apps Script
+2. **Run `resetCutoffToToday()`** - This sets the cutoff date so only emails from today onwards are processed
+3. **Run `setupTrigger()`** - Creates the 1-minute polling trigger
+4. **Authorize** when prompted
+
+## Deploy as Web App
+
+To enable marking emails as read from the helpdesk app:
 
 1. In Apps Script, click **Deploy** → **New deployment**
 2. Select type: **Web app**
@@ -176,11 +196,21 @@ function doGet(e) {
 5. Click **Deploy** and copy the Web App URL
 6. Add to Netlify env vars:
    - `GMAIL_WEBAPP_URL` = your web app URL
-   - `GMAIL_WEBAPP_SECRET` = same secret as in the script
+   - `GMAIL_WEBAPP_SECRET` = `beneatsalasagneaday` (or change both in script and env var)
+
+## How It Works
+
+1. Runs every 1 minute (fastest Google allows)
+2. Only processes emails received AFTER the cutoff date (set by `resetCutoffToToday()`)
+3. Searches for unread emails without the `Helpdesk-Processed` label
+4. Sends each email to the webhook
+5. Adds the `Helpdesk-Processed` label (but does NOT mark as read)
+6. Emails stay unread in Gmail until ticket is assigned in the helpdesk app
 
 ## Notes
 
 - The blocklist is checked server-side in the webhook, not in this script
 - If an email fails to send to the webhook, it won't get the label and will be retried
 - You can manually re-process emails by removing the `Helpdesk-Processed` label
+- Run `resetCutoffToToday()` again if you want to ignore all emails before today
 - Google has quotas: ~20,000 URL fetches/day and script runtime limits
