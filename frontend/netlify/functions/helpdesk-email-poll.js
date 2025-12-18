@@ -242,6 +242,10 @@ async function processEmails() {
  */
 exports.handler = async (event, context) => {
   console.log('Email poll triggered at:', new Date().toISOString());
+  console.log('IMAP_HOST:', process.env.HELPDESK_IMAP_HOST || 'NOT SET');
+  console.log('IMAP_USER:', process.env.HELPDESK_IMAP_USER || 'NOT SET');
+  console.log('IMAP_PASSWORD:', process.env.HELPDESK_IMAP_PASSWORD ? 'SET' : 'NOT SET');
+  console.log('STRAPI_API_TOKEN:', process.env.STRAPI_API_TOKEN ? 'SET' : 'NOT SET');
 
   try {
     const result = await processEmails();
@@ -256,12 +260,14 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Email poll error:', error);
+    console.error('Error stack:', error.stack);
 
     return {
       statusCode: 500,
       body: JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message,
+        stack: error.stack
       })
     };
   }
