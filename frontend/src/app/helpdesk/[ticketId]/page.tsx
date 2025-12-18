@@ -50,6 +50,24 @@ interface User {
 const statusOptions = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
 const priorityOptions = ['low', 'medium', 'high', 'urgent'];
 
+/**
+ * Extract first name from a full name string
+ * Handles formats like "John Smith", "John", "john@email.com"
+ */
+function extractFirstName(fullName: string | undefined): string {
+  if (!fullName) return '';
+
+  // If it looks like an email, don't use it
+  if (fullName.includes('@')) return '';
+
+  // Get the first word and capitalize it
+  const firstName = fullName.trim().split(/\s+/)[0];
+  if (!firstName) return '';
+
+  // Capitalize first letter
+  return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+}
+
 const statusColors: Record<string, string> = {
   open: 'bg-green-500',
   in_progress: 'bg-yellow-500',
@@ -378,6 +396,7 @@ export default function TicketDetailPage() {
             customerEmail: ticket.customerEmail,
             subject: ticket.subject,
             agentFirstName: currentUser.firstName || currentUser.username,
+            customerFirstName: extractFirstName(ticket.customerName),
             originalMessage: lastInboundMessage?.content,
             originalMessageDate: lastInboundMessage?.createdAt
           })
@@ -450,6 +469,7 @@ export default function TicketDetailPage() {
 
   const [markingRead, setMarkingRead] = useState(false);
   const [hasUnreadEmails, setHasUnreadEmails] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Check if there are unread emails (new since last Mark Read)
   useEffect(() => {
@@ -631,9 +651,78 @@ export default function TicketDetailPage() {
             className="w-full bg-gray-700 text-white rounded-lg p-4 border border-gray-600 focus:border-purple-500 focus:outline-none resize-none"
             rows={4}
           />
+
+          {/* Email Preview Toggle */}
+          {(ticket.channel === 'email' || ticket.channel === 'web') && replyContent.trim() && (
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className="mt-3 text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1"
+            >
+              <svg className={`w-4 h-4 transition-transform ${showPreview ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              {showPreview ? 'Hide email preview' : 'Show email preview'}
+            </button>
+          )}
+
+          {/* Email Preview */}
+          {showPreview && replyContent.trim() && (
+            <div className="mt-3 rounded-lg border border-gray-600 overflow-hidden">
+              <div className="bg-gray-700 px-4 py-2 text-xs text-gray-400 border-b border-gray-600">
+                Email Preview
+              </div>
+              <div className="bg-white p-4 text-gray-800 text-sm">
+                <div className="max-w-lg mx-auto">
+                  <p className="mb-4">
+                    {extractFirstName(ticket.customerName)
+                      ? `Hi ${extractFirstName(ticket.customerName)},`
+                      : 'Hi,'}
+                  </p>
+
+                  <div className="mb-6 whitespace-pre-wrap">{replyContent}</div>
+
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="font-semibold text-gray-800">
+                      {currentUser?.firstName || currentUser?.username || 'The Support Team'}
+                    </div>
+                    <div className="text-gray-500 text-xs">Cryptic Cabin Support</div>
+                  </div>
+
+                  {ticket.messages?.filter(m => m.direction === 'inbound').slice(-1)[0] && (
+                    <div className="mt-6 p-3 bg-gray-100 border-l-2 border-gray-300 text-xs text-gray-500">
+                      <div className="mb-2 text-gray-400">
+                        On {new Date(ticket.messages.filter(m => m.direction === 'inbound').slice(-1)[0].createdAt).toLocaleDateString('en-GB', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}, you wrote:
+                      </div>
+                      <div className="whitespace-pre-wrap line-clamp-3">
+                        {ticket.messages.filter(m => m.direction === 'inbound').slice(-1)[0].content.substring(0, 200)}
+                        {ticket.messages.filter(m => m.direction === 'inbound').slice(-1)[0].content.length > 200 ? '...' : ''}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-400">
+                    Ref: #{ticket.documentId.substring(0, 6).toUpperCase()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-center mt-4">
             <div className="text-gray-400 text-sm">
               Reply will be sent via {ticket.channel === 'web' ? 'email' : ticket.channel}
+              {extractFirstName(ticket.customerName) && (
+                <span className="ml-2 text-purple-400">
+                  to {extractFirstName(ticket.customerName)}
+                </span>
+              )}
             </div>
             <button
               onClick={sendReply}

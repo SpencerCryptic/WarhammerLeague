@@ -68,6 +68,10 @@ async function sendEmailReply(to, subject, content, ticketId, options = {}) {
   // Agent's first name for sign-off
   const agentName = options.agentFirstName || 'The Support Team';
 
+  // Customer's first name for greeting (or fall back to generic "Hi")
+  const customerFirstName = options.customerFirstName || '';
+  const greeting = customerFirstName ? `Hi ${customerFirstName},` : 'Hi,';
+
   // Format the original message for quoting
   const originalMessageFormatted = options.originalMessage
     ? options.originalMessage.split('\n').map(line => `> ${line}`).join('\n')
@@ -75,7 +79,7 @@ async function sendEmailReply(to, subject, content, ticketId, options = {}) {
   const originalDateFormatted = formatEmailDate(options.originalMessageDate);
 
   // Build plain text email
-  const textBody = `Hi,
+  const textBody = `${greeting}
 
 ${content}
 
@@ -112,7 +116,7 @@ Ref: ${ticketRef}`;
 </head>
 <body>
   <div class="container">
-    <p>Hi,</p>
+    <p>${greeting}</p>
 
     <div class="content">${content.replace(/\n/g, '<br>')}</div>
 
@@ -277,7 +281,7 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { ticketId, channel, channelId, content, customerEmail, subject, agentFirstName, originalMessage, originalMessageDate } = body;
+    const { ticketId, channel, channelId, content, customerEmail, subject, agentFirstName, customerFirstName, originalMessage, originalMessageDate } = body;
 
     if (!ticketId || !channel || !content) {
       return {
@@ -309,7 +313,7 @@ exports.handler = async (event, context) => {
           subject || 'Support Reply',
           content,
           ticketId,
-          { agentFirstName, originalMessage, originalMessageDate }
+          { agentFirstName, customerFirstName, originalMessage, originalMessageDate }
         );
         break;
 
