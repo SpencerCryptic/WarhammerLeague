@@ -57,14 +57,37 @@ export default function HelpdeskPage() {
   const [filter, setFilter] = useState({
     status: '',
     priority: '',
-    channel: ''
+    channel: '',
+    assignee: ''
   });
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Get current user ID
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const response = await fetch(`${API_URL}/api/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const user = await response.json();
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
   useEffect(() => {
     const status = searchParams.get('status') || '';
-    setFilter(prev => ({ ...prev, status }));
+    const assignee = searchParams.get('assignee') || '';
+    setFilter(prev => ({ ...prev, status, assignee }));
   }, [searchParams]);
 
   const fetchTickets = useCallback(async () => {
@@ -76,8 +99,8 @@ export default function HelpdeskPage() {
 
       if (filter.status) {
         url += `&filters[status][$eq]=${filter.status}`;
-      } else {
-        // By default, exclude closed tickets from "All Tickets"
+      } else if (!filter.assignee) {
+        // By default, exclude closed tickets from "All Tickets" (but not for assignee filter)
         url += `&filters[status][$ne]=closed`;
       }
       if (filter.priority) {
@@ -85,6 +108,10 @@ export default function HelpdeskPage() {
       }
       if (filter.channel) {
         url += `&filters[channel][$eq]=${filter.channel}`;
+      }
+      // Filter by assignee (me)
+      if (filter.assignee === 'me' && currentUserId) {
+        url += `&filters[assignee][id][$eq]=${currentUserId}&filters[status][$ne]=closed`;
       }
 
       const response = await fetch(url, {
@@ -102,7 +129,7 @@ export default function HelpdeskPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, currentUserId]);
 
   useEffect(() => {
     fetchTickets();
@@ -165,7 +192,9 @@ export default function HelpdeskPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Support Tickets</h1>
+          <h1 className="text-3xl font-bold text-white">
+            {filter.assignee === 'me' ? 'Assigned to Me' : 'Support Tickets'}
+          </h1>
           <p className="text-gray-400 mt-1">{tickets.length} tickets</p>
         </div>
       </div>

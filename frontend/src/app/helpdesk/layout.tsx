@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
@@ -13,8 +13,10 @@ export default function HelpdeskLayout({
 }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [ticketCounts, setTicketCounts] = useState({ open: 0, inProgress: 0, waiting: 0, resolved: 0, closed: 0, total: 0 });
+  const [ticketCounts, setTicketCounts] = useState({ open: 0, inProgress: 0, waiting: 0, resolved: 0, closed: 0, total: 0, assignedToMe: 0 });
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     checkAuth();
@@ -51,7 +53,8 @@ export default function HelpdeskLayout({
       }
 
       setIsAuthorized(true);
-      fetchTicketCounts(token);
+      setCurrentUserId(user.id);
+      fetchTicketCounts(token, user.id);
     } catch (error) {
       window.location.href = '/auth/login';
     } finally {
@@ -59,9 +62,9 @@ export default function HelpdeskLayout({
     }
   };
 
-  const fetchTicketCounts = async (token: string) => {
+  const fetchTicketCounts = useCallback(async (token: string, userId?: number) => {
     try {
-      const response = await fetch(`${API_URL}/api/support-tickets?pagination[limit]=1000`, {
+      const response = await fetch(`${API_URL}/api/support-tickets?populate=assignee&pagination[limit]=1000`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -70,19 +73,45 @@ export default function HelpdeskLayout({
         const data = await response.json();
         const tickets = data.data || [];
         const closed = tickets.filter((t: any) => t.status === 'closed').length;
+        const userIdToCheck = userId || currentUserId;
         setTicketCounts({
           open: tickets.filter((t: any) => t.status === 'open').length,
           inProgress: tickets.filter((t: any) => t.status === 'in_progress').length,
           waiting: tickets.filter((t: any) => t.status === 'waiting').length,
           resolved: tickets.filter((t: any) => t.status === 'resolved').length,
           closed: closed,
-          total: tickets.length - closed // Active tickets (excludes closed)
+          total: tickets.length - closed, // Active tickets (excludes closed)
+          assignedToMe: tickets.filter((t: any) => t.assignee?.id === userIdToCheck && t.status !== 'closed').length
         });
       }
     } catch (error) {
       console.error('Failed to fetch ticket counts:', error);
     }
-  };
+  }, [currentUserId]);
+
+  // Poll for updates every 10 seconds
+  useEffect(() => {
+    if (!isAuthorized || !currentUserId) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      fetchTicketCounts(token, currentUserId);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [isAuthorized, currentUserId, fetchTicketCounts]);
+
+  // Refresh counts when pathname or search params change
+  useEffect(() => {
+    if (!isAuthorized || !currentUserId) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    fetchTicketCounts(token, currentUserId);
+  }, [pathname, searchParams, isAuthorized, currentUserId, fetchTicketCounts]);
 
   if (loading) {
     return (
@@ -114,7 +143,7 @@ export default function HelpdeskLayout({
             <Link
               href="/helpdesk"
               className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                pathname === '/helpdesk'
+                pathname === '/helpdesk' && !searchParams.get('status') && !searchParams.get('assignee')
                   ? 'bg-purple-600 text-white'
                   : 'text-gray-300 hover:bg-gray-700'
               }`}
@@ -124,6 +153,22 @@ export default function HelpdeskLayout({
                 {ticketCounts.total}
               </span>
             </Link>
+
+            <Link
+              href="/helpdesk?assignee=me"
+              className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                searchParams.get('assignee') === 'me'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <span>Assigned to Me</span>
+              <span className={`text-white text-xs px-2 py-1 rounded-full ${ticketCounts.assignedToMe > 0 ? 'bg-purple-500' : 'bg-gray-600'}`}>
+                {ticketCounts.assignedToMe}
+              </span>
+            </Link>
+
+            <div className="border-t my-2" style={{ borderColor: 'rgba(168, 85, 247, 0.15)' }} />
 
             <Link
               href="/helpdesk?status=open"
