@@ -40,8 +40,16 @@ export default function HelpdeskLayout({
       }
 
       const user = await response.json();
-      // Check if user has staff role (admin or authenticated with helpdesk access)
-      // For now, allow authenticated users - can be restricted later
+      // Check if user has Support Helper role or is admin
+      const roleName = user.role?.name?.toLowerCase() || '';
+      const isSupport = roleName.includes('support') || roleName.includes('admin') || roleName.includes('helper');
+
+      if (!isSupport) {
+        setIsAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
       setIsAuthorized(true);
       fetchTicketCounts(token);
     } catch (error) {
