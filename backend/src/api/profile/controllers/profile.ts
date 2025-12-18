@@ -9,7 +9,8 @@ export default {
     }
 
     // Security: Ensure user can only update their own profile
-    if (!authenticatedUserId || userId !== authenticatedUserId) {
+    // Use loose equality to handle string/number type differences
+    if (!authenticatedUserId || String(userId) !== String(authenticatedUserId)) {
       return ctx.forbidden('You can only update your own profile');
     }
 
@@ -45,7 +46,8 @@ export default {
     }
 
     // Security: Ensure user can only update their own profile
-    if (!authenticatedUserId || userId !== authenticatedUserId) {
+    // Use loose equality to handle string/number type differences
+    if (!authenticatedUserId || String(userId) !== String(authenticatedUserId)) {
       return ctx.forbidden('You can only update your own profile');
     }
 
