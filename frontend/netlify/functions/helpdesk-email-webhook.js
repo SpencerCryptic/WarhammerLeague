@@ -14,6 +14,28 @@ const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const WEBHOOK_SECRET = process.env.HELPDESK_WEBHOOK_SECRET;
 
 /**
+ * Extract email address from "Name <email@example.com>" format
+ */
+function extractEmail(fromString) {
+  if (!fromString) return '';
+  const match = fromString.match(/<([^>]+)>/);
+  if (match) return match[1];
+  // If no angle brackets, check if it's already just an email
+  if (fromString.includes('@') && !fromString.includes(' ')) return fromString;
+  return '';
+}
+
+/**
+ * Extract name from "Name <email@example.com>" format
+ */
+function extractName(fromString) {
+  if (!fromString) return 'Unknown';
+  const match = fromString.match(/^([^<]+)/);
+  if (match) return match[1].trim().replace(/"/g, '');
+  return fromString.split('@')[0] || 'Unknown';
+}
+
+/**
  * Find or create a ticket for this email
  */
 async function findOrCreateTicket(email) {
@@ -22,8 +44,9 @@ async function findOrCreateTicket(email) {
     'Content-Type': 'application/json'
   };
 
-  const fromAddress = email.from || '';
-  const fromName = email.fromName || fromAddress.split('@')[0] || 'Unknown';
+  const fromRaw = email.from || '';
+  const fromAddress = extractEmail(fromRaw) || fromRaw;
+  const fromName = email.fromName || extractName(fromRaw) || 'Unknown';
 
   // Check for existing open ticket from this email
   const searchResponse = await fetch(
@@ -77,8 +100,8 @@ async function addMessageToTicket(ticket, email) {
     'Content-Type': 'application/json'
   };
 
-  const fromAddress = email.from || '';
-  const fromName = email.fromName || fromAddress.split('@')[0] || 'Unknown';
+  const fromRaw = email.from || '';
+  const fromName = email.fromName || extractName(fromRaw) || 'Unknown';
   const content = email.body || email.text || email.html || '';
   const messageId = email.messageId || `email-${Date.now()}`;
 
