@@ -54,15 +54,110 @@ const weekdays = [
   { id: 'sunday', label: 'Sun' }
 ];
 
+interface BlockedEmail {
+  id: number;
+  documentId: string;
+  email: string;
+  reason?: string;
+}
+
 export default function HelpdeskSettingsPage() {
   const [settings, setSettings] = useState<HelpdeskSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [blockedEmails, setBlockedEmails] = useState<BlockedEmail[]>([]);
+  const [newBlockedEmail, setNewBlockedEmail] = useState('');
+  const [newBlockedReason, setNewBlockedReason] = useState('');
+  const [addingEmail, setAddingEmail] = useState(false);
 
   useEffect(() => {
     fetchSettings();
+    fetchBlockedEmails();
   }, []);
+
+  const fetchBlockedEmails = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/email-blocklists?sort=email:asc&pagination[limit]=1000`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBlockedEmails(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch blocked emails:', error);
+    }
+  };
+
+  const addBlockedEmail = async () => {
+    if (!newBlockedEmail.trim()) return;
+
+    setAddingEmail(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/email-blocklists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: {
+            email: newBlockedEmail.trim().toLowerCase(),
+            reason: newBlockedReason.trim() || 'Manually added from settings'
+          }
+        })
+      });
+
+      if (response.ok) {
+        setNewBlockedEmail('');
+        setNewBlockedReason('');
+        fetchBlockedEmails();
+      } else {
+        const error = await response.json();
+        if (error.error?.message?.includes('unique')) {
+          alert('This email is already blocked.');
+        } else {
+          alert('Failed to add email: ' + (error.error?.message || 'Unknown error'));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to add blocked email:', error);
+      alert('Failed to add email');
+    } finally {
+      setAddingEmail(false);
+    }
+  };
+
+  const removeBlockedEmail = async (documentId: string, email: string) => {
+    if (!confirm(`Remove ${email} from blocklist?`)) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/email-blocklists/${documentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        fetchBlockedEmails();
+      } else {
+        alert('Failed to remove email');
+      }
+    } catch (error) {
+      console.error('Failed to remove blocked email:', error);
+      alert('Failed to remove email');
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -403,6 +498,71 @@ export default function HelpdeskSettingsPage() {
               placeholder="Enter survey message..."
             />
           )}
+        </section>
+
+        {/* Email Blocklist Section */}
+        <section className="rounded-xl border p-6" style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-white">Email Blocklist</h2>
+            <p className="text-gray-400 text-sm">Emails from these addresses won't create tickets</p>
+          </div>
+
+          {/* Add new email */}
+          <div className="flex gap-2 mb-4">
+            <input
+              type="email"
+              value={newBlockedEmail}
+              onChange={(e) => setNewBlockedEmail(e.target.value)}
+              placeholder="email@example.com"
+              className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:border-purple-500 focus:outline-none"
+            />
+            <input
+              type="text"
+              value={newBlockedReason}
+              onChange={(e) => setNewBlockedReason(e.target.value)}
+              placeholder="Reason (optional)"
+              className="w-48 bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:border-purple-500 focus:outline-none"
+            />
+            <button
+              onClick={addBlockedEmail}
+              disabled={addingEmail || !newBlockedEmail.trim()}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {addingEmail ? 'Adding...' : 'Add'}
+            </button>
+          </div>
+
+          {/* List of blocked emails */}
+          <div className="max-h-64 overflow-y-auto">
+            {blockedEmails.length === 0 ? (
+              <div className="text-gray-500 text-center py-4">No blocked emails</div>
+            ) : (
+              <div className="space-y-2">
+                {blockedEmails.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between bg-gray-700 rounded-lg px-4 py-2"
+                  >
+                    <div>
+                      <div className="text-white text-sm">{item.email}</div>
+                      {item.reason && (
+                        <div className="text-gray-400 text-xs">{item.reason}</div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeBlockedEmail(item.documentId, item.email)}
+                      className="text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="mt-2 text-gray-500 text-xs">
+            {blockedEmails.length} blocked email{blockedEmails.length !== 1 ? 's' : ''}
+          </div>
         </section>
 
         {/* Save Button */}
