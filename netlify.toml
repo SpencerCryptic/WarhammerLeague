@@ -70,3 +70,8 @@
   from = "/api/helpdesk/notify"
   to = "/.netlify/functions/helpdesk-notify"
   status = 200
+
+[[redirects]]
+  from = "/api/helpdesk/webhook/email"
+  to = "/.netlify/functions/helpdesk-email-webhook"
+  status = 200

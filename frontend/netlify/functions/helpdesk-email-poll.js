@@ -18,7 +18,8 @@ const IMAP_CONFIG = {
     host: process.env.HELPDESK_IMAP_HOST,
     port: parseInt(process.env.HELPDESK_IMAP_PORT || '993'),
     tls: true,
-    authTimeout: 10000,
+    authTimeout: 5000,
+    connTimeout: 8000,
     tlsOptions: { rejectUnauthorized: false }
   }
 };
