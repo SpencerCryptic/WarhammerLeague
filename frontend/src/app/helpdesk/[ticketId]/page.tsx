@@ -12,6 +12,7 @@ interface Message {
   direction: 'inbound' | 'outbound';
   senderType: 'customer' | 'agent' | 'system';
   senderName: string;
+  messageId?: string; // Gmail messageId for marking as read
   attachments: string[];
   createdAt: string;
 }
@@ -257,6 +258,19 @@ export default function TicketDetailPage() {
                 assigneeName: assignedUser.username
               })
             }).catch(err => console.error('Failed to send notification:', err));
+          }
+
+          // Mark Gmail emails as read when ticket is assigned
+          const gmailMessageIds = ticket.messages
+            ?.filter(m => m.direction === 'inbound' && m.messageId)
+            .map(m => m.messageId);
+
+          if (gmailMessageIds && gmailMessageIds.length > 0) {
+            fetch('/api/helpdesk/mark-read', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ messageIds: gmailMessageIds })
+            }).catch(err => console.error('Failed to mark emails as read:', err));
           }
         }
 
