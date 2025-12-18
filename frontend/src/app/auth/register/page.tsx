@@ -61,10 +61,10 @@ const RegisterPage = () => {
       const { jwt, user } = registerRes.data;
       const userId = user.id;
 
-      // Step 2: Update user with extra fields
+      // Step 2: Update user with extra fields using secure profile endpoint
       try {
         await axios.put(
-          `${API_URL}/api/users/${userId}`,
+          `${API_URL}/api/user/profile`,
           {
             firstName: formData.firstName,
             lastName: formData.lastName,
