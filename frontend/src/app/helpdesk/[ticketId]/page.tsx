@@ -536,22 +536,36 @@ export default function TicketDetailPage() {
 
           <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
             {ticket.messages && ticket.messages.length > 0 ? (
-              ticket.messages.map((message) => {
+              ticket.messages.map((message, index) => {
                 const { formatted } = formatMessageContent(message.content);
+                const isLastMessage = index === ticket.messages!.length - 1;
+                const needsResponse = isLastMessage && message.direction === 'inbound' && ticket.status !== 'resolved' && ticket.status !== 'closed';
+                const daysSinceMessage = Math.floor((Date.now() - new Date(message.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                const isUrgent = needsResponse && daysSinceMessage >= 3;
+
+                // Determine background color
+                let bgClass = 'bg-gray-700 text-white';
+                if (message.direction === 'outbound') {
+                  bgClass = 'bg-purple-600 text-white';
+                } else if (message.senderType === 'system') {
+                  bgClass = 'bg-gray-600 text-gray-300 italic';
+                } else if (isUrgent) {
+                  bgClass = 'bg-red-600 text-white';
+                } else if (needsResponse) {
+                  bgClass = 'bg-purple-500 text-white';
+                }
+
                 return (
                   <div
                     key={message.id}
                     className={`flex ${message.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
-                        message.direction === 'outbound'
-                          ? 'bg-purple-600 text-white'
-                          : message.senderType === 'system'
-                          ? 'bg-gray-600 text-gray-300 italic'
-                          : 'bg-gray-700 text-white'
-                      }`}
-                    >
+                    <div className={`max-w-[80%] rounded-lg p-4 ${bgClass}`}>
+                      {needsResponse && (
+                        <div className={`text-xs mb-2 px-2 py-1 rounded inline-block ${isUrgent ? 'bg-red-800' : 'bg-purple-700'}`}>
+                          {isUrgent ? `⚠️ Awaiting response (${daysSinceMessage} days)` : '💬 Needs response'}
+                        </div>
+                      )}
                       <div className="text-xs opacity-70 mb-2 flex items-center gap-2">
                         <span className="font-medium">{message.senderName}</span>
                         <span>•</span>
