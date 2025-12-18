@@ -15,12 +15,18 @@ const STRAPI_URL = process.env.STRAPI_URL || 'https://accessible-positivity-e213
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 const WEBHOOK_SECRET = process.env.HELPDESK_WEBHOOK_SECRET;
 
-// SMTP Configuration
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = process.env.SMTP_PORT || 587;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const SMTP_FROM = process.env.SMTP_FROM || 'support@crypticcabin.com';
+// SMTP Configuration (consistent with other helpdesk functions)
+const SMTP_CONFIG = {
+  host: process.env.SMTP_HOST || process.env.HELPDESK_SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || process.env.HELPDESK_SMTP_PORT || '587'),
+  secure: (process.env.SMTP_SECURE || process.env.HELPDESK_SMTP_SECURE) === 'true',
+  auth: {
+    user: process.env.SMTP_USER || process.env.HELPDESK_SMTP_USER,
+    pass: process.env.SMTP_PASS || process.env.HELPDESK_SMTP_PASSWORD
+  }
+};
+const SMTP_FROM = process.env.SMTP_FROM || process.env.HELPDESK_FROM_EMAIL || SMTP_CONFIG.auth.user;
+const FROM_NAME = process.env.HELPDESK_FROM_NAME || 'Cryptic Cabin Support';
 
 // Hardcoded blocklist as fallback (Strapi blocklist takes priority)
 const DEFAULT_BLOCKLIST = [
@@ -72,40 +78,72 @@ async function getHelpdeskSettings() {
 /**
  * Send auto-response email
  */
-async function sendAutoResponse(toEmail, subject, settings) {
+async function sendAutoResponse(toEmail, subject, ticketId, settings) {
   if (!settings?.autoResponseEnabled || !settings?.autoResponseMessage) {
     console.log('Auto-response disabled or no message configured');
     return;
   }
 
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+  if (!SMTP_CONFIG.host || !SMTP_CONFIG.auth.user) {
     console.log('SMTP not configured, skipping auto-response');
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT),
-    secure: parseInt(SMTP_PORT) === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASSWORD
-    }
-  });
+  const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
   let body = settings.autoResponseMessage;
 
   // Add signature if enabled
   if (settings?.signatureEnabled && settings?.emailSignature) {
-    body += '\n\n--\n' + settings.emailSignature;
+    body += '\n\n' + settings.emailSignature;
   }
+
+  const ticketRef = `[Ticket #${ticketId}]`;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .content { margin-bottom: 24px; white-space: pre-wrap; }
+    .signature { margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; color: #666; font-size: 14px; white-space: pre-wrap; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi,</p>
+
+    <div class="content">${settings.autoResponseMessage.replace(/\n/g, '<br>')}</div>
+
+    ${settings?.signatureEnabled && settings?.emailSignature ? `
+    <div class="signature">
+      ${settings.emailSignature.replace(/\n/g, '<br>')}
+    </div>
+    ` : `
+    <div class="signature">
+      Cryptic Cabin Support
+    </div>
+    `}
+
+    <div class="footer">
+      Ticket Reference: ${ticketRef}<br>
+      Please reply to this email if you need further assistance.
+    </div>
+  </div>
+</body>
+</html>`;
 
   try {
     await transporter.sendMail({
-      from: SMTP_FROM,
+      from: `"${FROM_NAME}" <${SMTP_FROM}>`,
       to: toEmail,
-      subject: `Re: ${subject}`,
-      text: body
+      subject: `Re: ${subject} ${ticketRef}`,
+      text: body,
+      html: htmlBody
     });
     console.log(`Auto-response sent to ${toEmail}`);
   } catch (error) {
@@ -525,7 +563,7 @@ exports.handler = async (event, context) => {
     // Send auto-response for new tickets (not duplicates)
     if (isNew && !result.duplicate) {
       const settings = await getHelpdeskSettings();
-      await sendAutoResponse(customerEmail, contactFormData?.subject || email.subject || 'Your Support Request', settings);
+      await sendAutoResponse(customerEmail, contactFormData?.subject || email.subject || 'Your Support Request', ticket.documentId || ticket.id, settings);
     }
 
     return {

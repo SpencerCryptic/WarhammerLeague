@@ -241,7 +241,14 @@ export default function TicketDetailPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setTicket(prev => prev ? { ...prev, [field]: value } : null);
+
+        // For assignee, update with full user object so UI reflects the change
+        if (field === 'assignee') {
+          const assignedUser = value ? users.find(u => u.id === value) : null;
+          setTicket(prev => prev ? { ...prev, assignee: assignedUser ? { id: assignedUser.id, username: assignedUser.username } : undefined } : null);
+        } else {
+          setTicket(prev => prev ? { ...prev, [field]: value } : null);
+        }
 
         // Send email notification when assignee changes
         if (field === 'assignee' && value) {
