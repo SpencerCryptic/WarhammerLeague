@@ -39,6 +39,8 @@ interface User {
   id: number;
   username: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   role?: {
     name: string;
   };
@@ -309,6 +311,12 @@ export default function TicketDetailPage() {
         // Send via the appropriate channel using our Netlify function
         // For web/contact form submissions, reply via email
         const replyChannel = ticket.channel === 'web' ? 'email' : ticket.channel;
+
+        // Get the last inbound message for quoting
+        const lastInboundMessage = ticket.messages
+          ?.filter(m => m.direction === 'inbound')
+          .slice(-1)[0];
+
         const replyResponse = await fetch('/api/helpdesk/reply', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -318,7 +326,10 @@ export default function TicketDetailPage() {
             channelId: ticket.channelId,
             content: replyContent,
             customerEmail: ticket.customerEmail,
-            subject: ticket.subject
+            subject: ticket.subject,
+            agentFirstName: currentUser.firstName || currentUser.username,
+            originalMessage: lastInboundMessage?.content,
+            originalMessageDate: lastInboundMessage?.createdAt
           })
         });
 

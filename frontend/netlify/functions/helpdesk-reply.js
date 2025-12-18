@@ -27,9 +27,25 @@ const META_PAGE_ACCESS_TOKEN = process.env.MESSENGER_PAGE_ACCESS_TOKEN;
 const META_INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN || META_PAGE_ACCESS_TOKEN;
 
 /**
+ * Format date for email display
+ */
+function formatEmailDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+/**
  * Send email reply via SMTP
  */
-async function sendEmailReply(to, subject, content, ticketId) {
+async function sendEmailReply(to, subject, content, ticketId, options = {}) {
   if (!SMTP_CONFIG.host || !SMTP_CONFIG.auth.user) {
     console.log('SMTP not configured');
     return { success: false, error: 'SMTP not configured' };
@@ -46,13 +62,85 @@ async function sendEmailReply(to, subject, content, ticketId) {
     ? subject
     : `Re: ${subject} ${ticketRef}`;
 
+  // Agent's first name for sign-off
+  const agentName = options.agentFirstName || 'The Support Team';
+
+  // Format the original message for quoting
+  const originalMessageFormatted = options.originalMessage
+    ? options.originalMessage.split('\n').map(line => `> ${line}`).join('\n')
+    : '';
+  const originalDateFormatted = formatEmailDate(options.originalMessageDate);
+
+  // Build plain text email
+  const textBody = `Hi,
+
+${content}
+
+Best regards,
+${agentName}
+Cryptic Cabin Support
+${options.originalMessage ? `
+-------- Original Message --------
+On ${originalDateFormatted}, you wrote:
+
+${originalMessageFormatted}
+` : ''}
+---
+Ticket Reference: ${ticketRef}
+Please reply to this email if you need further assistance.`;
+
+  // Build HTML email
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .content { margin-bottom: 24px; white-space: pre-wrap; }
+    .signature { margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+    .signature-name { font-weight: 600; color: #333; }
+    .signature-team { color: #666; font-size: 14px; }
+    .original-message { margin-top: 32px; padding: 16px; background: #f9f9f9; border-left: 3px solid #ddd; font-size: 14px; color: #666; }
+    .original-header { font-size: 12px; color: #888; margin-bottom: 12px; }
+    .original-content { white-space: pre-wrap; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi,</p>
+
+    <div class="content">${content.replace(/\n/g, '<br>')}</div>
+
+    <div class="signature">
+      <div class="signature-name">${agentName}</div>
+      <div class="signature-team">Cryptic Cabin Support</div>
+    </div>
+
+    ${options.originalMessage ? `
+    <div class="original-message">
+      <div class="original-header">On ${originalDateFormatted}, you wrote:</div>
+      <div class="original-content">${options.originalMessage.replace(/\n/g, '<br>')}</div>
+    </div>
+    ` : ''}
+
+    <div class="footer">
+      Ticket Reference: ${ticketRef}<br>
+      Please reply to this email if you need further assistance.
+    </div>
+  </div>
+</body>
+</html>`;
+
   try {
     const info = await transporter.sendMail({
       from: `"${fromName}" <${fromAddress}>`,
       to: to,
       subject: replySubject,
-      text: content,
-      html: content.replace(/\n/g, '<br>')
+      text: textBody,
+      html: htmlBody
     });
 
     console.log('Email sent:', info.messageId);
@@ -188,7 +276,7 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { ticketId, channel, channelId, content, customerEmail, subject } = body;
+    const { ticketId, channel, channelId, content, customerEmail, subject, agentFirstName, originalMessage, originalMessageDate } = body;
 
     if (!ticketId || !channel || !content) {
       return {
@@ -219,7 +307,8 @@ exports.handler = async (event, context) => {
           customerEmail,
           subject || 'Support Reply',
           content,
-          ticketId
+          ticketId,
+          { agentFirstName, originalMessage, originalMessageDate }
         );
         break;
 
