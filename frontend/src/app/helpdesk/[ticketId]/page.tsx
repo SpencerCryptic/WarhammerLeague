@@ -448,6 +448,43 @@ export default function TicketDetailPage() {
     }
   };
 
+  const [markingRead, setMarkingRead] = useState(false);
+
+  const markEmailsAsRead = async () => {
+    if (!ticket?.messages) return;
+
+    const gmailMessageIds = ticket.messages
+      .filter(m => m.direction === 'inbound' && m.messageId)
+      .map(m => m.messageId);
+
+    if (gmailMessageIds.length === 0) {
+      alert('No emails to mark as read');
+      return;
+    }
+
+    setMarkingRead(true);
+    try {
+      const response = await fetch('/api/helpdesk/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageIds: gmailMessageIds })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const successCount = result.results?.filter((r: any) => r.success).length || 0;
+        alert(`Marked ${successCount} email(s) as read in Gmail`);
+      } else {
+        alert('Failed to mark emails as read');
+      }
+    } catch (error) {
+      console.error('Failed to mark emails as read:', error);
+      alert('Failed to mark emails as read');
+    } finally {
+      setMarkingRead(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -588,15 +625,26 @@ export default function TicketDetailPage() {
               <div className="text-white text-xs break-all">{ticket.channelId || 'N/A'}</div>
             </div>
           </div>
-          {ticket.customerEmail && (
-            <button
-              onClick={blockSender}
-              disabled={blocking}
-              className="w-full mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-            >
-              {blocking ? 'Blocking...' : 'Block Sender'}
-            </button>
-          )}
+          <div className="flex gap-2 mt-4">
+            {ticket.messages?.some(m => m.direction === 'inbound' && m.messageId) && (
+              <button
+                onClick={markEmailsAsRead}
+                disabled={markingRead}
+                className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {markingRead ? 'Marking...' : 'Mark Read'}
+              </button>
+            )}
+            {ticket.customerEmail && (
+              <button
+                onClick={blockSender}
+                disabled={blocking}
+                className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {blocking ? 'Blocking...' : 'Block'}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Ticket Properties */}
