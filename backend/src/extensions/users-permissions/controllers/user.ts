@@ -25,17 +25,20 @@ export default {
       return ctx.badRequest('User not found');
     }
 
-    const { firstName, lastName, phoneNumber, dateOfBirth, storeLocation } = ctx.request.body;
+    const { email, firstName, lastName, phoneNumber, dateOfBirth, storeLocation } = ctx.request.body;
+
+    // Build update data, only including fields that are provided
+    const updateData: any = {};
+    if (email !== undefined) updateData.email = email;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+    if (storeLocation !== undefined) updateData.storeLocation = storeLocation;
 
     try {
       const updatedUser = await strapi.entityService.update('plugin::users-permissions.user', user.id, {
-        data: {
-          firstName,
-          lastName,
-          phoneNumber,
-          dateOfBirth,
-          storeLocation,
-        },
+        data: updateData,
       });
 
       const sanitizedUser = await strapi

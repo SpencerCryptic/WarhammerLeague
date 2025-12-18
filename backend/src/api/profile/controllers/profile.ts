@@ -1,13 +1,16 @@
 export default {
   // Full profile update during registration (all fields allowed)
   async update(ctx) {
-    console.log('Full profile update request received (registration)');
-    console.log('Request body:', ctx.request.body);
-    
+    const authenticatedUserId = ctx.state.user?.id;
     const { userId, firstName, lastName, phoneNumber, dateOfBirth, storeLocation } = ctx.request.body;
-    
+
     if (!userId) {
       return ctx.badRequest('User ID is required');
+    }
+
+    // Security: Ensure user can only update their own profile
+    if (!authenticatedUserId || userId !== authenticatedUserId) {
+      return ctx.forbidden('You can only update your own profile');
     }
 
     try {
@@ -34,13 +37,16 @@ export default {
 
   // Limited profile update after registration (only certain fields allowed)
   async updateLimited(ctx) {
-    console.log('Limited profile update request received');
-    console.log('Request body:', ctx.request.body);
-    
+    const authenticatedUserId = ctx.state.user?.id;
     const { userId, email, phoneNumber, storeLocation } = ctx.request.body;
-    
+
     if (!userId) {
       return ctx.badRequest('User ID is required');
+    }
+
+    // Security: Ensure user can only update their own profile
+    if (!authenticatedUserId || userId !== authenticatedUserId) {
+      return ctx.forbidden('You can only update your own profile');
     }
 
     // Only allow updating specific fields after registration

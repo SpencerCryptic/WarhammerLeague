@@ -5,7 +5,9 @@ export default {
       path: '/profile/update',
       handler: 'profile.update',
       config: {
-        auth: false,
+        auth: {
+          required: true,
+        },
       },
     },
     {
@@ -13,7 +15,9 @@ export default {
       path: '/profile/update-limited',
       handler: 'profile.updateLimited',
       config: {
-        auth: false,
+        auth: {
+          required: true,
+        },
       },
     },
   ],

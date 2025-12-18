@@ -84,13 +84,16 @@ const Settings = () => {
     setMessage('');
 
     try {
-      await axios.put(`${API_URL}/api/profile/update-limited`, {
-        userId: profile?.id,
+      const token = localStorage.getItem('token');
+      // Use secure endpoint that identifies user from JWT token
+      await axios.put(`${API_URL}/api/user/profile`, {
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         storeLocation: formData.storeLocation,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setMessage('Profile updated successfully!');
       await fetchProfile(); // Refresh the profile data
       setTimeout(() => setMessage(''), 3000);
