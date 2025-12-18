@@ -10,12 +10,18 @@ const nodemailer = require('nodemailer');
 const STRAPI_URL = process.env.STRAPI_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 
-// SMTP Configuration
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = process.env.SMTP_PORT || 587;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const SMTP_FROM = process.env.SMTP_FROM || 'support@crypticcabin.com';
+// SMTP Configuration (consistent with other helpdesk functions)
+const SMTP_CONFIG = {
+  host: process.env.SMTP_HOST || process.env.HELPDESK_SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || process.env.HELPDESK_SMTP_PORT || '587'),
+  secure: (process.env.SMTP_SECURE || process.env.HELPDESK_SMTP_SECURE) === 'true',
+  auth: {
+    user: process.env.SMTP_USER || process.env.HELPDESK_SMTP_USER,
+    pass: process.env.SMTP_PASS || process.env.HELPDESK_SMTP_PASSWORD
+  }
+};
+const SMTP_FROM = process.env.SMTP_FROM || process.env.HELPDESK_FROM_EMAIL || SMTP_CONFIG.auth.user;
+const FROM_NAME = process.env.HELPDESK_FROM_NAME || 'Cryptic Cabin Support';
 
 /**
  * Get helpdesk settings
@@ -39,30 +45,56 @@ async function getSettings() {
 }
 
 /**
- * Send email notification
+ * Send email notification with HTML formatting
  */
-async function sendEmail(to, subject, body) {
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+async function sendEmail(to, subject, body, ticketId) {
+  if (!SMTP_CONFIG.host || !SMTP_CONFIG.auth.user) {
     console.log('SMTP not configured, skipping email');
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT),
-    secure: parseInt(SMTP_PORT) === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASSWORD
-    }
-  });
+  const transporter = nodemailer.createTransport(SMTP_CONFIG);
+
+  const ticketRef = `[Ticket #${ticketId}]`;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .content { margin-bottom: 24px; white-space: pre-wrap; }
+    .signature { margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi,</p>
+
+    <div class="content">${body.replace(/\n/g, '<br>')}</div>
+
+    <div class="signature">
+      Cryptic Cabin Support
+    </div>
+
+    <div class="footer">
+      Ticket Reference: ${ticketRef}<br>
+      Please reply to this email if you need further assistance.
+    </div>
+  </div>
+</body>
+</html>`;
 
   try {
     await transporter.sendMail({
-      from: SMTP_FROM,
+      from: `"${FROM_NAME}" <${SMTP_FROM}>`,
       to,
       subject,
-      text: body
+      text: body,
+      html: htmlBody
     });
     console.log(`Email sent to ${to}`);
   } catch (error) {
@@ -117,8 +149,9 @@ async function closeTicket(ticket, settings) {
   if (settings?.autoCloseMessage && ticket.customerEmail) {
     await sendEmail(
       ticket.customerEmail,
-      `Re: ${ticket.subject} - Ticket Closed`,
-      settings.autoCloseMessage
+      `Re: ${ticket.subject} [Ticket #${ticket.documentId}]`,
+      settings.autoCloseMessage,
+      ticket.documentId
     );
   }
 

@@ -68,15 +68,55 @@ async function sendResolvedNotification({ ticketId, ticketSubject, customerEmail
 
   // Add signature if enabled
   if (settings?.signatureEnabled && settings?.emailSignature) {
-    body += '\n\n--\n' + settings.emailSignature;
+    body += '\n\n' + settings.emailSignature;
   }
+
+  const ticketRef = `[Ticket #${ticketId}]`;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .content { margin-bottom: 24px; white-space: pre-wrap; }
+    .signature { margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; color: #666; font-size: 14px; white-space: pre-wrap; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi,</p>
+
+    <div class="content">${(settings.resolvedMessage || 'Your support ticket has been marked as resolved. If you have any further questions, please reply to this email.').replace(/\n/g, '<br>')}</div>
+
+    ${settings?.signatureEnabled && settings?.emailSignature ? `
+    <div class="signature">
+      ${settings.emailSignature.replace(/\n/g, '<br>')}
+    </div>
+    ` : `
+    <div class="signature">
+      Cryptic Cabin Support
+    </div>
+    `}
+
+    <div class="footer">
+      Ticket Reference: ${ticketRef}<br>
+      Please reply to this email if you need further assistance.
+    </div>
+  </div>
+</body>
+</html>`;
 
   try {
     const info = await transporter.sendMail({
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: customerEmail,
-      subject: `Re: ${ticketSubject} - Resolved`,
-      text: body
+      subject: `Re: ${ticketSubject} ${ticketRef}`,
+      text: body,
+      html: htmlBody
     });
 
     console.log('Resolved notification sent:', info.messageId);
