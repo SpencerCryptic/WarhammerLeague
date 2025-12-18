@@ -38,6 +38,10 @@ interface Ticket {
 interface User {
   id: number;
   username: string;
+  email: string;
+  role?: {
+    name: string;
+  };
 }
 
 const statusOptions = ['open', 'in_progress', 'waiting', 'resolved', 'closed'];
@@ -114,12 +118,17 @@ export default function TicketDetailPage() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/api/users`, {
+      const response = await fetch(`${API_URL}/api/users?populate=role`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setUsers(data);
+        // Filter to only show Support Helper users
+        const supportUsers = data.filter((user: User) => {
+          const roleName = user.role?.name?.toLowerCase() || '';
+          return roleName.includes('support') || roleName.includes('admin') || roleName.includes('helper');
+        });
+        setUsers(supportUsers);
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -143,6 +152,24 @@ export default function TicketDetailPage() {
       if (response.ok) {
         const data = await response.json();
         setTicket(prev => prev ? { ...prev, [field]: value } : null);
+
+        // Send email notification when assignee changes
+        if (field === 'assignee' && value) {
+          const assignedUser = users.find(u => u.id === value);
+          if (assignedUser?.email) {
+            fetch('/api/helpdesk/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'assignment',
+                ticketId: ticket.documentId,
+                ticketSubject: ticket.subject,
+                assigneeEmail: assignedUser.email,
+                assigneeName: assignedUser.username
+              })
+            }).catch(err => console.error('Failed to send notification:', err));
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to update ticket:', error);
