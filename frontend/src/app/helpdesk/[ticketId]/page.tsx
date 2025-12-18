@@ -589,7 +589,7 @@ export default function TicketDetailPage() {
                     <div className={`max-w-[80%] rounded-lg p-4 ${bgClass}`}>
                       {needsResponse && (
                         <div className={`text-xs mb-2 px-2 py-1 rounded inline-block ${isUrgent ? 'bg-red-800' : 'bg-purple-700'}`}>
-                          {isUrgent ? `⚠️ Awaiting response (${daysSinceMessage} days)` : '💬 Needs response'}
+                          {isUrgent ? `Awaiting response (${daysSinceMessage} days)` : 'Needs response'}
                         </div>
                       )}
                       <div className="text-xs opacity-70 mb-2 flex items-center gap-2">

@@ -6,6 +6,12 @@ import Link from 'next/link';
 
 const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
+interface Message {
+  id: number;
+  direction: 'inbound' | 'outbound';
+  createdAt: string;
+}
+
 interface Ticket {
   id: number;
   documentId: string;
@@ -20,6 +26,7 @@ interface Ticket {
   assignee?: {
     username: string;
   };
+  messages?: Message[];
 }
 
 const statusColors: Record<string, string> = {
@@ -65,7 +72,7 @@ export default function HelpdeskPage() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      let url = `${API_URL}/api/support-tickets?populate=assignee&sort=lastMessageAt:desc&pagination[limit]=1000`;
+      let url = `${API_URL}/api/support-tickets?populate[0]=assignee&populate[1]=messages&sort=lastMessageAt:desc&pagination[limit]=1000`;
 
       if (filter.status) {
         url += `&filters[status][$eq]=${filter.status}`;
@@ -114,6 +121,35 @@ export default function HelpdeskPage() {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
+  };
+
+  // Check if ticket needs a response (last message is inbound)
+  const getTicketResponseStatus = (ticket: Ticket): { needsResponse: boolean; isUrgent: boolean; daysSinceMessage: number } => {
+    if (!ticket.messages || ticket.messages.length === 0) {
+      return { needsResponse: false, isUrgent: false, daysSinceMessage: 0 };
+    }
+
+    // Sort messages by createdAt to get the last one
+    const sortedMessages = [...ticket.messages].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const lastMessage = sortedMessages[0];
+
+    if (lastMessage.direction !== 'inbound') {
+      return { needsResponse: false, isUrgent: false, daysSinceMessage: 0 };
+    }
+
+    // Calculate days since last message
+    const lastMessageDate = new Date(lastMessage.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - lastMessageDate.getTime();
+    const daysSinceMessage = Math.floor(diffMs / 86400000);
+
+    return {
+      needsResponse: true,
+      isUrgent: daysSinceMessage >= 3,
+      daysSinceMessage
+    };
   };
 
   if (loading) {
@@ -192,12 +228,32 @@ export default function HelpdeskPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {tickets.map((ticket) => (
+          {tickets.map((ticket) => {
+            const responseStatus = getTicketResponseStatus(ticket);
+            const getBorderStyle = () => {
+              if (responseStatus.isUrgent) {
+                return {
+                  borderColor: 'rgba(239, 68, 68, 0.6)',
+                  boxShadow: '0 0 12px rgba(239, 68, 68, 0.4)'
+                };
+              }
+              if (responseStatus.needsResponse) {
+                return {
+                  borderColor: 'rgba(168, 85, 247, 0.6)',
+                  boxShadow: '0 0 12px rgba(168, 85, 247, 0.4)'
+                };
+              }
+              return {
+                borderColor: 'rgba(168, 85, 247, 0.15)'
+              };
+            };
+
+            return (
             <Link
               key={ticket.documentId}
               href={`/helpdesk/${ticket.documentId}`}
               className="block rounded-lg p-4 border transition-all duration-200 hover:border-purple-500"
-              style={{ backgroundColor: '#1E2330', borderColor: 'rgba(168, 85, 247, 0.15)' }}
+              style={{ backgroundColor: '#1E2330', ...getBorderStyle() }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -231,7 +287,8 @@ export default function HelpdeskPage() {
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
