@@ -78,23 +78,29 @@ async function sendEmailReply(to, subject, content, ticketId, options = {}) {
     : '';
   const originalDateFormatted = formatEmailDate(options.originalMessageDate);
 
-  // Build plain text email
+  // Build plain text email with clear visual separation
   const textBody = `${greeting}
 
 ${content}
 
+
 If you have any further questions, please don't hesitate to reply to this email.
 
+
 Best regards,
+
 ${agentName}
 Cryptic Cabin Support
+
 ${options.originalMessage ? `
--------- Original Message --------
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 On ${originalDateFormatted}, you wrote:
 
-${originalMessageFormatted}
+    ${options.originalMessage.split('\n').join('\n    ')}
+
 ` : ''}
----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ref: ${ticketRef}`;
 
   // Build HTML email
