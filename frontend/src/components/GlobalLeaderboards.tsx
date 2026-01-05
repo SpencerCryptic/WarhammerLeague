@@ -48,7 +48,7 @@ export default function GlobalLeaderboards() {
   const fetchGlobalStats = async () => {
     try {
       // Fetch all leagues with players and matches (for VP calculation)
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=player&populate[matches][populate][leaguePlayer1]=documentId&populate[matches][populate][leaguePlayer2]=documentId');
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][0]=player&populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
