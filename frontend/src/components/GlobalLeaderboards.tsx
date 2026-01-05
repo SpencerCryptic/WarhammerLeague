@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface LeaderboardEntry {
   id: string;
@@ -427,9 +428,10 @@ export default function GlobalLeaderboards() {
 
           <div className="space-y-2">
             {getCurrentLeaderboard().map((player, index) => (
-              <div
+              <Link
                 key={player.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                href={`/stats/player/${player.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-4">
                   <div className={`text-lg min-w-[40px] text-center ${getRankStyle(index + 1)}`}>
@@ -452,7 +454,7 @@ export default function GlobalLeaderboards() {
                     {player.wins}W-{player.draws}D-{player.losses}L
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 
