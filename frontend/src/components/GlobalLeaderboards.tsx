@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface LeaderboardEntry {
   id: string;
+  documentId: string;
   playerName: string;
   leagueCount: number;
   wins: number;
@@ -116,6 +117,7 @@ export default function GlobalLeaderboards() {
           if (!playerStatsMap.has(playerId)) {
             playerStatsMap.set(playerId, {
               id: playerId,
+              documentId: leaguePlayer.player?.documentId || '',
               playerName: playerName,
               wins: 0,
               draws: 0,
@@ -140,6 +142,7 @@ export default function GlobalLeaderboards() {
           if (!gsStats.players.has(playerId)) {
             gsStats.players.set(playerId, {
               id: playerId,
+              documentId: leaguePlayer.player?.documentId || '',
               playerName: playerName,
               wins: 0,
               draws: 0,
@@ -430,7 +433,7 @@ export default function GlobalLeaderboards() {
             {getCurrentLeaderboard().map((player, index) => (
               <Link
                 key={player.id}
-                href={`/stats/player/${player.id}`}
+                href={`/stats/player/${player.documentId}`}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-4">

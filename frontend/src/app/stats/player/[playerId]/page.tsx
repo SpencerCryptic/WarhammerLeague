@@ -10,6 +10,7 @@ interface Match {
   id: number;
   documentId: string;
   statusMatch: string;
+  round?: number;
   leaguePlayer1Score: number;
   leaguePlayer2Score: number;
   leaguePlayer1List?: string;
@@ -24,31 +25,26 @@ interface Match {
     leagueName: string;
     faction?: string;
   };
-  round?: number;
 }
 
-interface LeaguePlayerData {
-  documentId: string;
+interface LeagueEntry {
+  leagueDocumentId: string;
   leagueName: string;
+  gameSystem: string;
+  leaguePlayerDocumentId: string;
+  leagueName_display: string;
   faction?: string;
   wins: number;
   draws: number;
   losses: number;
   rankingPoints: number;
-  armyLists?: any[];
-  league: {
-    documentId: string;
-    name: string;
-    gameSystem: string;
-  };
   matches: Match[];
 }
 
 interface PlayerProfile {
-  id: number;
   documentId: string;
   name: string;
-  leaguePlayers: LeaguePlayerData[];
+  leagues: LeagueEntry[];
   totalStats: {
     wins: number;
     draws: number;
@@ -63,71 +59,94 @@ interface PlayerProfile {
 
 export default function PlayerProfilePage() {
   const params = useParams();
-  const playerId = params.playerId as string;
+  const playerDocId = params.playerId as string;
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string>('all');
 
   useEffect(() => {
-    if (playerId) {
+    if (playerDocId) {
       fetchPlayerProfile();
     }
-  }, [playerId]);
+  }, [playerDocId]);
 
   const fetchPlayerProfile = async () => {
     try {
-      // Fetch player data
-      const playerResponse = await fetch(
-        `${API_URL}/api/players/${playerId}?populate[league_players][populate][0]=league`
+      // Fetch all leagues with league_players populated with player
+      const leaguesResponse = await fetch(
+        `${API_URL}/api/leagues?populate[league_players][populate][0]=player`
       );
-      const playerData = await playerResponse.json();
+      const leaguesData = await leaguesResponse.json();
 
-      if (!playerData.data) {
+      if (!leaguesData.data) {
         setLoading(false);
         return;
       }
 
-      const playerInfo = playerData.data;
-      const leaguePlayers = playerInfo.league_players || [];
+      // Find all league_players for this player
+      const playerLeagues: LeagueEntry[] = [];
+      let playerName = '';
 
-      // Fetch matches for each league player
-      const leaguePlayersWithMatches: LeaguePlayerData[] = await Promise.all(
-        leaguePlayers.map(async (lp: any) => {
-          // Fetch the league with matches
-          const leagueResponse = await fetch(
-            `${API_URL}/api/leagues/${lp.league?.documentId}?populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2`
+      for (const league of leaguesData.data) {
+        const leaguePlayers = league.league_players || [];
+        const matchingLP = leaguePlayers.find(
+          (lp: any) => lp.player?.documentId === playerDocId
+        );
+
+        if (matchingLP) {
+          if (!playerName) {
+            playerName = matchingLP.player?.name || matchingLP.leagueName || 'Unknown';
+          }
+
+          // Fetch matches for this league
+          const matchesResponse = await fetch(
+            `${API_URL}/api/leagues/${league.documentId}?populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2`
           );
-          const leagueData = await leagueResponse.json();
+          const matchesData = await matchesResponse.json();
+          const allMatches = matchesData.data?.matches || [];
 
           // Filter matches for this league player
-          const allMatches = leagueData.data?.matches || [];
-          const playerMatches = allMatches.filter((m: Match) =>
-            m.leaguePlayer1?.documentId === lp.documentId ||
-            m.leaguePlayer2?.documentId === lp.documentId
+          const playerMatches = allMatches.filter(
+            (m: Match) =>
+              m.leaguePlayer1?.documentId === matchingLP.documentId ||
+              m.leaguePlayer2?.documentId === matchingLP.documentId
           );
 
-          return {
-            ...lp,
-            league: lp.league || { name: 'Unknown League', gameSystem: 'Unknown' },
+          playerLeagues.push({
+            leagueDocumentId: league.documentId,
+            leagueName: league.name,
+            gameSystem: league.gameSystem || 'Unknown',
+            leaguePlayerDocumentId: matchingLP.documentId,
+            leagueName_display: matchingLP.leagueName,
+            faction: matchingLP.faction,
+            wins: matchingLP.wins || 0,
+            draws: matchingLP.draws || 0,
+            losses: matchingLP.losses || 0,
+            rankingPoints: matchingLP.rankingPoints || 0,
             matches: playerMatches
-          };
-        })
-      );
+          });
+        }
+      }
+
+      if (playerLeagues.length === 0) {
+        setLoading(false);
+        return;
+      }
 
       // Calculate total stats
       let totalWins = 0, totalDraws = 0, totalLosses = 0, totalRP = 0, totalVP = 0;
 
-      leaguePlayersWithMatches.forEach(lp => {
-        totalWins += lp.wins || 0;
-        totalDraws += lp.draws || 0;
-        totalLosses += lp.losses || 0;
-        totalRP += lp.rankingPoints || 0;
+      playerLeagues.forEach(league => {
+        totalWins += league.wins;
+        totalDraws += league.draws;
+        totalLosses += league.losses;
+        totalRP += league.rankingPoints;
 
         // Calculate VP from matches
-        lp.matches.forEach(match => {
+        league.matches.forEach(match => {
           if (match.statusMatch === 'played') {
-            if (match.leaguePlayer1?.documentId === lp.documentId) {
+            if (match.leaguePlayer1?.documentId === league.leaguePlayerDocumentId) {
               totalVP += match.leaguePlayer1Score || 0;
             } else {
               totalVP += match.leaguePlayer2Score || 0;
@@ -139,10 +158,9 @@ export default function PlayerProfilePage() {
       const totalGames = totalWins + totalDraws + totalLosses;
 
       setPlayer({
-        id: playerInfo.id,
-        documentId: playerInfo.documentId,
-        name: playerInfo.name,
-        leaguePlayers: leaguePlayersWithMatches,
+        documentId: playerDocId,
+        name: playerName,
+        leagues: playerLeagues,
         totalStats: {
           wins: totalWins,
           draws: totalDraws,
@@ -212,9 +230,9 @@ export default function PlayerProfilePage() {
   }
 
   // Get all matches from all leagues, optionally filtered
-  const allMatches = player.leaguePlayers
-    .filter(lp => selectedLeague === 'all' || lp.league.documentId === selectedLeague)
-    .flatMap(lp => lp.matches.map(m => ({ ...m, leaguePlayer: lp })));
+  const allMatches = player.leagues
+    .filter(league => selectedLeague === 'all' || league.leagueDocumentId === selectedLeague)
+    .flatMap(league => league.matches.map(m => ({ ...m, league })));
 
   // Sort by most recent (using match id as proxy)
   allMatches.sort((a, b) => b.id - a.id);
@@ -230,7 +248,7 @@ export default function PlayerProfilePage() {
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700">
         <h1 className="text-3xl font-bold text-white mb-2">{player.name}</h1>
         <p className="text-gray-400">
-          {player.leaguePlayers.length} {player.leaguePlayers.length === 1 ? 'league' : 'leagues'} • {player.totalStats.totalGames} games played
+          {player.leagues.length} {player.leagues.length === 1 ? 'league' : 'leagues'} • {player.totalStats.totalGames} games played
         </p>
       </div>
 
@@ -266,26 +284,26 @@ export default function PlayerProfilePage() {
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h2 className="text-xl font-bold text-white mb-4">Leagues</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {player.leaguePlayers.map((lp) => (
+          {player.leagues.map((league) => (
             <Link
-              key={lp.documentId}
-              href={`/leagues/${lp.league.documentId}`}
+              key={league.leaguePlayerDocumentId}
+              href={`/leagues/${league.leagueDocumentId}`}
               className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-orange-500/50 transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold text-white">{lp.league.name}</h3>
-                  <p className="text-sm text-gray-400">{lp.league.gameSystem}</p>
+                  <h3 className="font-semibold text-white">{league.leagueName}</h3>
+                  <p className="text-sm text-gray-400">{league.gameSystem}</p>
                 </div>
                 <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded">
-                  {lp.faction || 'No faction'}
+                  {league.faction || 'No faction'}
                 </span>
               </div>
               <div className="flex gap-4 text-sm">
-                <span className="text-green-400">{lp.wins}W</span>
-                <span className="text-yellow-400">{lp.draws}D</span>
-                <span className="text-red-400">{lp.losses}L</span>
-                <span className="text-orange-400">{lp.rankingPoints} LP</span>
+                <span className="text-green-400">{league.wins}W</span>
+                <span className="text-yellow-400">{league.draws}D</span>
+                <span className="text-red-400">{league.losses}L</span>
+                <span className="text-orange-400">{league.rankingPoints} LP</span>
               </div>
             </Link>
           ))}
@@ -302,9 +320,9 @@ export default function PlayerProfilePage() {
             className="bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 text-sm"
           >
             <option value="all">All Leagues</option>
-            {player.leaguePlayers.map((lp) => (
-              <option key={lp.league.documentId} value={lp.league.documentId}>
-                {lp.league.name}
+            {player.leagues.map((league) => (
+              <option key={league.leagueDocumentId} value={league.leagueDocumentId}>
+                {league.leagueName}
               </option>
             ))}
           </select>
@@ -315,13 +333,13 @@ export default function PlayerProfilePage() {
             <div className="text-center py-8 text-gray-400">No matches found</div>
           ) : (
             allMatches.filter(m => m.statusMatch === 'played').map((match) => {
-              const isPlayer1 = match.leaguePlayer1?.documentId === match.leaguePlayer.documentId;
+              const isPlayer1 = match.leaguePlayer1?.documentId === match.league.leaguePlayerDocumentId;
               const playerScore = isPlayer1 ? match.leaguePlayer1Score : match.leaguePlayer2Score;
               const opponentScore = isPlayer1 ? match.leaguePlayer2Score : match.leaguePlayer1Score;
               const opponent = isPlayer1 ? match.leaguePlayer2 : match.leaguePlayer1;
               const playerList = isPlayer1 ? match.leaguePlayer1List : match.leaguePlayer2List;
               const opponentList = isPlayer1 ? match.leaguePlayer2List : match.leaguePlayer1List;
-              const result = getMatchResult(match, match.leaguePlayer.documentId);
+              const result = getMatchResult(match, match.league.leaguePlayerDocumentId);
               const isExpanded = expandedMatch === match.documentId;
 
               return (
@@ -346,7 +364,7 @@ export default function PlayerProfilePage() {
                             )}
                           </div>
                           <div className="text-sm text-gray-400">
-                            {match.leaguePlayer.league.name}
+                            {match.league.leagueName}
                             {match.round && ` • Round ${match.round}`}
                           </div>
                         </div>
