@@ -47,8 +47,8 @@ export default function GlobalLeaderboards() {
 
   const fetchGlobalStats = async () => {
     try {
-      // Fetch all leagues with players and matches (for VP calculation)
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][0]=player&populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2');
+      // Fetch all leagues with players
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][0]=player');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -56,26 +56,27 @@ export default function GlobalLeaderboards() {
         return;
       }
 
+      // Fetch matches for each league individually (collection query doesn't return matches properly)
+      const leaguesWithMatches = await Promise.all(
+        leaguesData.data.map(async (league: any) => {
+          try {
+            const matchesResponse = await fetch(
+              `https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues/${league.documentId}?populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2`
+            );
+            const matchesData = await matchesResponse.json();
+            return { ...league, matches: matchesData.data?.matches || [] };
+          } catch {
+            return { ...league, matches: [] };
+          }
+        })
+      );
+
       let totalGamesPlayed = 0;
       let factionCounts: { [key: string]: number } = {};
       const playerStatsMap = new Map();
       const gameSystemStatsMap = new Map<string, { players: Map<string, any>, leagueCount: number }>();
 
-      // First pass: collect league player document IDs to player IDs mapping
-      const leaguePlayerToPlayer = new Map<string, { playerId: string; playerName: string }>();
-
-      leaguesData.data.forEach((league: any) => {
-        (league.league_players || []).forEach((lp: any) => {
-          if (lp.documentId && lp.player?.id) {
-            leaguePlayerToPlayer.set(lp.documentId, {
-              playerId: lp.player.id,
-              playerName: lp.player.name || 'Anonymous'
-            });
-          }
-        });
-      });
-
-      leaguesData.data.forEach((league: any) => {
+      leaguesWithMatches.forEach((league: any) => {
         const gameSystem = league.gameSystem || 'Unknown';
 
         // Track game system stats
