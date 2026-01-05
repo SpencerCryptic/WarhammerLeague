@@ -40,8 +40,8 @@ export default function GlobalLeaderboards() {
 
   const fetchGlobalStats = async () => {
     try {
-      // Fetch all leagues and their players
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate][player][populate]=user&populate[matches][populate][0]=leaguePlayer1&populate[matches][populate][1]=leaguePlayer2');
+      // Fetch all leagues and their players (stats are tracked on league_players)
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=player');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -49,13 +49,11 @@ export default function GlobalLeaderboards() {
         return;
       }
 
-      let totalMatches = 0;
+      let totalGamesPlayed = 0; // Will be sum of all games, divide by 2 for match count
       let factionCounts: { [key: string]: number } = {};
       const playerStatsMap = new Map();
 
       leaguesData.data.forEach((league: any) => {
-        const leagueMatches = league.matches || [];
-        totalMatches += leagueMatches.length;
 
         (league.league_players || []).forEach((leaguePlayer: any) => {
           const playerId = leaguePlayer.player?.id;
@@ -63,15 +61,9 @@ export default function GlobalLeaderboards() {
 
           const playerName = leaguePlayer.player?.name || 'Anonymous';
 
-          // Calculate victory points from matches
-          let victoryPoints = 0;
-          leagueMatches.forEach((match: any) => {
-            if (match.leaguePlayer1?.documentId === leaguePlayer.documentId) {
-              victoryPoints += match.leaguePlayer1Score || 0;
-            } else if (match.leaguePlayer2?.documentId === leaguePlayer.documentId) {
-              victoryPoints += match.leaguePlayer2Score || 0;
-            }
-          });
+          // Count games played by this league_player for total matches calculation
+          const playerGames = (leaguePlayer.wins || 0) + (leaguePlayer.draws || 0) + (leaguePlayer.losses || 0);
+          totalGamesPlayed += playerGames;
 
           // Aggregate by player
           if (!playerStatsMap.has(playerId)) {
@@ -93,8 +85,7 @@ export default function GlobalLeaderboards() {
           stats.draws += leaguePlayer.draws || 0;
           stats.losses += leaguePlayer.losses || 0;
           stats.rankingPoints += leaguePlayer.rankingPoints || 0;
-          stats.victoryPoints += victoryPoints;
-          stats.totalGames += (leaguePlayer.wins || 0) + (leaguePlayer.draws || 0) + (leaguePlayer.losses || 0);
+          stats.totalGames += playerGames;
           stats.leagueCount += 1;
 
           // Count factions
@@ -137,6 +128,9 @@ export default function GlobalLeaderboards() {
       const mostActive = [...allPlayers]
         .sort((a, b) => b.totalGames - a.totalGames)
         .slice(0, 10);
+
+      // Each match involves 2 players, so divide by 2 to get total matches
+      const totalMatches = Math.floor(totalGamesPlayed / 2);
 
       setStats({
         totalLeagues: leaguesData.data.length,
