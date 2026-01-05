@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -51,7 +51,7 @@ const channelIcons: Record<string, string> = {
   web: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'
 };
 
-export default function HelpdeskPage() {
+function HelpdeskPageContent() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({
@@ -321,5 +321,17 @@ export default function HelpdeskPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function HelpdeskPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-xl">Loading tickets...</div>
+      </div>
+    }>
+      <HelpdeskPageContent />
+    </Suspense>
   );
 }

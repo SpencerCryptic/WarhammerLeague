@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 const API_URL = 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
-export default function HelpdeskLayout({
+function HelpdeskLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -265,5 +265,21 @@ export default function HelpdeskLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function HelpdeskLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F1117' }}>
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <HelpdeskLayoutContent>{children}</HelpdeskLayoutContent>
+    </Suspense>
   );
 }
