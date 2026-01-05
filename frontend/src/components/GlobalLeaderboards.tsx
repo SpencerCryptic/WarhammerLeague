@@ -10,21 +10,27 @@ interface LeaderboardEntry {
   draws: number;
   losses: number;
   rankingPoints: number;
-  victoryPoints: number;
   winRate: number;
   totalGames: number;
+  avgPointsPerGame: number;
+}
+
+interface GameSystemStats {
+  gameSystem: string;
+  playerCount: number;
+  leagueCount: number;
+  topPlayers: LeaderboardEntry[];
 }
 
 interface GlobalStats {
   totalLeagues: number;
   totalPlayers: number;
   totalMatches: number;
-  averageWinRate: number;
   mostPopularFaction: string;
+  gameSystems: GameSystemStats[];
   leaderboards: {
     topByPoints: LeaderboardEntry[];
     topByWinRate: LeaderboardEntry[];
-    topByVictoryPoints: LeaderboardEntry[];
     mostActive: LeaderboardEntry[];
   };
 }
@@ -32,7 +38,7 @@ interface GlobalStats {
 export default function GlobalLeaderboards() {
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedBoard, setSelectedBoard] = useState<'points' | 'winrate' | 'active'>('points');
+  const [selectedBoard, setSelectedBoard] = useState<string>('points');
 
   useEffect(() => {
     fetchGlobalStats();
@@ -49,23 +55,30 @@ export default function GlobalLeaderboards() {
         return;
       }
 
-      let totalGamesPlayed = 0; // Will be sum of all games, divide by 2 for match count
+      let totalGamesPlayed = 0;
       let factionCounts: { [key: string]: number } = {};
       const playerStatsMap = new Map();
+      const gameSystemStatsMap = new Map<string, { players: Map<string, any>, leagueCount: number }>();
 
       leaguesData.data.forEach((league: any) => {
+        const gameSystem = league.gameSystem || 'Unknown';
+
+        // Track game system stats
+        if (!gameSystemStatsMap.has(gameSystem)) {
+          gameSystemStatsMap.set(gameSystem, { players: new Map(), leagueCount: 0 });
+        }
+        const gsStats = gameSystemStatsMap.get(gameSystem)!;
+        gsStats.leagueCount += 1;
 
         (league.league_players || []).forEach((leaguePlayer: any) => {
           const playerId = leaguePlayer.player?.id;
           if (!playerId) return;
 
           const playerName = leaguePlayer.player?.name || 'Anonymous';
-
-          // Count games played by this league_player for total matches calculation
           const playerGames = (leaguePlayer.wins || 0) + (leaguePlayer.draws || 0) + (leaguePlayer.losses || 0);
           totalGamesPlayed += playerGames;
 
-          // Aggregate by player
+          // Global player stats
           if (!playerStatsMap.has(playerId)) {
             playerStatsMap.set(playerId, {
               id: playerId,
@@ -74,19 +87,40 @@ export default function GlobalLeaderboards() {
               draws: 0,
               losses: 0,
               rankingPoints: 0,
-              victoryPoints: 0,
               totalGames: 0,
               leagueCount: 0
             });
           }
 
-          const stats = playerStatsMap.get(playerId);
-          stats.wins += leaguePlayer.wins || 0;
-          stats.draws += leaguePlayer.draws || 0;
-          stats.losses += leaguePlayer.losses || 0;
-          stats.rankingPoints += leaguePlayer.rankingPoints || 0;
-          stats.totalGames += playerGames;
-          stats.leagueCount += 1;
+          const globalStats = playerStatsMap.get(playerId);
+          globalStats.wins += leaguePlayer.wins || 0;
+          globalStats.draws += leaguePlayer.draws || 0;
+          globalStats.losses += leaguePlayer.losses || 0;
+          globalStats.rankingPoints += leaguePlayer.rankingPoints || 0;
+          globalStats.totalGames += playerGames;
+          globalStats.leagueCount += 1;
+
+          // Game-system specific player stats
+          if (!gsStats.players.has(playerId)) {
+            gsStats.players.set(playerId, {
+              id: playerId,
+              playerName: playerName,
+              wins: 0,
+              draws: 0,
+              losses: 0,
+              rankingPoints: 0,
+              totalGames: 0,
+              leagueCount: 0
+            });
+          }
+
+          const gsPlayerStats = gsStats.players.get(playerId);
+          gsPlayerStats.wins += leaguePlayer.wins || 0;
+          gsPlayerStats.draws += leaguePlayer.draws || 0;
+          gsPlayerStats.losses += leaguePlayer.losses || 0;
+          gsPlayerStats.rankingPoints += leaguePlayer.rankingPoints || 0;
+          gsPlayerStats.totalGames += playerGames;
+          gsPlayerStats.leagueCount += 1;
 
           // Count factions
           const factionName = leaguePlayer.faction || 'No Faction';
@@ -94,54 +128,65 @@ export default function GlobalLeaderboards() {
         });
       });
 
-      // Convert map to array and calculate win rates
+      // Convert global map to array and calculate win rates
       const allPlayers: LeaderboardEntry[] = Array.from(playerStatsMap.values()).map(player => ({
         ...player,
-        winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0
+        winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0,
+        avgPointsPerGame: player.totalGames > 0 ? Math.round((player.rankingPoints / player.totalGames) * 10) / 10 : 0
       }));
+
+      // Convert game system stats
+      const gameSystems: GameSystemStats[] = Array.from(gameSystemStatsMap.entries()).map(([gameSystem, data]) => {
+        const players: LeaderboardEntry[] = Array.from(data.players.values()).map(player => ({
+          ...player,
+          winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0,
+          avgPointsPerGame: player.totalGames > 0 ? Math.round((player.rankingPoints / player.totalGames) * 10) / 10 : 0
+        }));
+
+        // Sort by average points per game (for VP-style ranking)
+        const topPlayers = [...players]
+          .filter(p => p.totalGames >= 2) // Minimum 2 games
+          .sort((a, b) => b.avgPointsPerGame - a.avgPointsPerGame)
+          .slice(0, 10);
+
+        return {
+          gameSystem,
+          playerCount: data.players.size,
+          leagueCount: data.leagueCount,
+          topPlayers
+        };
+      }).sort((a, b) => b.playerCount - a.playerCount); // Sort by player count
 
       // Find most popular faction
       const mostPopularFaction = Object.keys(factionCounts).length > 0
         ? Object.keys(factionCounts).reduce((a, b) => factionCounts[a] > factionCounts[b] ? a : b)
-        : 'No Faction';
+        : 'None';
 
-      // Calculate average win rate
-      const playersWithGames = allPlayers.filter(p => p.totalGames > 0);
-      const averageWinRate = playersWithGames.length > 0
-        ? Math.round(playersWithGames.reduce((sum, p) => sum + p.winRate, 0) / playersWithGames.length)
-        : 0;
-
-      // Create leaderboards
+      // Create global leaderboards
       const topByPoints = [...allPlayers]
         .sort((a, b) => b.rankingPoints - a.rankingPoints)
         .slice(0, 10);
 
       const topByWinRate = [...allPlayers]
-        .filter(p => p.totalGames >= 3) // Minimum 3 games
+        .filter(p => p.totalGames >= 3)
         .sort((a, b) => b.winRate - a.winRate)
-        .slice(0, 10);
-
-      const topByVictoryPoints = [...allPlayers]
-        .sort((a, b) => b.victoryPoints - a.victoryPoints)
         .slice(0, 10);
 
       const mostActive = [...allPlayers]
         .sort((a, b) => b.totalGames - a.totalGames)
         .slice(0, 10);
 
-      // Each match involves 2 players, so divide by 2 to get total matches
       const totalMatches = Math.floor(totalGamesPlayed / 2);
 
       setStats({
         totalLeagues: leaguesData.data.length,
         totalPlayers: playerStatsMap.size,
         totalMatches,
-        averageWinRate,
         mostPopularFaction,
+        gameSystems,
         leaderboards: {
           topByPoints,
           topByWinRate,
-          topByVictoryPoints,
           mostActive
         }
       });
@@ -171,6 +216,15 @@ export default function GlobalLeaderboards() {
     }
   };
 
+  const getGameSystemShortName = (gameSystem: string) => {
+    const shortNames: { [key: string]: string } = {
+      'Warhammer: 40,000': '40K',
+      'Warhammer: The Horus Heresy': 'Heresy',
+      'Warhammer: The Old World': 'Old World',
+      'A Song of Ice and Fire': 'ASOIAF'
+    };
+    return shortNames[gameSystem] || gameSystem;
+  };
 
   if (loading) {
     return (
@@ -192,22 +246,49 @@ export default function GlobalLeaderboards() {
   }
 
   const getCurrentLeaderboard = () => {
-    switch (selectedBoard) {
-      case 'points': return stats.leaderboards.topByPoints;
-      case 'winrate': return stats.leaderboards.topByWinRate;
-      case 'active': return stats.leaderboards.mostActive;
-      default: return stats.leaderboards.topByPoints;
-    }
+    if (selectedBoard === 'points') return stats.leaderboards.topByPoints;
+    if (selectedBoard === 'winrate') return stats.leaderboards.topByWinRate;
+    if (selectedBoard === 'active') return stats.leaderboards.mostActive;
+
+    // Game-specific tab
+    const gameStats = stats.gameSystems.find(gs => gs.gameSystem === selectedBoard);
+    return gameStats?.topPlayers || [];
   };
 
   const getMetricValue = (player: LeaderboardEntry) => {
-    switch (selectedBoard) {
-      case 'points': return `${player.rankingPoints} LP`;
-      case 'winrate': return `${player.winRate}%`;
-      case 'active': return `${player.totalGames} games`;
-      default: return `${player.rankingPoints} LP`;
-    }
+    if (selectedBoard === 'points') return `${player.rankingPoints} LP`;
+    if (selectedBoard === 'winrate') return `${player.winRate}%`;
+    if (selectedBoard === 'active') return `${player.totalGames} games`;
+
+    // Game-specific: show avg points per game
+    return `${player.avgPointsPerGame} avg LP`;
   };
+
+  const getTabTitle = () => {
+    if (selectedBoard === 'points') return 'Top by League Points';
+    if (selectedBoard === 'winrate') return 'Best Win Rates';
+    if (selectedBoard === 'active') return 'Most Active Players';
+    return `Top in ${selectedBoard}`;
+  };
+
+  const getTabDescription = () => {
+    if (selectedBoard === 'points') return 'Players ranked by total league points earned';
+    if (selectedBoard === 'winrate') return 'Players with best win percentage (minimum 3 games)';
+    if (selectedBoard === 'active') return 'Players who have played the most games';
+    return 'Players ranked by average league points per game (minimum 2 games)';
+  };
+
+  // Build tabs array
+  const globalTabs = [
+    { id: 'points', name: 'League Points' },
+    { id: 'winrate', name: 'Win Rate' },
+    { id: 'active', name: 'Most Active' }
+  ];
+
+  const gameTabs = stats.gameSystems.map(gs => ({
+    id: gs.gameSystem,
+    name: getGameSystemShortName(gs.gameSystem)
+  }));
 
   return (
     <div className="space-y-6">
@@ -249,11 +330,11 @@ export default function GlobalLeaderboards() {
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
-            {stats.averageWinRate}%
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 text-lg">
+            {stats.mostPopularFaction}
           </div>
           <div className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-            Avg Win Rate
+            Top Faction
           </div>
         </div>
       </div>
@@ -261,38 +342,49 @@ export default function GlobalLeaderboards() {
       {/* Leaderboard Selection */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { id: 'points', name: 'League Points', desc: 'Ranked by total league points' },
-              { id: 'winrate', name: 'Win Rate', desc: 'Best win percentage (min 3 games)' },
-              { id: 'active', name: 'Most Active', desc: 'Most games played' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedBoard(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  selectedBoard === tab.id
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }`}
-              >
-                {tab.name}
-              </button>
-            ))}
+          <nav className="flex flex-wrap px-4">
+            {/* Global tabs */}
+            <div className="flex space-x-4 border-r border-gray-200 dark:border-gray-700 pr-4 mr-4">
+              {globalTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedBoard(tab.id)}
+                  className={`py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    selectedBoard === tab.id
+                      ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
+                >
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+            {/* Game-specific tabs */}
+            <div className="flex space-x-4">
+              {gameTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedBoard(tab.id)}
+                  className={`py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    selectedBoard === tab.id
+                      ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
+                >
+                  {tab.name}
+                </button>
+              ))}
+            </div>
           </nav>
         </div>
 
         <div className="p-6">
           <div className="mb-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {selectedBoard === 'points' && 'Top by League Points'}
-              {selectedBoard === 'winrate' && 'Best Win Rates'}
-              {selectedBoard === 'active' && 'Most Active Players'}
+              {getTabTitle()}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedBoard === 'points' && 'Players ranked by total league points earned'}
-              {selectedBoard === 'winrate' && 'Players with best win percentage (minimum 3 games)'}
-              {selectedBoard === 'active' && 'Players who have played the most games'}
+              {getTabDescription()}
             </p>
           </div>
 
@@ -311,7 +403,7 @@ export default function GlobalLeaderboards() {
                       {player.playerName}
                     </h3>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {player.leagueCount} {player.leagueCount === 1 ? 'league' : 'leagues'}
+                      {player.leagueCount} {player.leagueCount === 1 ? 'league' : 'leagues'} • {player.totalGames} games
                     </div>
                   </div>
                 </div>
@@ -320,7 +412,7 @@ export default function GlobalLeaderboards() {
                     {getMetricValue(player)}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {player.wins}-{player.draws}-{player.losses}
+                    {player.wins}W-{player.draws}D-{player.losses}L
                   </div>
                 </div>
               </div>
