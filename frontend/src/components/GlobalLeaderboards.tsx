@@ -10,9 +10,10 @@ interface LeaderboardEntry {
   draws: number;
   losses: number;
   rankingPoints: number;
+  victoryPoints: number;
   winRate: number;
   totalGames: number;
-  avgPointsPerGame: number;
+  avgVPPerGame: number;
 }
 
 interface GameSystemStats {
@@ -46,8 +47,8 @@ export default function GlobalLeaderboards() {
 
   const fetchGlobalStats = async () => {
     try {
-      // Fetch all leagues and their players (stats are tracked on league_players)
-      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=player');
+      // Fetch all leagues with players and matches (for VP calculation)
+      const leaguesResponse = await fetch('https://accessible-positivity-e213bb2958.strapiapp.com/api/leagues?populate[league_players][populate]=player&populate[matches][populate][leaguePlayer1]=documentId&populate[matches][populate][leaguePlayer2]=documentId');
       const leaguesData = await leaguesResponse.json();
 
       if (!leaguesData.data) {
@@ -60,6 +61,20 @@ export default function GlobalLeaderboards() {
       const playerStatsMap = new Map();
       const gameSystemStatsMap = new Map<string, { players: Map<string, any>, leagueCount: number }>();
 
+      // First pass: collect league player document IDs to player IDs mapping
+      const leaguePlayerToPlayer = new Map<string, { playerId: string; playerName: string }>();
+
+      leaguesData.data.forEach((league: any) => {
+        (league.league_players || []).forEach((lp: any) => {
+          if (lp.documentId && lp.player?.id) {
+            leaguePlayerToPlayer.set(lp.documentId, {
+              playerId: lp.player.id,
+              playerName: lp.player.name || 'Anonymous'
+            });
+          }
+        });
+      });
+
       leaguesData.data.forEach((league: any) => {
         const gameSystem = league.gameSystem || 'Unknown';
 
@@ -70,12 +85,29 @@ export default function GlobalLeaderboards() {
         const gsStats = gameSystemStatsMap.get(gameSystem)!;
         gsStats.leagueCount += 1;
 
+        // Calculate VP from matches for this league
+        const matchVPMap = new Map<string, number>(); // leaguePlayer documentId -> VP
+        (league.matches || []).forEach((match: any) => {
+          if (match.statusMatch === 'played') {
+            const lp1DocId = match.leaguePlayer1?.documentId;
+            const lp2DocId = match.leaguePlayer2?.documentId;
+
+            if (lp1DocId) {
+              matchVPMap.set(lp1DocId, (matchVPMap.get(lp1DocId) || 0) + (match.leaguePlayer1Score || 0));
+            }
+            if (lp2DocId) {
+              matchVPMap.set(lp2DocId, (matchVPMap.get(lp2DocId) || 0) + (match.leaguePlayer2Score || 0));
+            }
+          }
+        });
+
         (league.league_players || []).forEach((leaguePlayer: any) => {
           const playerId = leaguePlayer.player?.id;
           if (!playerId) return;
 
           const playerName = leaguePlayer.player?.name || 'Anonymous';
           const playerGames = (leaguePlayer.wins || 0) + (leaguePlayer.draws || 0) + (leaguePlayer.losses || 0);
+          const playerVP = matchVPMap.get(leaguePlayer.documentId) || 0;
           totalGamesPlayed += playerGames;
 
           // Global player stats
@@ -87,6 +119,7 @@ export default function GlobalLeaderboards() {
               draws: 0,
               losses: 0,
               rankingPoints: 0,
+              victoryPoints: 0,
               totalGames: 0,
               leagueCount: 0
             });
@@ -97,6 +130,7 @@ export default function GlobalLeaderboards() {
           globalStats.draws += leaguePlayer.draws || 0;
           globalStats.losses += leaguePlayer.losses || 0;
           globalStats.rankingPoints += leaguePlayer.rankingPoints || 0;
+          globalStats.victoryPoints += playerVP;
           globalStats.totalGames += playerGames;
           globalStats.leagueCount += 1;
 
@@ -109,6 +143,7 @@ export default function GlobalLeaderboards() {
               draws: 0,
               losses: 0,
               rankingPoints: 0,
+              victoryPoints: 0,
               totalGames: 0,
               leagueCount: 0
             });
@@ -119,6 +154,7 @@ export default function GlobalLeaderboards() {
           gsPlayerStats.draws += leaguePlayer.draws || 0;
           gsPlayerStats.losses += leaguePlayer.losses || 0;
           gsPlayerStats.rankingPoints += leaguePlayer.rankingPoints || 0;
+          gsPlayerStats.victoryPoints += playerVP;
           gsPlayerStats.totalGames += playerGames;
           gsPlayerStats.leagueCount += 1;
 
@@ -132,7 +168,7 @@ export default function GlobalLeaderboards() {
       const allPlayers: LeaderboardEntry[] = Array.from(playerStatsMap.values()).map(player => ({
         ...player,
         winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0,
-        avgPointsPerGame: player.totalGames > 0 ? Math.round((player.rankingPoints / player.totalGames) * 10) / 10 : 0
+        avgVPPerGame: player.totalGames > 0 ? Math.round((player.victoryPoints / player.totalGames) * 10) / 10 : 0
       }));
 
       // Convert game system stats
@@ -140,13 +176,13 @@ export default function GlobalLeaderboards() {
         const players: LeaderboardEntry[] = Array.from(data.players.values()).map(player => ({
           ...player,
           winRate: player.totalGames > 0 ? Math.round((player.wins / player.totalGames) * 100) : 0,
-          avgPointsPerGame: player.totalGames > 0 ? Math.round((player.rankingPoints / player.totalGames) * 10) / 10 : 0
+          avgVPPerGame: player.totalGames > 0 ? Math.round((player.victoryPoints / player.totalGames) * 10) / 10 : 0
         }));
 
-        // Sort by average points per game (for VP-style ranking)
+        // Sort by average VP per game
         const topPlayers = [...players]
           .filter(p => p.totalGames >= 2) // Minimum 2 games
-          .sort((a, b) => b.avgPointsPerGame - a.avgPointsPerGame)
+          .sort((a, b) => b.avgVPPerGame - a.avgVPPerGame)
           .slice(0, 10);
 
         return {
@@ -260,8 +296,8 @@ export default function GlobalLeaderboards() {
     if (selectedBoard === 'winrate') return `${player.winRate}%`;
     if (selectedBoard === 'active') return `${player.totalGames} games`;
 
-    // Game-specific: show avg points per game
-    return `${player.avgPointsPerGame} avg LP`;
+    // Game-specific: show avg VP per game
+    return `${player.avgVPPerGame} avg VP`;
   };
 
   const getTabTitle = () => {
@@ -275,7 +311,7 @@ export default function GlobalLeaderboards() {
     if (selectedBoard === 'points') return 'Players ranked by total league points earned';
     if (selectedBoard === 'winrate') return 'Players with best win percentage (minimum 3 games)';
     if (selectedBoard === 'active') return 'Players who have played the most games';
-    return 'Players ranked by average league points per game (minimum 2 games)';
+    return 'Players ranked by average victory points per game (minimum 2 games)';
   };
 
   // Build tabs array
