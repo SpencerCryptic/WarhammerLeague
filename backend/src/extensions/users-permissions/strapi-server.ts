@@ -6,9 +6,28 @@ export default (plugin) => {
 
   // Add custom updateProfile method (inline to avoid replacing default user controller)
   plugin.controllers.user.updateProfile = async (ctx) => {
-    const user = ctx.state.user;
+    // With auth: false, we need to manually verify JWT and get user
+    let user = ctx.state.user;
+
     if (!user) {
-      return ctx.badRequest('User not found');
+      // Try to get user from JWT manually
+      const authHeader = ctx.request.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return ctx.unauthorized('No authorization token provided');
+      }
+
+      const token = authHeader.substring(7);
+      try {
+        const jwtService = strapi.plugin('users-permissions').service('jwt');
+        const payload = await jwtService.verify(token);
+        user = await strapi.entityService.findOne('plugin::users-permissions.user', payload.id);
+
+        if (!user) {
+          return ctx.unauthorized('Invalid token - user not found');
+        }
+      } catch (error) {
+        return ctx.unauthorized('Invalid or expired token');
+      }
     }
 
     const { email, firstName, lastName, phoneNumber, dateOfBirth, storeLocation } = ctx.request.body;
@@ -45,6 +64,8 @@ export default (plugin) => {
   };
 
   // Add custom route for profile update
+  // auth: false bypasses role permissions, but JWT is still parsed and ctx.state.user populated
+  // Controller handles auth check manually via ctx.state.user
   plugin.routes['content-api'].routes.push({
     method: 'PUT',
     path: '/user/profile',
@@ -52,6 +73,7 @@ export default (plugin) => {
     config: {
       prefix: '',
       policies: [],
+      auth: false,
     },
   });
 
