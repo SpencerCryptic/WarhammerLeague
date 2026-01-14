@@ -5,6 +5,9 @@
  *
  * Fetches bulk data from our API and populates Shopify metafields
  * with card data (mana cost, colors, legalities, etc.)
+ *
+ * OPTIMIZED: Uses batch processing to reduce API calls by ~95%
+ * Instead of 1 call per product, batches 25 products per call.
  */
 
 const https = require('https');
@@ -14,10 +17,13 @@ const BULK_DATA_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE || 'cryptic-cabin-tcg';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 const API_VERSION = '2025-01';
-const RATE_LIMIT_DELAY = 50; // ms between requests (Shopify allows 40 req/sec)
+
+// Batch size for bulk updates (25 is safe for Shopify's query complexity limits)
+const BATCH_SIZE = 25;
+const RATE_LIMIT_DELAY = 500; // ms between batches
 
 // Test mode - set to a number to limit products, or false for full sync
-const TEST_BATCH_SIZE = process.argv.includes('--test') ? 20 : false;
+const TEST_BATCH_SIZE = process.argv.includes('--test') ? 50 : false;
 const DRY_RUN = process.argv.includes('--dry-run');
 
 if (!SHOPIFY_ACCESS_TOKEN) {
@@ -31,6 +37,7 @@ const stats = {
   updated: 0,
   skipped: 0,
   failed: 0,
+  apiCalls: 0,
   errors: []
 };
 
@@ -180,41 +187,82 @@ function buildMetafields(card) {
 }
 
 /**
- * Update a single product's metafields
+ * Update a batch of products using aliased mutations
+ * This sends multiple productUpdate mutations in a single GraphQL request
  */
-async function updateProduct(productId, metafields, cardName) {
-  const mutation = `
-    mutation productUpdate($input: ProductInput!) {
-      productUpdate(input: $input) {
+async function updateProductBatch(batch) {
+  if (batch.length === 0) return { success: true, results: [] };
+
+  // Build aliased mutation for each product in batch
+  const mutationParts = batch.map((item, index) => {
+    return `
+      product${index}: productUpdate(input: $input${index}) {
         product { id }
         userErrors { field message }
       }
+    `;
+  });
+
+  const mutation = `
+    mutation batchProductUpdate(${batch.map((_, i) => `$input${i}: ProductInput!`).join(', ')}) {
+      ${mutationParts.join('\n')}
     }
   `;
 
-  const variables = {
-    input: {
-      id: `gid://shopify/Product/${productId}`,
-      metafields
-    }
-  };
+  const variables = {};
+  batch.forEach((item, index) => {
+    variables[`input${index}`] = {
+      id: `gid://shopify/Product/${item.productId}`,
+      metafields: item.metafields
+    };
+  });
 
   if (DRY_RUN) {
-    console.log(`  [DRY RUN] Would update ${cardName} (${productId}) with ${metafields.length} metafields`);
-    return { success: true };
+    console.log(`  [DRY RUN] Would update batch of ${batch.length} products`);
+    return {
+      success: true,
+      results: batch.map(item => ({ productId: item.productId, success: true }))
+    };
   }
 
   try {
+    stats.apiCalls++;
     const result = await shopifyGraphQL(mutation, variables);
 
-    if (result.data?.productUpdate?.userErrors?.length > 0) {
-      const errors = result.data.productUpdate.userErrors;
-      throw new Error(errors.map(e => `${e.field}: ${e.message}`).join(', '));
-    }
+    // Process results for each product in batch
+    const results = batch.map((item, index) => {
+      const productResult = result.data?.[`product${index}`];
+      const userErrors = productResult?.userErrors || [];
 
-    return { success: true };
+      if (userErrors.length > 0) {
+        return {
+          productId: item.productId,
+          cardName: item.cardName,
+          success: false,
+          error: userErrors.map(e => `${e.field}: ${e.message}`).join(', ')
+        };
+      }
+
+      return {
+        productId: item.productId,
+        cardName: item.cardName,
+        success: true
+      };
+    });
+
+    return { success: true, results };
   } catch (error) {
-    return { success: false, error: error.message };
+    // If batch fails, return failure for all items
+    return {
+      success: false,
+      error: error.message,
+      results: batch.map(item => ({
+        productId: item.productId,
+        cardName: item.cardName,
+        success: false,
+        error: error.message
+      }))
+    };
   }
 }
 
@@ -223,9 +271,10 @@ async function updateProduct(productId, metafields, cardName) {
  */
 async function sync() {
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('  Scryfall → Shopify Metafield Sync');
+  console.log('  Scryfall → Shopify Metafield Sync (BATCH OPTIMIZED)');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`  Store: ${SHOPIFY_STORE}`);
+  console.log(`  Batch Size: ${BATCH_SIZE} products per API call`);
   console.log(`  Mode: ${DRY_RUN ? 'DRY RUN' : TEST_BATCH_SIZE ? `TEST (${TEST_BATCH_SIZE} products)` : 'FULL SYNC'}`);
   console.log(`  Started: ${new Date().toISOString()}`);
   console.log('');
@@ -260,37 +309,72 @@ async function sync() {
   }
 
   stats.total = products.length;
+
+  // Prepare all products with their metafields
+  const productsToUpdate = [];
+  for (const [productId, card] of products) {
+    const metafields = buildMetafields(card);
+    if (metafields.length > 0) {
+      productsToUpdate.push({
+        productId,
+        cardName: card.name,
+        metafields
+      });
+    } else {
+      stats.skipped++;
+    }
+  }
+
+  const totalBatches = Math.ceil(productsToUpdate.length / BATCH_SIZE);
+  const estimatedCalls = totalBatches;
+  const oldStyleCalls = productsToUpdate.length;
+
   console.log('');
   console.log('📤 Syncing metafields to Shopify...');
+  console.log(`   Products to update: ${productsToUpdate.length}`);
+  console.log(`   Batches: ${totalBatches} (${BATCH_SIZE} products each)`);
+  console.log(`   Estimated API calls: ${estimatedCalls} (was ${oldStyleCalls} - ${Math.round((1 - estimatedCalls/oldStyleCalls) * 100)}% reduction)`);
+  console.log('');
 
-  // Process each product
-  for (let i = 0; i < products.length; i++) {
-    const [productId, card] = products[i];
-    const progress = `[${i + 1}/${products.length}]`;
+  // Process in batches
+  for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+    const start = batchIndex * BATCH_SIZE;
+    const end = Math.min(start + BATCH_SIZE, productsToUpdate.length);
+    const batch = productsToUpdate.slice(start, end);
 
-    // Build metafields
-    const metafields = buildMetafields(card);
+    const batchProgress = `[Batch ${batchIndex + 1}/${totalBatches}]`;
 
-    if (metafields.length === 0) {
-      console.log(`${progress} ⏭️  ${card.name} - no metafields to update`);
-      stats.skipped++;
-      continue;
+    const result = await updateProductBatch(batch);
+
+    // Process results
+    let batchSucceeded = 0;
+    let batchFailed = 0;
+
+    for (const itemResult of result.results) {
+      if (itemResult.success) {
+        stats.updated++;
+        batchSucceeded++;
+      } else {
+        stats.failed++;
+        batchFailed++;
+        stats.errors.push({
+          name: itemResult.cardName,
+          productId: itemResult.productId,
+          error: itemResult.error
+        });
+      }
     }
 
-    // Update product
-    const result = await updateProduct(productId, metafields, card.name);
-
-    if (result.success) {
-      console.log(`${progress} ✅ ${card.name} (${metafields.length} fields)`);
-      stats.updated++;
+    if (batchFailed === 0) {
+      console.log(`${batchProgress} ✅ ${batchSucceeded} products updated`);
+    } else if (batchSucceeded === 0) {
+      console.log(`${batchProgress} ❌ All ${batchFailed} products failed: ${result.error || 'See errors'}`);
     } else {
-      console.log(`${progress} ❌ ${card.name} - ${result.error}`);
-      stats.failed++;
-      stats.errors.push({ name: card.name, productId, error: result.error });
+      console.log(`${batchProgress} ⚠️  ${batchSucceeded} succeeded, ${batchFailed} failed`);
     }
 
-    // Rate limiting
-    if (i < products.length - 1) {
+    // Rate limiting between batches
+    if (batchIndex < totalBatches - 1) {
       await sleep(RATE_LIMIT_DELAY);
     }
   }
@@ -304,6 +388,7 @@ async function sync() {
   console.log(`  Updated:         ${stats.updated}`);
   console.log(`  Skipped:         ${stats.skipped}`);
   console.log(`  Failed:          ${stats.failed}`);
+  console.log(`  API calls made:  ${stats.apiCalls} (saved ${oldStyleCalls - stats.apiCalls} calls)`);
   console.log(`  Finished:        ${new Date().toISOString()}`);
 
   if (stats.errors.length > 0) {
