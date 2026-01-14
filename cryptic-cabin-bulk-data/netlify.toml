@@ -58,6 +58,12 @@
   to = "/bulk-data/cryptic-cabin-inventory.json"
   status = 200
 
+# Shopify inventory webhook
+[[redirects]]
+  from = "/api/webhook/inventory"
+  to = "/.netlify/functions/shopify-inventory-webhook"
+  status = 200
+
 # ============================================
 # ENVIRONMENT VARIABLES (set in Netlify UI)
 # ============================================

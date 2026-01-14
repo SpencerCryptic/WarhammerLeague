@@ -23,6 +23,8 @@ const ALLOWED_ORIGINS = [
   'https://moxfield.com',
   'https://www.archidekt.com',
   'https://archidekt.com',
+  'https://www.edhrec.com',
+  'https://edhrec.com',
   'https://www.mtggoldfish.com',
   'https://mtggoldfish.com',
   'https://deckstats.net',
@@ -98,13 +100,14 @@ async function getInventory() {
  * Filter cards by finish preference
  * @param {Array} cards - Cards to filter
  * @param {string} finish - Preferred finish: 'foil', 'nonfoil', 'etched', or null for any
- * @param {number} quantity - Required quantity
+ * @param {number} quantity - Required quantity (used for sorting preference, not filtering)
  * @returns {Array} Filtered and sorted cards
  */
 function filterByFinish(cards, finish, quantity) {
+  // Filter to in-stock cards only (partial fulfillment handled later)
   let filtered = cards.filter(c =>
     c.cryptic_cabin?.in_stock &&
-    c.cryptic_cabin.quantity >= (quantity || 1)
+    c.cryptic_cabin.quantity > 0
   );
 
   // If finish preference specified, try to match it
