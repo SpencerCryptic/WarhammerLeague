@@ -19,6 +19,20 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const BLOB_STORE_NAME = 'live-inventory';
 const BLOB_KEY = 'inventory';
 
+// Netlify Blobs config (needed for serverless functions)
+const SITE_ID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
+
+/**
+ * Get blob store with proper config
+ */
+function getBlobStore() {
+  const options = { name: BLOB_STORE_NAME };
+  if (SITE_ID) options.siteID = SITE_ID;
+  if (BLOBS_TOKEN) options.token = BLOBS_TOKEN;
+  return getStore(options);
+}
+
 // In-memory cache (persists across warm function invocations)
 let inventoryCache = null;
 let cacheTimestamp = 0;
@@ -58,7 +72,7 @@ async function getLiveInventory() {
   }
 
   try {
-    const store = getStore(BLOB_STORE_NAME);
+    const store = getBlobStore();
     const data = await store.get(BLOB_KEY, { type: 'json' });
 
     if (data) {

@@ -17,9 +17,26 @@ const crypto = require('crypto');
 // Shopify webhook secret for signature verification
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;
 
+// Netlify Blobs config (needed for serverless functions)
+const SITE_ID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
+
 // Blob store name for live inventory
 const BLOB_STORE_NAME = 'live-inventory';
 const BLOB_KEY = 'inventory';
+
+/**
+ * Get blob store with proper config
+ */
+function getBlobStore() {
+  const options = { name: BLOB_STORE_NAME };
+
+  // Add siteID and token if available (needed for serverless)
+  if (SITE_ID) options.siteID = SITE_ID;
+  if (BLOBS_TOKEN) options.token = BLOBS_TOKEN;
+
+  return getStore(options);
+}
 
 /**
  * Verify Shopify webhook signature
@@ -98,8 +115,8 @@ exports.handler = async (event, context) => {
     console.log(`📦 Inventory update: item ${inventory_item_id} = ${available}`);
 
     // Get or create the blob store
-    const store = getStore(BLOB_STORE_NAME);
-    console.log('Blob store initialized');
+    const store = getBlobStore();
+    console.log('Blob store initialized, siteID:', SITE_ID ? 'set' : 'not set');
 
     // Read current inventory data
     let inventoryData = {};
