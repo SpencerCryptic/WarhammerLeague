@@ -30,15 +30,26 @@ function verifyWebhookSignature(body, signature) {
     return true; // Allow in dev, but warn
   }
 
-  const hmac = crypto
-    .createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
-    .update(body, 'utf8')
-    .digest('base64');
+  try {
+    const hmac = crypto
+      .createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
+      .update(body, 'utf8')
+      .digest('base64');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(hmac),
-    Buffer.from(signature)
-  );
+    const hmacBuffer = Buffer.from(hmac);
+    const signatureBuffer = Buffer.from(signature);
+
+    // Buffers must be same length for timingSafeEqual
+    if (hmacBuffer.length !== signatureBuffer.length) {
+      console.error(`Signature length mismatch: expected ${hmacBuffer.length}, got ${signatureBuffer.length}`);
+      return false;
+    }
+
+    return crypto.timingSafeEqual(hmacBuffer, signatureBuffer);
+  } catch (error) {
+    console.error('Signature verification error:', error.message);
+    return false;
+  }
 }
 
 /**
@@ -88,17 +99,19 @@ exports.handler = async (event, context) => {
 
     // Get or create the blob store
     const store = getStore(BLOB_STORE_NAME);
+    console.log('Blob store initialized');
 
     // Read current inventory data
     let inventoryData = {};
     try {
       const existing = await store.get(BLOB_KEY, { type: 'json' });
+      console.log('Existing blob data:', existing ? 'found' : 'not found');
       if (existing) {
         inventoryData = existing;
       }
     } catch (e) {
       // Blob doesn't exist yet, start fresh
-      console.log('Creating new inventory blob');
+      console.log('Creating new inventory blob, error was:', e.message);
     }
 
     // Update the inventory for this item
@@ -108,6 +121,7 @@ exports.handler = async (event, context) => {
     };
 
     // Write back to blob
+    console.log('Writing to blob store...');
     await store.setJSON(BLOB_KEY, inventoryData);
 
     console.log(`✅ Updated inventory blob (${Object.keys(inventoryData).length} items tracked)`);
@@ -123,10 +137,10 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('Webhook error:', error.message, error.stack);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ error: 'Internal server error', details: error.message })
     };
   }
 };
