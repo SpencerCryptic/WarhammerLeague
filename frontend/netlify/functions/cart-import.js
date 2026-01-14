@@ -20,7 +20,7 @@ const BLOB_STORE_NAME = 'live-inventory';
 const BLOB_KEY = 'inventory';
 
 // Netlify Blobs config (needed for serverless functions)
-const SITE_ID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+const SITE_ID = process.env.CC_SITE_ID;
 const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
 
 /**

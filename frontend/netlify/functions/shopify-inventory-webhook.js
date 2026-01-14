@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;
 
 // Netlify Blobs config (needed for serverless functions)
-const SITE_ID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+const SITE_ID = process.env.CC_SITE_ID;
 const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
 
 // Blob store name for live inventory
