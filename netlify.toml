@@ -1,6 +1,6 @@
 [build]
   base = "frontend"
-  command = "cd ../cryptic-cabin-bulk-data && npm install && node build.js && cd ../frontend && npm run build"
+  command = "npm run build"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -8,10 +8,15 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Bulk Data API - Scheduled refresh daily at midnight UK time (GMT/BST)
-# 0 0 * * * = midnight UTC (GMT), during BST this is 1 AM local
-[functions."scheduled-refresh"]
-  schedule = "0 0 * * *"
+# Bulk Data Refresh - Every 30 minutes via Netlify Blobs (no rebuild needed!)
+[functions."bulk-data-refresh"]
+  schedule = "*/30 * * * *"
+
+# Shopify Inventory Webhook - Real-time stock updates
+[[redirects]]
+  from = "/api/shopify-inventory-webhook"
+  to = "/.netlify/functions/shopify-inventory-webhook"
+  status = 200
 
 # Bulk Data API - CORS headers for JSON files
 [[headers]]

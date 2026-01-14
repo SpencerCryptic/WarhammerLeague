@@ -13,10 +13,11 @@
 const { getStore } = require('@netlify/blobs');
 
 // Config
-const INVENTORY_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-inventory.json';
+const INVENTORY_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-inventory.json'; // Fallback
 const STORE_URL = 'https://tcg.crypticcabin.com';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const BLOB_STORE_NAME = 'live-inventory';
+const LIVE_INVENTORY_STORE = 'live-inventory';
+const BULK_DATA_STORE = 'bulk-data';
 const BLOB_KEY = 'inventory';
 
 // Netlify Blobs config (needed for serverless functions)
@@ -26,8 +27,8 @@ const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCES
 /**
  * Get blob store with proper config
  */
-function getBlobStore() {
-  const options = { name: BLOB_STORE_NAME };
+function getBlobStore(storeName) {
+  const options = { name: storeName };
   if (SITE_ID) options.siteID = SITE_ID;
   if (BLOBS_TOKEN) options.token = BLOBS_TOKEN;
   return getStore(options);
@@ -72,7 +73,7 @@ async function getLiveInventory() {
   }
 
   try {
-    const store = getBlobStore();
+    const store = getBlobStore(LIVE_INVENTORY_STORE);
     const data = await store.get(BLOB_KEY, { type: 'json' });
 
     if (data) {
@@ -86,6 +87,31 @@ async function getLiveInventory() {
   }
 
   return null;
+}
+
+/**
+ * Load bulk data from Blobs or fallback to static URL
+ */
+async function loadBulkData() {
+  // Try loading from Blobs first
+  try {
+    const store = getBlobStore(BULK_DATA_STORE);
+    const data = await store.get(BLOB_KEY, { type: 'json' });
+
+    if (data && data.data) {
+      console.log(`Bulk data loaded from Blobs: ${data.data.length} cards`);
+      return data;
+    }
+  } catch (error) {
+    console.log('Blob bulk data not available, falling back to static URL');
+  }
+
+  // Fallback to static URL
+  console.log('Fetching bulk data from static URL...');
+  const response = await fetch(INVENTORY_URL);
+  const data = await response.json();
+  console.log(`Bulk data loaded from URL: ${data.data.length} cards`);
+  return data;
 }
 
 /**
@@ -133,11 +159,10 @@ async function getInventory() {
   }
 
   console.log('Fetching fresh inventory data...');
-  const [response, liveInventory] = await Promise.all([
-    fetch(INVENTORY_URL),
+  const [data, liveInventory] = await Promise.all([
+    loadBulkData(),
     liveInventoryPromise
   ]);
-  const data = await response.json();
 
   // Build lookup indexes for fast matching
   const inventory = {
