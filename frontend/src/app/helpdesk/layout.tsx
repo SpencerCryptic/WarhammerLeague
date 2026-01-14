@@ -89,7 +89,7 @@ function HelpdeskLayoutContent({
     }
   }, [currentUserId]);
 
-  // Poll for updates every 10 seconds
+  // Poll for updates every 30 seconds (reduced from 10s to save API calls)
   useEffect(() => {
     if (!isAuthorized || !currentUserId) return;
 
@@ -98,7 +98,7 @@ function HelpdeskLayoutContent({
 
     const interval = setInterval(() => {
       fetchTicketCounts(token, currentUserId);
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [isAuthorized, currentUserId, fetchTicketCounts]);
