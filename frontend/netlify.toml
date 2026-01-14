@@ -1,0 +1,55 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# ============================================
+# REDIRECTS - API Routes
+# ============================================
+
+# Shopify inventory webhook
+[[redirects]]
+  from = "/api/shopify-inventory-webhook"
+  to = "/.netlify/functions/shopify-inventory-webhook"
+  status = 200
+
+# Cart import API
+[[redirects]]
+  from = "/api/cart/import"
+  to = "/.netlify/functions/cart-import"
+  status = 200
+
+# Cart lookup API
+[[redirects]]
+  from = "/api/cart/lookup"
+  to = "/.netlify/functions/cart-lookup"
+  status = 200
+
+# Helpdesk APIs
+[[redirects]]
+  from = "/api/helpdesk/reply"
+  to = "/.netlify/functions/helpdesk-reply"
+  status = 200
+
+[[redirects]]
+  from = "/api/helpdesk/mark-read"
+  to = "/.netlify/functions/helpdesk-mark-read"
+  status = 200
+
+[[redirects]]
+  from = "/api/helpdesk/notify"
+  to = "/.netlify/functions/helpdesk-notify"
+  status = 200
+
+# ============================================
+# HEADERS
+# ============================================
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"

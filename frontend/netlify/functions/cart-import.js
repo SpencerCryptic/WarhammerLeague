@@ -6,16 +6,25 @@
  *
  * POST /api/cart/import - Import cards, return cart URL
  * GET /api/cart/import - Redirect to cart with query params
+ *
+ * Live Inventory: Reads real-time inventory from Netlify Blobs (updated via Shopify webhook)
  */
+
+const { getStore } = require('@netlify/blobs');
 
 // Config
 const INVENTORY_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-inventory.json';
 const STORE_URL = 'https://tcg.crypticcabin.com';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const BLOB_STORE_NAME = 'live-inventory';
+const BLOB_KEY = 'inventory';
 
 // In-memory cache (persists across warm function invocations)
 let inventoryCache = null;
 let cacheTimestamp = 0;
+let liveInventoryCache = null;
+let liveInventoryCacheTimestamp = 0;
+const LIVE_CACHE_DURATION = 30 * 1000; // 30 seconds for live data
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
@@ -37,26 +46,94 @@ const ALLOWED_ORIGINS = [
 ];
 
 /**
+ * Load live inventory from Netlify Blobs
+ * Returns a map of inventory_item_id -> available quantity
+ */
+async function getLiveInventory() {
+  const now = Date.now();
+
+  // Use short cache for live data
+  if (liveInventoryCache && (now - liveInventoryCacheTimestamp) < LIVE_CACHE_DURATION) {
+    return liveInventoryCache;
+  }
+
+  try {
+    const store = getStore(BLOB_STORE_NAME);
+    const data = await store.get(BLOB_KEY, { type: 'json' });
+
+    if (data) {
+      liveInventoryCache = data;
+      liveInventoryCacheTimestamp = now;
+      console.log(`Live inventory loaded: ${Object.keys(data).length} items tracked`);
+      return data;
+    }
+  } catch (error) {
+    console.log('No live inventory blob found, using static data only');
+  }
+
+  return null;
+}
+
+/**
+ * Apply live inventory updates to a card
+ * Overrides quantity from static JSON with real-time blob data
+ */
+function applyLiveInventory(card, liveInventory) {
+  if (!liveInventory || !card.cryptic_cabin?.inventory_item_id) {
+    return card;
+  }
+
+  const liveData = liveInventory[card.cryptic_cabin.inventory_item_id];
+  if (liveData) {
+    // Create a new card object with updated inventory
+    return {
+      ...card,
+      cryptic_cabin: {
+        ...card.cryptic_cabin,
+        quantity: liveData.available,
+        in_stock: liveData.available > 0,
+        live_updated_at: liveData.updated_at
+      }
+    };
+  }
+
+  return card;
+}
+
+/**
  * Load inventory with caching
  */
 async function getInventory() {
   const now = Date.now();
 
+  // Load live inventory in parallel with static data check
+  const liveInventoryPromise = getLiveInventory();
+
   if (inventoryCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    // Apply live inventory updates if available
+    const liveInventory = await liveInventoryPromise;
+    if (liveInventory) {
+      inventoryCache.liveInventory = liveInventory;
+    }
     return inventoryCache;
   }
 
   console.log('Fetching fresh inventory data...');
-  const response = await fetch(INVENTORY_URL);
+  const [response, liveInventory] = await Promise.all([
+    fetch(INVENTORY_URL),
+    liveInventoryPromise
+  ]);
   const data = await response.json();
 
   // Build lookup indexes for fast matching
   const inventory = {
     raw: data,
+    liveInventory: liveInventory,
     byScryfall: new Map(),
     byOracle: new Map(),
     bySetCollector: new Map(),
-    byName: new Map()
+    byName: new Map(),
+    byInventoryItemId: new Map()
   };
 
   for (const card of data.data) {
@@ -87,6 +164,11 @@ async function getInventory() {
       }
       inventory.byName.get(nameLower).push(card);
     }
+
+    // Index by inventory_item_id for live updates
+    if (card.cryptic_cabin?.inventory_item_id) {
+      inventory.byInventoryItemId.set(card.cryptic_cabin.inventory_item_id, card);
+    }
   }
 
   inventoryCache = inventory;
@@ -101,11 +183,15 @@ async function getInventory() {
  * @param {Array} cards - Cards to filter
  * @param {string} finish - Preferred finish: 'foil', 'nonfoil', 'etched', or null for any
  * @param {number} quantity - Required quantity (used for sorting preference, not filtering)
+ * @param {Object} liveInventory - Live inventory data from blob
  * @returns {Array} Filtered and sorted cards
  */
-function filterByFinish(cards, finish, quantity) {
+function filterByFinish(cards, finish, quantity, liveInventory) {
+  // Apply live inventory updates to each card
+  const cardsWithLiveData = cards.map(c => applyLiveInventory(c, liveInventory));
+
   // Filter to in-stock cards only (partial fulfillment handled later)
-  let filtered = cards.filter(c =>
+  let filtered = cardsWithLiveData.filter(c =>
     c.cryptic_cabin?.in_stock &&
     c.cryptic_cabin.quantity > 0
   );
@@ -128,33 +214,41 @@ function filterByFinish(cards, finish, quantity) {
  * Find best available card match
  * Priority: exact scryfall_id > set+collector > oracle_id (cheapest in stock) > name (cheapest in stock)
  * Supports finish preference: 'foil', 'nonfoil', 'etched'
+ * Uses live inventory data from Netlify Blobs for real-time availability
  */
 function findCard(inventory, query) {
   const finish = query.finish || null;
   const quantity = query.quantity || 1;
+  const liveInventory = inventory.liveInventory;
 
   // 1. Exact Scryfall ID match
   if (query.scryfall_id) {
-    const card = inventory.byScryfall.get(query.scryfall_id);
-    if (card && card.cryptic_cabin?.in_stock) {
-      // For exact scryfall_id, ignore finish preference (they want this specific card)
-      return card;
+    let card = inventory.byScryfall.get(query.scryfall_id);
+    if (card) {
+      card = applyLiveInventory(card, liveInventory);
+      if (card.cryptic_cabin?.in_stock) {
+        // For exact scryfall_id, ignore finish preference (they want this specific card)
+        return card;
+      }
     }
   }
 
   // 2. Set + Collector Number match
   if (query.set && query.collector_number) {
     const key = `${query.set.toLowerCase()}-${query.collector_number}`;
-    const card = inventory.bySetCollector.get(key);
-    if (card && card.cryptic_cabin?.in_stock) {
-      return card;
+    let card = inventory.bySetCollector.get(key);
+    if (card) {
+      card = applyLiveInventory(card, liveInventory);
+      if (card.cryptic_cabin?.in_stock) {
+        return card;
+      }
     }
   }
 
   // 3. Oracle ID match (find cheapest in stock, respecting finish preference)
   if (query.oracle_id) {
     const cards = inventory.byOracle.get(query.oracle_id) || [];
-    const filtered = filterByFinish(cards, finish, quantity);
+    const filtered = filterByFinish(cards, finish, quantity, liveInventory);
 
     if (filtered.length > 0) {
       return filtered[0];
@@ -165,7 +259,7 @@ function findCard(inventory, query) {
   if (query.name) {
     const nameLower = query.name.toLowerCase();
     const cards = inventory.byName.get(nameLower) || [];
-    const filtered = filterByFinish(cards, finish, quantity);
+    const filtered = filterByFinish(cards, finish, quantity, liveInventory);
 
     if (filtered.length > 0) {
       return filtered[0];
@@ -177,7 +271,7 @@ function findCard(inventory, query) {
     const nameLower = query.name.toLowerCase();
     for (const [cardName, cards] of inventory.byName) {
       if (cardName.includes(nameLower) || nameLower.includes(cardName)) {
-        const filtered = filterByFinish(cards, finish, quantity);
+        const filtered = filterByFinish(cards, finish, quantity, liveInventory);
 
         if (filtered.length > 0) {
           return filtered[0];

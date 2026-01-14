@@ -529,6 +529,7 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
     cryptic_cabin: {
       product_id: product.id,
       variant_id: variant.id,
+      inventory_item_id: variant.inventory_item_id || null,
       sku: variant.sku || null,
       handle: product.handle,
       url: `https://tcg.crypticcabin.com/products/${product.handle}`,
