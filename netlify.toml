@@ -1,6 +1,6 @@
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "cd ../cryptic-cabin-bulk-data && npm install && node build.js && cd ../frontend && npm run build"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

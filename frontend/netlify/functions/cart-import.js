@@ -91,27 +91,45 @@ async function getLiveInventory() {
 
 /**
  * Load bulk data from Blobs or fallback to static URL
+ * Prefers blob if it has more than 3000 cards (sanity check)
  */
 async function loadBulkData() {
-  // Try loading from Blobs first
+  let blobData = null;
+  let staticData = null;
+
+  // Try loading from Blobs
   try {
     const store = getBlobStore(BULK_DATA_STORE);
-    const data = await store.get(BLOB_KEY, { type: 'json' });
-
-    if (data && data.data) {
-      console.log(`Bulk data loaded from Blobs: ${data.data.length} cards`);
-      return data;
+    blobData = await store.get(BLOB_KEY, { type: 'json' });
+    if (blobData?.data) {
+      console.log(`Blob bulk data available: ${blobData.data.length} cards`);
     }
   } catch (error) {
-    console.log('Blob bulk data not available, falling back to static URL');
+    console.log('Blob bulk data not available');
   }
 
-  // Fallback to static URL
-  console.log('Fetching bulk data from static URL...');
-  const response = await fetch(INVENTORY_URL);
-  const data = await response.json();
-  console.log(`Bulk data loaded from URL: ${data.data.length} cards`);
-  return data;
+  // Always fetch static as fallback/comparison
+  try {
+    const response = await fetch(INVENTORY_URL);
+    staticData = await response.json();
+    console.log(`Static bulk data available: ${staticData.data?.length || 0} cards`);
+  } catch (error) {
+    console.log('Static URL fetch failed');
+  }
+
+  // Use whichever has more cards (sanity check for incomplete data)
+  const blobCount = blobData?.data?.length || 0;
+  const staticCount = staticData?.data?.length || 0;
+
+  if (blobCount >= staticCount && blobCount > 0) {
+    console.log('Using blob data (more complete)');
+    return blobData;
+  } else if (staticCount > 0) {
+    console.log('Using static data (more complete)');
+    return staticData;
+  }
+
+  throw new Error('No bulk data available from blob or static URL');
 }
 
 /**
