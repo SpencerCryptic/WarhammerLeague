@@ -19,6 +19,12 @@
   to = "/.netlify/functions/shopify-inventory-webhook"
   status = 200
 
+# Shopify Product Webhook - Real-time catalog updates (create/update/delete)
+[[redirects]]
+  from = "/api/shopify-product-webhook"
+  to = "/.netlify/functions/shopify-product-webhook"
+  status = 200
+
 # Bulk Data API - CORS headers for JSON files
 [[headers]]
   for = "/bulk-data/*"
