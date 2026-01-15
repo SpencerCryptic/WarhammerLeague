@@ -17,6 +17,8 @@ const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCES
 
 const BLOB_STORE_NAME = 'bulk-data';
 const BLOB_KEY = 'inventory';
+const SCRYFALL_BLOB_KEY = 'scryfall-cache';
+const SCRYFALL_CACHE_HOURS = 24; // Refresh Scryfall data daily
 
 const SET_CODE_OVERRIDES = {
   'babp': 'pbook', 'znl': 'plst', 'sldfs': 'sld',
@@ -256,6 +258,31 @@ async function fetchProducts() {
 async function loadScryfallData() {
   console.log('Loading Scryfall data...');
 
+  const store = getBlobStore();
+
+  // Check if we have cached Scryfall data
+  try {
+    const cached = await store.get(SCRYFALL_BLOB_KEY, { type: 'json' });
+    if (cached && cached.cached_at) {
+      const cacheAge = (Date.now() - new Date(cached.cached_at).getTime()) / (1000 * 60 * 60);
+      if (cacheAge < SCRYFALL_CACHE_HOURS) {
+        console.log(`Using cached Scryfall data (${cacheAge.toFixed(1)}h old, ${cached.entries} entries)`);
+
+        // Rebuild maps from cached arrays
+        const scryfallData = {
+          bySetNumber: new Map(cached.bySetNumber),
+          byNameSet: new Map(cached.byNameSet),
+          byName: new Map(cached.byName)
+        };
+        return scryfallData;
+      }
+      console.log(`Scryfall cache expired (${cacheAge.toFixed(1)}h old), refreshing...`);
+    }
+  } catch (e) {
+    console.log('No Scryfall cache found, downloading fresh...');
+  }
+
+  // Download fresh Scryfall data
   const bulkResponse = await fetch('https://api.scryfall.com/bulk-data/default-cards', {
     headers: { 'User-Agent': 'CrypticCabin-BulkData/1.0' }
   });
@@ -296,6 +323,21 @@ async function loadScryfallData() {
   }
 
   console.log(`Built ${scryfallData.bySetNumber.size} lookup entries`);
+
+  // Cache for future runs (convert Maps to arrays for JSON storage)
+  try {
+    await store.setJSON(SCRYFALL_BLOB_KEY, {
+      cached_at: new Date().toISOString(),
+      entries: scryfallData.bySetNumber.size,
+      bySetNumber: Array.from(scryfallData.bySetNumber.entries()),
+      byNameSet: Array.from(scryfallData.byNameSet.entries()),
+      byName: Array.from(scryfallData.byName.entries())
+    });
+    console.log('Scryfall data cached for future runs');
+  } catch (e) {
+    console.log('Failed to cache Scryfall data:', e.message);
+  }
+
   return scryfallData;
 }
 

@@ -8,9 +8,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Bulk Data Refresh - Every 30 minutes via Netlify Blobs (no rebuild needed!)
+# Bulk Data Refresh - Every 15 minutes via Netlify Blobs (no rebuild needed!)
+# Scryfall data cached for 24h, only Shopify fetched each run (~20s)
 [functions."bulk-data-refresh"]
-  schedule = "*/30 * * * *"
+  schedule = "*/15 * * * *"
 
 # Shopify Inventory Webhook - Real-time stock updates
 [[redirects]]
