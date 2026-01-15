@@ -18,7 +18,7 @@ const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCES
 const BLOB_STORE_NAME = 'bulk-data';
 const BLOB_KEY = 'inventory';
 const SCRYFALL_BLOB_KEY = 'scryfall-cache';
-const SCRYFALL_CACHE_HOURS = 24; // Refresh Scryfall data daily
+const SCRYFALL_CACHE_DAYS = 7; // Refresh Scryfall data weekly (only changes with new sets)
 
 const SET_CODE_OVERRIDES = {
   'babp': 'pbook', 'znl': 'plst', 'sldfs': 'sld',
@@ -260,15 +260,33 @@ async function loadScryfallData() {
 
   const store = getBlobStore();
 
+  // Check Scryfall's update timestamp first
+  let scryfallUpdatedAt = null;
+  try {
+    const bulkInfoCheck = await fetch('https://api.scryfall.com/bulk-data/default-cards', {
+      headers: { 'User-Agent': 'CrypticCabin-BulkData/1.0' }
+    });
+    if (bulkInfoCheck.ok) {
+      const info = await bulkInfoCheck.json();
+      scryfallUpdatedAt = info.updated_at;
+    }
+  } catch (e) {
+    console.log('Could not check Scryfall update time');
+  }
+
   // Check if we have cached Scryfall data
   try {
     const cached = await store.get(SCRYFALL_BLOB_KEY, { type: 'json' });
     if (cached && cached.cached_at) {
-      const cacheAge = (Date.now() - new Date(cached.cached_at).getTime()) / (1000 * 60 * 60);
-      if (cacheAge < SCRYFALL_CACHE_HOURS) {
-        console.log(`Using cached Scryfall data (${cacheAge.toFixed(1)}h old, ${cached.entries} entries)`);
+      const cacheAgeDays = (Date.now() - new Date(cached.cached_at).getTime()) / (1000 * 60 * 60 * 24);
 
-        // Rebuild maps from cached arrays
+      // Use cache if: within 7 days AND Scryfall hasn't updated since we cached
+      const scryfallNotUpdated = !scryfallUpdatedAt ||
+        (cached.scryfall_updated_at && cached.scryfall_updated_at >= scryfallUpdatedAt);
+
+      if (cacheAgeDays < SCRYFALL_CACHE_DAYS && scryfallNotUpdated) {
+        console.log(`Using cached Scryfall data (${cacheAgeDays.toFixed(1)} days old, ${cached.entries} entries)`);
+
         const scryfallData = {
           bySetNumber: new Map(cached.bySetNumber),
           byNameSet: new Map(cached.byNameSet),
@@ -276,7 +294,12 @@ async function loadScryfallData() {
         };
         return scryfallData;
       }
-      console.log(`Scryfall cache expired (${cacheAge.toFixed(1)}h old), refreshing...`);
+
+      if (!scryfallNotUpdated) {
+        console.log('Scryfall has new data, refreshing cache...');
+      } else {
+        console.log(`Scryfall cache expired (${cacheAgeDays.toFixed(1)} days old), refreshing...`);
+      }
     }
   } catch (e) {
     console.log('No Scryfall cache found, downloading fresh...');
@@ -328,6 +351,7 @@ async function loadScryfallData() {
   try {
     await store.setJSON(SCRYFALL_BLOB_KEY, {
       cached_at: new Date().toISOString(),
+      scryfall_updated_at: scryfallUpdatedAt,
       entries: scryfallData.bySetNumber.size,
       bySetNumber: Array.from(scryfallData.bySetNumber.entries()),
       byNameSet: Array.from(scryfallData.byNameSet.entries()),
