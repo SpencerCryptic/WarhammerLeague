@@ -6,6 +6,10 @@
  */
 
 const { getStore } = require('@netlify/blobs');
+const zlib = require('zlib');
+const { promisify } = require('util');
+
+const gzip = promisify(zlib.gzip);
 
 const SITE_ID = process.env.CC_SITE_ID;
 const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
@@ -109,10 +113,28 @@ exports.handler = async (event, context) => {
     bulkData.served_from = source;
     bulkData.served_at = new Date().toISOString();
 
+    // Compress response (JSON compresses ~90%)
+    const jsonBody = JSON.stringify(bulkData);
+    const acceptEncoding = event.headers['accept-encoding'] || '';
+
+    if (acceptEncoding.includes('gzip')) {
+      const compressed = await gzip(Buffer.from(jsonBody));
+      console.log(`Compressed ${jsonBody.length} -> ${compressed.length} bytes`);
+      return {
+        statusCode: 200,
+        headers: {
+          ...headers,
+          'Content-Encoding': 'gzip'
+        },
+        body: compressed.toString('base64'),
+        isBase64Encoded: true
+      };
+    }
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(bulkData)
+      body: jsonBody
     };
 
   } catch (error) {
