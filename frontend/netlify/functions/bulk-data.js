@@ -113,28 +113,19 @@ exports.handler = async (event, context) => {
     bulkData.served_from = source;
     bulkData.served_at = new Date().toISOString();
 
-    // Compress response (JSON compresses ~90%)
+    // Always compress - data is too large uncompressed (~6MB -> ~500KB)
     const jsonBody = JSON.stringify(bulkData);
-    const acceptEncoding = event.headers['accept-encoding'] || '';
-
-    if (acceptEncoding.includes('gzip')) {
-      const compressed = await gzip(Buffer.from(jsonBody));
-      console.log(`Compressed ${jsonBody.length} -> ${compressed.length} bytes`);
-      return {
-        statusCode: 200,
-        headers: {
-          ...headers,
-          'Content-Encoding': 'gzip'
-        },
-        body: compressed.toString('base64'),
-        isBase64Encoded: true
-      };
-    }
+    const compressed = await gzip(Buffer.from(jsonBody));
+    console.log(`Compressed ${jsonBody.length} -> ${compressed.length} bytes`);
 
     return {
       statusCode: 200,
-      headers,
-      body: jsonBody
+      headers: {
+        ...headers,
+        'Content-Encoding': 'gzip'
+      },
+      body: compressed.toString('base64'),
+      isBase64Encoded: true
     };
 
   } catch (error) {
