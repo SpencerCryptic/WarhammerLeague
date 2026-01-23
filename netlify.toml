@@ -13,10 +13,10 @@
 [functions."bulk-data-refresh"]
   schedule = "*/15 * * * *"
 
-# Metafield Sync - Every 2 hours, sync Scryfall data to Shopify metafields
-# Runs after bulk data is refreshed, updates product metafields in batches
+# Metafield Sync - Twice daily, sync Scryfall data to Shopify metafields
+# Runs at 6:30 AM and 6:30 PM UTC
 [functions."sync-metafields"]
-  schedule = "30 */2 * * *"
+  schedule = "30 6,18 * * *"
 
 # Shopify Inventory Webhook - Real-time stock updates
 [[redirects]]
