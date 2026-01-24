@@ -126,14 +126,17 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
       return ctx.badRequest('Match result has already been submitted.');
     }
 
-    const [leaguePlayer] = await strapi.documents('api::league-player.league-player').findMany({
+    const leaguePlayers = await strapi.documents('api::league-player.league-player').findMany({
       filters: { player: { user: { id: userId } } }
     });
-    if (!leaguePlayer) {
+    if (!leaguePlayers || leaguePlayers.length === 0) {
       return ctx.badRequest('No LeaguePlayer found for this user')
     };
-    
-    const isPlayerInMatch = [match.leaguePlayer1.id, match.leaguePlayer2.id].includes(leaguePlayer.id);
+
+    // Check if ANY of the user's league-players match the participants
+    const leaguePlayerIds = leaguePlayers.map(lp => lp.id);
+    const isPlayerInMatch = leaguePlayerIds.includes(match.leaguePlayer1.id) ||
+                            leaguePlayerIds.includes(match.leaguePlayer2.id);
     if (!isPlayerInMatch) {
       return ctx.unauthorized('You are not a participant in this match')
     };
