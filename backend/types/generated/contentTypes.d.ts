@@ -651,7 +651,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
         lostButScored50Percent: false;
         scoredAllPrimaryObjectives: false;
       }>;
-    leaguePlayer1LeaguePoints: Schema.Attribute.Integer &
+    leaguePlayer1LeaguePoints: Schema.Attribute.Integer 
       Schema.Attribute.DefaultTo<0>;
     leaguePlayer1List: Schema.Attribute.Text;
     leaguePlayer1Result: Schema.Attribute.Integer;
