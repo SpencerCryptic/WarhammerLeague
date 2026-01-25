@@ -12,7 +12,7 @@
 const BULK_DATA_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-inventory.json';
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE || 'cryptic-cabin-tcg';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = '2025-01';
+const API_VERSION = '2025-10'; // Match the webhook version
 
 const BATCH_SIZE = 25;
 const RATE_LIMIT_DELAY = 500;
@@ -247,20 +247,26 @@ async function updateProductBatch(batch, stats) {
 }
 
 async function shopifyGraphQL(query, variables) {
-  const response = await fetch(
-    `https://${SHOPIFY_STORE}.myshopify.com/admin/api/${API_VERSION}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-      },
-      body: JSON.stringify({ query, variables })
-    }
-  );
+  const url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/${API_VERSION}/graphql.json`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+    },
+    body: JSON.stringify({ query, variables })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`❌ Shopify API error: ${response.status} - ${text}`);
+    throw new Error(`Shopify API ${response.status}: ${text}`);
+  }
 
   const result = await response.json();
   if (result.errors) {
+    console.error('❌ GraphQL errors:', JSON.stringify(result.errors, null, 2));
     throw new Error(JSON.stringify(result.errors));
   }
   return result;
