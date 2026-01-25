@@ -24,12 +24,12 @@
   to = "/.netlify/functions/shopify-inventory-webhook"
   status = 200
 
-# Shopify Product Webhook - DISABLED due to cascade failures
-# Delete webhook in Shopify admin to stop retry storm
-# [[redirects]]
-#   from = "/api/shopify-product-webhook"
-#   to = "/.netlify/functions/shopify-product-webhook"
-#   status = 200
+# Shopify Product Webhook - Stub (just returns 200, no processing)
+# Real processing disabled - bulk-data-refresh handles sync every 15 min
+[[redirects]]
+  from = "/api/shopify-product-webhook"
+  to = "/.netlify/functions/shopify-product-webhook"
+  status = 200
 
 # Bulk Data API - CORS headers for JSON files
 [[headers]]
