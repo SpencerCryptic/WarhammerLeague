@@ -1,0 +1,177 @@
+/**
+ * Cryptic Cabin — Product Card Enhancer
+ *
+ * Parses TCG product titles and restructures them for clean display.
+ * Works across all collections: Magic, Flesh and Blood, Yu-Gi-Oh.
+ *
+ * Title format: "Card Name - Set Name (Rarity) [SET-123]"
+ * Enhanced:     Card Name         (bold, white)
+ *               Set Name · Rarity (small, muted)
+ *
+ * Handles edge cases like "Card (V.1 - Rare) - Set (Rarity) [CODE]"
+ * by using greedy matching for the card name portion.
+ *
+ * Load via Shopify theme.liquid:
+ *   <script src="https://leagues.crypticcabin.com/js/product-card-enhancer.js" defer></script>
+ */
+
+(function () {
+  'use strict';
+
+  // Prevent double-initialization
+  if (window.__ccCardEnhancerLoaded) return;
+  window.__ccCardEnhancerLoaded = true;
+
+  // ── Title parser ───────────────────────────────────────────────────
+
+  /**
+   * Parse a TCG product title into components.
+   *
+   * Supported formats:
+   *   "Card Name - Set Name (Rarity) [SET-123]"
+   *   "Card Name - Set Name (Rarity)"
+   *
+   * The greedy match for card name handles titles with dashes/parens
+   * in the card name itself, e.g.:
+   *   "Ryzeal Plasma Hole (V.1 - Rare) - Crossover Breakers (Rare) [CRBR-010]"
+   *   → name: "Ryzeal Plasma Hole (V.1 - Rare)"
+   *   → set:  "Crossover Breakers"
+   *   → rarity: "Rare"
+   */
+  function parseTitle(title) {
+    if (!title) return null;
+    title = title.trim();
+
+    // Full format: Card Name - Set Name (Rarity) [CODE]
+    var m = title.match(/^(.+)\s+-\s+(.+?)\s+\(([^)]+)\)\s+\[([^\]]+)\]$/);
+    if (m) return { name: m[1].trim(), set: m[2].trim(), rarity: m[3].trim(), code: m[4].trim() };
+
+    // No code: Card Name - Set Name (Rarity)
+    m = title.match(/^(.+)\s+-\s+(.+?)\s+\(([^)]+)\)$/);
+    if (m) return { name: m[1].trim(), set: m[2].trim(), rarity: m[3].trim(), code: null };
+
+    return null;
+  }
+
+  // ── Card enhancement ───────────────────────────────────────────────
+
+  function enhanceCard(card) {
+    if (card.dataset.ccEnhanced) return;
+    card.dataset.ccEnhanced = 'true';
+
+    // Find the title text — Horizon theme structure:
+    //   <a class="contents user-select-text" ref="productTitleLink">
+    //     <div class="text-block ...">
+    //       <p>Card Name - Set Name (Rarity) [CODE]</p>
+    //     </div>
+    //   </a>
+    var titleLink = card.querySelector('a[ref="productTitleLink"], a.contents.user-select-text');
+    var textBlock = titleLink && titleLink.querySelector('.text-block');
+    var titleP = textBlock && textBlock.querySelector('p');
+    if (!titleP) return;
+
+    var parsed = parseTitle(titleP.textContent);
+    if (!parsed) return;
+
+    // Restructure the <p> content
+    titleP.textContent = '';
+    titleP.classList.add('cc-enhanced-title');
+
+    var nameEl = document.createElement('span');
+    nameEl.className = 'cc-pname';
+    nameEl.textContent = parsed.name;
+    titleP.appendChild(nameEl);
+
+    var metaEl = document.createElement('span');
+    metaEl.className = 'cc-pmeta';
+    metaEl.textContent = parsed.set + ' \u00b7 ' + parsed.rarity;
+    titleP.appendChild(metaEl);
+
+    // Also fix the zoom-out grid view title
+    var zoomTitle = card.querySelector('.product-grid-view-zoom-out--details h3');
+    if (zoomTitle) {
+      var zoomParsed = parseTitle(zoomTitle.textContent);
+      if (zoomParsed) zoomTitle.textContent = zoomParsed.name;
+    }
+  }
+
+  function enhanceAll() {
+    var cards = document.querySelectorAll('product-card:not([data-cc-enhanced])');
+    for (var i = 0; i < cards.length; i++) {
+      enhanceCard(cards[i]);
+    }
+  }
+
+  // ── Styles ─────────────────────────────────────────────────────────
+
+  function injectStyles() {
+    if (document.getElementById('cc-card-enhancer-css')) return;
+    var style = document.createElement('style');
+    style.id = 'cc-card-enhancer-css';
+    style.textContent = [
+      '.cc-enhanced-title {',
+      '  display: flex !important;',
+      '  flex-direction: column !important;',
+      '  gap: 3px !important;',
+      '}',
+      '.cc-pname {',
+      '  font-weight: 600;',
+      '  font-size: 13px;',
+      '  line-height: 1.3;',
+      '  color: #fff !important;',
+      '  display: -webkit-box;',
+      '  -webkit-line-clamp: 2;',
+      '  -webkit-box-orient: vertical;',
+      '  overflow: hidden;',
+      '}',
+      '.cc-pmeta {',
+      '  font-size: 11px;',
+      '  font-weight: 400;',
+      '  color: rgba(255,255,255,0.5) !important;',
+      '  white-space: nowrap;',
+      '  overflow: hidden;',
+      '  text-overflow: ellipsis;',
+      '}',
+      // Ensure the link doesn't override our colors
+      'a .cc-pname, a .cc-pmeta {',
+      '  text-decoration: none !important;',
+      '}'
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
+  // ── Init + observer ────────────────────────────────────────────────
+
+  function init() {
+    injectStyles();
+    enhanceAll();
+
+    // Watch for dynamically added cards (infinite scroll, AJAX nav)
+    var observer = new MutationObserver(function (mutations) {
+      var hasNew = false;
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          var node = added[j];
+          if (node.nodeType === 1) {
+            if ((node.matches && node.matches('product-card, li, results-list')) ||
+                (node.querySelector && node.querySelector('product-card'))) {
+              hasNew = true;
+              break;
+            }
+          }
+        }
+        if (hasNew) break;
+      }
+      if (hasNew) requestAnimationFrame(enhanceAll);
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
