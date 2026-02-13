@@ -24,11 +24,18 @@
   to = "/.netlify/functions/shopify-inventory-webhook"
   status = 200
 
-# Shopify Product Webhook - Stub (just returns 200, no processing)
-# Real processing disabled - bulk-data-refresh handles sync every 15 min
+# Shopify Product Webhook - Lightweight Scryfall enrichment on create/update
 [[redirects]]
   from = "/api/shopify-product-webhook"
   to = "/.netlify/functions/shopify-product-webhook"
+  status = 200
+
+# Metafield Backfill - One-off enrichment for existing products missing Scryfall data
+# Trigger manually: POST /api/sync-metafields-backfill
+# Resumes from cursor on each run; handles 300k+ products across multiple invocations
+[[redirects]]
+  from = "/api/sync-metafields-backfill"
+  to = "/.netlify/functions/sync-metafields-backfill"
   status = 200
 
 # Bulk Data API - CORS headers for JSON files
@@ -38,15 +45,28 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=3600"
 
+# Collection filter JS - CORS + caching for Shopify theme to load cross-origin
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=300"
+
 # Bulk Data API - Endpoint redirects
+# Filtered endpoint must come before the catch-all /api/bulk-data
 [[redirects]]
-  from = "/api/bulk-data"
-  to = "/.netlify/functions/bulk-data"
+  from = "/api/bulk-data/filtered"
+  to = "/.netlify/functions/bulk-data-filtered"
   status = 200
 
 [[redirects]]
   from = "/api/bulk-data/collection"
   to = "/.netlify/functions/bulk-data-collection"
+  status = 200
+
+[[redirects]]
+  from = "/api/bulk-data"
+  to = "/.netlify/functions/bulk-data"
   status = 200
 
 # Cart Import API - For deck builder integrations (Moxfield, Archidekt, etc.)
