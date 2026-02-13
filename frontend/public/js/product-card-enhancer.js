@@ -127,6 +127,26 @@
     var style = document.createElement('style');
     style.id = 'cc-card-enhancer-css';
     style.textContent = [
+      // ── Card container — dark bg, border, hover lift ──
+      'product-card[data-cc-enhanced] .product-card__content {',
+      '  background: #1F222E !important;',
+      '  border: 1px solid rgba(255,255,255,0.08) !important;',
+      '  border-radius: 10px !important;',
+      '  overflow: hidden !important;',
+      '  transition: transform 0.15s ease, box-shadow 0.15s ease !important;',
+      '}',
+      'product-card[data-cc-enhanced]:hover .product-card__content {',
+      '  transform: translateY(-3px);',
+      '  box-shadow: 0 8px 24px rgba(0,0,0,0.4);',
+      '}',
+
+      // ── Image area ──
+      'product-card[data-cc-enhanced] .card-gallery {',
+      '  border-radius: 0 !important;',
+      '  border: none !important;',
+      '}',
+
+      // ── Title text ──
       '.cc-enhanced-title {',
       '  display: flex !important;',
       '  flex-direction: column !important;',
@@ -157,8 +177,27 @@
       '  font-weight: 500;',
       '  color: rgba(255,255,255,0.4) !important;',
       '}',
-      // Ensure the link doesn't override our colors
+
+      // ── Orange price ──
+      'product-card[data-cc-enhanced] product-price .price,',
+      'product-card[data-cc-enhanced] product-price .price--on-sale,',
+      'product-card[data-cc-enhanced] product-price [ref="priceContainer"] {',
+      '  color: #F97316 !important;',
+      '  font-weight: 700 !important;',
+      '  font-size: 16px !important;',
+      '}',
+      // Dim the compare-at / was price
+      'product-card[data-cc-enhanced] product-price .price--compare {',
+      '  color: rgba(255,255,255,0.35) !important;',
+      '  font-weight: 400 !important;',
+      '  font-size: 13px !important;',
+      '}',
+
+      // ── Link color reset ──
       'a .cc-pname, a .cc-pmeta, a .cc-prarity {',
+      '  text-decoration: none !important;',
+      '}',
+      'product-card[data-cc-enhanced] a.product-card__link {',
       '  text-decoration: none !important;',
       '}'
     ].join('\n');
