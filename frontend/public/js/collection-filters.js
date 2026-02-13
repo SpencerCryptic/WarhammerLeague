@@ -88,6 +88,19 @@
     // Inject card CSS
     injectStyles();
 
+    // Hide native Shopify controls that we replace
+    const formEl = filterContainer.closest('.facets__form');
+    if (formEl) {
+      formEl.classList.add('cc-takeover');
+    }
+    // Also mark wrapper for CSS-based hiding
+    const blockWrapper = filterContainer.closest('.facets-block-wrapper');
+    if (blockWrapper) blockWrapper.classList.add('cc-takeover');
+
+    // Hide native Shopify pagination
+    document.querySelectorAll('.pagination-wrapper, .pagination:not(.cc-pagination)')
+      .forEach(el => el.style.display = 'none');
+
     // Read initial state from URL
     readStateFromURL();
 
@@ -99,13 +112,9 @@
       || document.querySelector('.products-count-wrapper');
 
     // Find/create pagination
-    paginationContainer = document.querySelector('.pagination-wrapper')
-      || document.querySelector('.pagination');
-    if (!paginationContainer) {
-      paginationContainer = document.createElement('div');
-      paginationContainer.className = 'cc-pagination';
-      productGrid.parentNode.insertBefore(paginationContainer, productGrid.nextSibling);
-    }
+    paginationContainer = document.createElement('div');
+    paginationContainer.className = 'cc-pagination';
+    productGrid.parentNode.insertBefore(paginationContainer, productGrid.nextSibling);
 
     // Initial fetch
     fetchAndRender();
@@ -247,11 +256,27 @@
     // Keywords (searchable)
     filterContainer.appendChild(buildCheckboxPanel('Keywords', 'keywords', [], true));
 
+    // Clear All button (hidden until filters are active)
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'cc-clear-all facets__summary';
+    clearBtn.textContent = 'Clear All';
+    clearBtn.style.display = 'none';
+    clearBtn.addEventListener('click', () => {
+      state.filters = {};
+      state.page = 1;
+      writeStateToURL();
+      buildFilterUI(); // Rebuild to reset checkboxes
+      fetchAndRender();
+    });
+    filterContainer.appendChild(clearBtn);
+
     // Sort (after filters, outside overflow list if possible)
     const sortPanel = buildSortPanel();
-    const formEl = filterContainer.closest('.facets__form');
-    if (formEl) {
-      formEl.appendChild(sortPanel);
+    sortPanel.classList.add('cc-sort');
+    const formParent = filterContainer.closest('.facets__form');
+    if (formParent) {
+      formParent.appendChild(sortPanel);
     } else {
       filterContainer.appendChild(sortPanel);
     }
@@ -499,15 +524,36 @@
       }
     }
 
-    // Mark active filter panels
+    // Mark active filter panels + update summary badges
+    let totalActive = 0;
     filterContainer.querySelectorAll('.facets__panel').forEach(panel => {
       const key = panel.dataset.filterName;
+      const summary = panel.querySelector('.facets__summary');
+      if (!summary) return;
+
+      // Remove any existing badge
+      const oldBadge = summary.querySelector('.cc-active-badge');
+      if (oldBadge) oldBadge.remove();
+
       if (key && state.filters[key]) {
+        const count = state.filters[key].split(',').filter(Boolean).length;
+        totalActive += count;
         panel.dataset.hasSelection = 'true';
+
+        const badge = document.createElement('span');
+        badge.className = 'cc-active-badge';
+        badge.textContent = count;
+        summary.appendChild(badge);
       } else {
         delete panel.dataset.hasSelection;
       }
     });
+
+    // Show/hide Clear All button
+    const clearBtn = filterContainer.querySelector('.cc-clear-all');
+    if (clearBtn) {
+      clearBtn.style.display = totalActive > 0 ? '' : 'none';
+    }
   }
 
   function updateFilterFromCheckboxes(filterKey) {
@@ -911,10 +957,55 @@
         color: rgba(255,255,255,0.4);
       }
 
-      /* ── In-stock toggle label ── */
-      .cc-in-stock-item .facets__summary {
-        max-width: none;
+      /* ── Active filter state ── */
+      .facets__panel[data-has-selection="true"] > .facets__summary {
+        background: var(--filter-accent, #F97316) !important;
+        border-color: var(--filter-accent, #F97316) !important;
+        color: #fff !important;
       }
+      .facets__panel[data-has-selection="true"] > .facets__summary::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #fff;
+        flex-shrink: 0;
+      }
+
+      /* ── Active count badge ── */
+      .cc-active-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.25);
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        margin-left: 4px;
+      }
+
+      /* ── Clear All button ── */
+      .cc-clear-all {
+        background: rgba(239,68,68,0.15) !important;
+        border-color: rgba(239,68,68,0.4) !important;
+        color: #ef4444 !important;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .cc-clear-all:hover {
+        background: rgba(239,68,68,0.25) !important;
+        border-color: #ef4444 !important;
+      }
+
+      /* ── Hide Shopify elements we replace ── */
+      .cc-takeover sorting-filter-component,
+      .cc-takeover .column-options-wrapper,
+      .cc-takeover .facets__actions,
+      .cc-takeover .facets-remove { display: none !important; }
     `;
     document.head.appendChild(style);
   }
