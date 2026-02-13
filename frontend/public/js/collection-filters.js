@@ -15,6 +15,10 @@
 (function () {
   'use strict';
 
+  // Prevent double-initialization (script may be included twice)
+  if (window.__ccFiltersLoaded) return;
+  window.__ccFiltersLoaded = true;
+
   // ── Config ───────────────────────────────────────────────────────
 
   const CONFIG = Object.assign({
@@ -84,6 +88,9 @@
     if (realFilters.length > 0) return; // Shopify filters work, don't take over
 
     console.log('[CrypticCabin] Taking over filters for large collection');
+
+    // Mark body so CSS can hide native Shopify elements anywhere in the DOM
+    document.body.classList.add('cc-filters-active');
 
     // Inject card CSS
     injectStyles();
@@ -1006,6 +1013,14 @@
       .cc-takeover .column-options-wrapper,
       .cc-takeover .facets__actions,
       .cc-takeover .facets-remove { display: none !important; }
+
+      /* Sort component may live outside .cc-takeover wrapper */
+      body.cc-filters-active sorting-filter-component,
+      body.cc-filters-active .column-options-wrapper { display: none !important; }
+
+      /* Hide native Shopify pagination when we take over */
+      body.cc-filters-active .pagination-wrapper,
+      body.cc-filters-active .pagination:not(.cc-pagination) { display: none !important; }
     `;
     document.head.appendChild(style);
   }
