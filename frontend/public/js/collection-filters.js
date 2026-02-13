@@ -51,16 +51,32 @@
   // ── Init ─────────────────────────────────────────────────────────
 
   function init() {
+    console.log('[CrypticCabin] Init starting...');
+
     // Find the filter overflow list (rendered empty by Shopify when >5k products)
     filterContainer = document.querySelector('.facets__overflow-list')
       || document.querySelector('.facets__filters-wrapper');
-    productGrid = document.querySelector('.product-grid__list');
+    productGrid = document.querySelector('.product-grid');
 
-    if (!filterContainer || !productGrid) return;
+    console.log('[CrypticCabin] filterContainer:', !!filterContainer, '| productGrid:', !!productGrid);
+    if (!filterContainer || !productGrid) {
+      console.warn('[CrypticCabin] Missing DOM elements — filterContainer:', filterContainer, 'productGrid:', productGrid);
+      return;
+    }
 
-    // Check if Shopify already rendered real filters (< 5k collection)
+    // Check if Shopify already rendered real filter panels (< 5k collection).
+    // Exclude the Sort dropdown which is also a .facets__panel but doesn't
+    // contain filter checkboxes — it lives inside .sorting-filter or has
+    // a <select> instead of <input type="checkbox">.
     const existingPanels = filterContainer.querySelectorAll('.facets__panel');
-    if (existingPanels.length > 0) return; // Shopify filters work, don't take over
+    const realFilters = Array.from(existingPanels).filter(
+      panel => panel.querySelector('.facets__input[type="checkbox"], .facets__price')
+    );
+    console.log('[CrypticCabin] Panels in filter container:', existingPanels.length, '| With real filters:', realFilters.length);
+    if (realFilters.length > 0) {
+      console.log('[CrypticCabin] Shopify native filters detected — standing down');
+      return;
+    }
 
     console.log('[CrypticCabin] Taking over filters for large collection');
 
