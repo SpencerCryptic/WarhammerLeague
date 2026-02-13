@@ -53,6 +53,16 @@
     return null;
   }
 
+  // ── FaB name cleanup ─────────────────────────────────────────────
+
+  // FaB card names include pitch color + edition: "Card (Blue) (Regular)"
+  // Strip these for a cleaner display name
+  var FAB_SUFFIXES = /\s+\((Red|Blue|Yellow)\)\s*(\((Regular|Rainbow Foil|Cold Foil|Extended Art|Normal|Marvel|1st Edition)\))?$/i;
+
+  function cleanFabName(name) {
+    return name.replace(FAB_SUFFIXES, '');
+  }
+
   // ── Card enhancement ───────────────────────────────────────────────
 
   function enhanceCard(card) {
@@ -73,25 +83,33 @@
     var parsed = parseTitle(titleP.textContent);
     if (!parsed) return;
 
+    // Clean up FaB-style variant suffixes from the name
+    var displayName = cleanFabName(parsed.name);
+
     // Restructure the <p> content
     titleP.textContent = '';
     titleP.classList.add('cc-enhanced-title');
 
     var nameEl = document.createElement('span');
     nameEl.className = 'cc-pname';
-    nameEl.textContent = parsed.name;
+    nameEl.textContent = displayName;
     titleP.appendChild(nameEl);
 
     var metaEl = document.createElement('span');
     metaEl.className = 'cc-pmeta';
-    metaEl.textContent = parsed.set + ' \u00b7 ' + parsed.rarity;
+    metaEl.textContent = parsed.set;
     titleP.appendChild(metaEl);
+
+    var rarityEl = document.createElement('span');
+    rarityEl.className = 'cc-prarity';
+    rarityEl.textContent = parsed.rarity;
+    titleP.appendChild(rarityEl);
 
     // Also fix the zoom-out grid view title
     var zoomTitle = card.querySelector('.product-grid-view-zoom-out--details h3');
     if (zoomTitle) {
       var zoomParsed = parseTitle(zoomTitle.textContent);
-      if (zoomParsed) zoomTitle.textContent = zoomParsed.name;
+      if (zoomParsed) zoomTitle.textContent = cleanFabName(zoomParsed.name);
     }
   }
 
@@ -112,11 +130,11 @@
       '.cc-enhanced-title {',
       '  display: flex !important;',
       '  flex-direction: column !important;',
-      '  gap: 3px !important;',
+      '  gap: 1px !important;',
       '}',
       '.cc-pname {',
       '  font-weight: 600;',
-      '  font-size: 13px;',
+      '  font-size: 14px;',
       '  line-height: 1.3;',
       '  color: #fff !important;',
       '  display: -webkit-box;',
@@ -125,15 +143,22 @@
       '  overflow: hidden;',
       '}',
       '.cc-pmeta {',
-      '  font-size: 11px;',
+      '  font-size: 12px;',
       '  font-weight: 400;',
+      '  line-height: 1.35;',
       '  color: rgba(255,255,255,0.5) !important;',
-      '  white-space: nowrap;',
+      '  display: -webkit-box;',
+      '  -webkit-line-clamp: 2;',
+      '  -webkit-box-orient: vertical;',
       '  overflow: hidden;',
-      '  text-overflow: ellipsis;',
+      '}',
+      '.cc-prarity {',
+      '  font-size: 11px;',
+      '  font-weight: 500;',
+      '  color: rgba(255,255,255,0.4) !important;',
       '}',
       // Ensure the link doesn't override our colors
-      'a .cc-pname, a .cc-pmeta {',
+      'a .cc-pname, a .cc-pmeta, a .cc-prarity {',
       '  text-decoration: none !important;',
       '}'
     ].join('\n');
