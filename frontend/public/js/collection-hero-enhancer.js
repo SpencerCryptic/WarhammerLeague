@@ -58,6 +58,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     var d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
     var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
   }
@@ -150,8 +151,10 @@
     hero.appendChild(featuredSection);
 
     // ── Insert into page ──
+    // Try to insert before the facets/filter bar so the hero sits above filters
     var insertBefore = document.querySelector('.facets-block-wrapper')
       || document.querySelector('.facets-controls-wrapper')
+      || document.querySelector('.collection-product-list')
       || document.querySelector('.product-grid');
 
     if (insertBefore && insertBefore.parentNode) {
@@ -163,15 +166,21 @@
       }
     }
 
-    // Hide originals
+    // Hide originals — broad selectors for Horizon theme
     if (titleEl && !titleEl.closest('.cc-collection-hero')) {
-      titleEl.style.display = 'none';
-    }
-    if (descEl && !descEl.closest('.cc-collection-hero')) {
-      descEl.style.display = 'none';
+      // Try to hide the entire title section/container
+      var titleSection = titleEl.closest('.collection-hero, .collection-banner, .section-collection-hero, .shopify-section-collection-hero, section[class*="collection-hero"]');
+      if (titleSection && !titleSection.closest('.cc-collection-hero')) {
+        titleSection.style.display = 'none';
+      } else {
+        titleEl.style.display = 'none';
+        if (descEl && !descEl.closest('.cc-collection-hero')) {
+          descEl.style.display = 'none';
+        }
+      }
     }
     if (imgEl) {
-      var imgSection = imgEl.closest('.collection-hero, .collection-banner, .collection-hero-section, .banner');
+      var imgSection = imgEl.closest('.collection-hero, .collection-banner, .collection-hero-section, .banner, section[class*="collection"]');
       if (imgSection && !imgSection.closest('.cc-collection-hero')) {
         imgSection.style.display = 'none';
       }
@@ -213,9 +222,12 @@
     meta.className = 'cc-hero__set-meta';
     var parts = [];
     if (set.cardCount) parts.push(set.cardCount + ' cards');
-    if (set.releaseDate) parts.push(formatDate(set.releaseDate));
-    meta.textContent = parts.join(' \u00b7 ');
-    container.appendChild(meta);
+    var dateFormatted = formatDate(set.releaseDate);
+    if (dateFormatted) parts.push(dateFormatted);
+    if (parts.length > 0) {
+      meta.textContent = parts.join(' \u00b7 ');
+      container.appendChild(meta);
+    }
 
     var btn = document.createElement('a');
     btn.className = 'cc-hero__set-btn';
@@ -284,11 +296,12 @@
       // ── Hero container ──
       '.cc-collection-hero {',
       '  position: relative;',
+      '  z-index: 3;',
       '  background: linear-gradient(135deg, #1a1d2e 0%, #202330 50%, #1a1d2e 100%);',
       '  border: 1px solid rgba(255,255,255,0.08);',
       '  border-radius: 14px;',
       '  padding: 28px 32px;',
-      '  margin: 16px auto 0;',
+      '  margin: 16px auto 20px;',
       '  max-width: var(--page-width, 1200px);',
       '  overflow: hidden;',
       '}',
@@ -466,7 +479,7 @@
       '@media screen and (max-width: 749px) {',
       '  .cc-collection-hero {',
       '    padding: 20px 16px;',
-      '    margin: 12px 12px 0;',
+      '    margin: 12px 12px 16px;',
       '    border-radius: 12px;',
       '  }',
       '  .cc-hero__top {',

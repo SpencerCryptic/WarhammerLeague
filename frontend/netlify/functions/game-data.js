@@ -120,10 +120,10 @@ async function getMtgData() {
 
   const expansions = (setsData.data || [])
     .filter(s =>
-      (s.set_type === 'expansion' || s.set_type === 'masters' || s.set_type === 'draft_innovation') &&
+      s.set_type === 'expansion' &&
       s.released_at &&
       s.released_at <= cutoff &&
-      s.card_count > 0
+      s.card_count > 50
     )
     .sort((a, b) => b.released_at.localeCompare(a.released_at));
 
