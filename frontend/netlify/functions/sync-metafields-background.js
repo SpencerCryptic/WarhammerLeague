@@ -9,13 +9,24 @@
  * - SHOPIFY_STORE: Store subdomain (default: cryptic-cabin-tcg)
  */
 
+const { getStore } = require('@netlify/blobs');
+
 const BULK_DATA_URL = 'https://leagues.crypticcabin.com/bulk-data/cryptic-cabin-inventory.json';
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE || 'cryptic-cabin-tcg';
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = '2025-10'; // Match the webhook version
+const API_VERSION = '2025-10';
+const SITE_ID = process.env.CC_SITE_ID;
+const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
 
 const BATCH_SIZE = 25;
 const RATE_LIMIT_DELAY = 500;
+
+function getBlobStore(name) {
+  const options = { name };
+  if (SITE_ID) options.siteID = SITE_ID;
+  if (BLOBS_TOKEN) options.token = BLOBS_TOKEN;
+  return getStore(options);
+}
 
 exports.handler = async (event, context) => {
   console.log('🔄 Metafield sync background worker started');
@@ -39,27 +50,45 @@ exports.handler = async (event, context) => {
   };
 
   try {
-    // Fetch bulk data
+    // Fetch bulk data (blob store first, then static fallback)
     console.log('📥 Fetching bulk data...');
-    const response = await fetch(BULK_DATA_URL);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bulk data: ${response.status}`);
+    let bulkData = null;
+    try {
+      const store = getBlobStore('bulk-data');
+      bulkData = await store.get('inventory', { type: 'json' });
+      if (bulkData) console.log('   Loaded from blob store');
+    } catch (e) {
+      console.log('   Blob store unavailable:', e.message);
     }
-    const bulkData = await response.json();
-    console.log(`   Loaded ${bulkData.data.length} card listings`);
+    if (!bulkData) {
+      const response = await fetch(BULK_DATA_URL);
+      if (!response.ok) throw new Error(`Failed to fetch bulk data: ${response.status}`);
+      bulkData = await response.json();
+      console.log('   Loaded from static URL');
+    }
+    console.log(`   ${bulkData.data.length} card listings`);
 
     // Dedupe by product_id
     const productMap = new Map();
+    let missingScryfall = 0;
     for (const card of bulkData.data) {
       const productId = card.cryptic_cabin?.product_id;
-      if (!productId || !card.oracle_id) continue;
+      if (!productId) continue;
+      if (!card.oracle_id) {
+        missingScryfall++;
+        continue;
+      }
       if (!productMap.has(productId)) {
         productMap.set(productId, card);
       }
     }
 
     console.log(`   Deduped to ${productMap.size} unique products`);
+    if (missingScryfall > 0) {
+      console.warn(`   ⚠️ ${missingScryfall} cards missing Scryfall data — backfill needed`);
+    }
     stats.total = productMap.size;
+    stats.missingScryfall = missingScryfall;
 
     // Prepare products with metafields
     const productsToUpdate = [];

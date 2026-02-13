@@ -18,6 +18,12 @@
 [functions."sync-metafields"]
   schedule = "30 6,18 * * *"
 
+# Metafield Backfill - Daily safety net for products missing Scryfall data
+# Runs at 7:00 AM UTC (after the 6:30 sync), does live Scryfall lookups
+# for any products without oracle_id. Resumes from cursor across runs.
+[functions."sync-metafields-backfill"]
+  schedule = "0 7 * * *"
+
 # Shopify Inventory Webhook - Real-time stock updates
 [[redirects]]
   from = "/api/shopify-inventory-webhook"
