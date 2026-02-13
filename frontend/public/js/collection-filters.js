@@ -108,6 +108,16 @@
     document.querySelectorAll('.pagination-wrapper, .pagination:not(.cc-pagination)')
       .forEach(el => el.style.display = 'none');
 
+    // Disable Shopify's infinite scroll so it doesn't append native cards
+    const resultsList = document.querySelector('results-list[infinite-scroll]');
+    if (resultsList) {
+      resultsList.removeAttribute('infinite-scroll');
+      // Remove scroll listeners by replacing with a clone
+      const clone = resultsList.cloneNode(false);
+      while (resultsList.firstChild) clone.appendChild(resultsList.firstChild);
+      resultsList.parentNode.replaceChild(clone, resultsList);
+    }
+
     // Read initial state from URL
     readStateFromURL();
 
@@ -1021,6 +1031,10 @@
       /* Hide native Shopify pagination when we take over */
       body.cc-filters-active .pagination-wrapper,
       body.cc-filters-active .pagination:not(.cc-pagination) { display: none !important; }
+
+      /* Hide native Shopify product cards — only our API cards should show */
+      body.cc-filters-active .product-grid__item:has(product-card) { display: none !important; }
+      body.cc-filters-active product-card { display: none !important; }
     `;
     document.head.appendChild(style);
   }
