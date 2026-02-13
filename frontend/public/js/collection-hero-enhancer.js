@@ -107,17 +107,21 @@
     // Fallback to config label if Shopify title not found
     if (!title) title = config.label + ' Singles';
 
-    // ── Container ──
+    // ── Container (full-bleed) ──
     var hero = document.createElement('div');
     hero.className = 'cc-collection-hero';
     hero.style.setProperty('--cc-hero-accent', config.accent);
+
+    // Inner wrapper (centered content)
+    var inner = document.createElement('div');
+    inner.className = 'cc-hero__inner';
 
     // Watermark
     if (imgSrc) {
       var watermark = document.createElement('div');
       watermark.className = 'cc-hero__watermark';
       watermark.style.backgroundImage = 'url(' + imgSrc + ')';
-      hero.appendChild(watermark);
+      inner.appendChild(watermark);
     }
 
     // ── Top row: info + latest set ──
@@ -162,13 +166,15 @@
     setCard.style.display = 'none';
     topRow.appendChild(setCard);
 
-    hero.appendChild(topRow);
+    inner.appendChild(topRow);
 
     // ── Featured cards strip (populated async) ──
     var featuredSection = document.createElement('div');
     featuredSection.className = 'cc-hero__featured';
     featuredSection.style.display = 'none';
-    hero.appendChild(featuredSection);
+    inner.appendChild(featuredSection);
+
+    hero.appendChild(inner);
 
     // ── Insert into page — at the TOP of main content ──
     // The hero replaces the Shopify collection title/description section.
@@ -263,7 +269,7 @@
   function populateFeatured(container, cards) {
     var heading = document.createElement('span');
     heading.className = 'cc-hero__featured-heading';
-    heading.textContent = 'Popular Right Now';
+    heading.textContent = 'Trending Cards';
     container.appendChild(heading);
 
     var strip = document.createElement('div');
@@ -313,39 +319,45 @@
     var style = document.createElement('style');
     style.id = 'cc-hero-enhancer-css';
     style.textContent = [
-      // ── Hero container ──
+      // ── Full-bleed hero container ──
       '.cc-collection-hero {',
       '  position: relative;',
       '  z-index: 3;',
-      '  background: linear-gradient(135deg, #1a1d2e 0%, #202330 50%, #1a1d2e 100%);',
-      '  border: 1px solid rgba(255,255,255,0.08);',
-      '  border-radius: 14px;',
-      '  padding: 28px 32px;',
-      '  margin: 16px auto 20px;',
-      '  max-width: var(--page-width, 1200px);',
+      '  background: #14171f;',
+      '  border: none;',
+      '  border-radius: 0;',
+      '  padding: 0;',
+      '  margin: 0;',
       '  overflow: hidden;',
       '}',
 
-      // ── Accent glow left edge ──
+      // ── Accent gradient top edge ──
       '.cc-collection-hero::before {',
       '  content: "";',
       '  position: absolute;',
-      '  left: 0; top: 0; bottom: 0;',
-      '  width: 3px;',
-      '  background: var(--cc-hero-accent, #F97316);',
-      '  border-radius: 14px 0 0 14px;',
+      '  left: 0; top: 0; right: 0;',
+      '  height: 3px;',
+      '  background: linear-gradient(90deg, var(--cc-hero-accent, #F97316), transparent);',
+      '}',
+
+      // ── Inner content wrapper (centered) ──
+      '.cc-hero__inner {',
+      '  max-width: var(--page-width, 1200px);',
+      '  margin: 0 auto;',
+      '  padding: 32px 32px 28px;',
+      '  position: relative;',
       '}',
 
       // ── Watermark ──
       '.cc-hero__watermark {',
       '  position: absolute;',
-      '  right: -20px; top: 50%;',
+      '  right: 20px; top: 50%;',
       '  transform: translateY(-50%);',
-      '  width: 220px; height: 220px;',
+      '  width: 280px; height: 280px;',
       '  background-size: contain;',
       '  background-repeat: no-repeat;',
       '  background-position: center;',
-      '  opacity: 0.06;',
+      '  opacity: 0.04;',
       '  pointer-events: none;',
       '}',
 
@@ -354,7 +366,7 @@
       '  display: flex;',
       '  justify-content: space-between;',
       '  align-items: flex-start;',
-      '  gap: 24px;',
+      '  gap: 32px;',
       '  position: relative;',
       '  z-index: 1;',
       '}',
@@ -364,61 +376,59 @@
       '.cc-hero__title-row {',
       '  display: flex;',
       '  align-items: center;',
-      '  gap: 14px;',
-      '  margin-bottom: 6px;',
+      '  gap: 16px;',
+      '  margin-bottom: 10px;',
       '}',
       '.cc-hero__logo {',
-      '  width: 44px;',
-      '  height: 44px;',
+      '  width: 50px;',
+      '  height: 50px;',
       '  flex-shrink: 0;',
       '  object-fit: contain;',
-      '  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));',
+      '  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));',
       '}',
 
       // ── Title ──
       '.cc-hero__title {',
-      '  font-size: 26px;',
+      '  font-size: 30px;',
       '  font-weight: 700;',
       '  color: #fff;',
       '  margin: 0;',
-      '  line-height: 1.2;',
+      '  line-height: 1.15;',
       '  letter-spacing: -0.02em;',
-      '  border-bottom: 3px solid var(--cc-hero-accent, #F97316);',
-      '  padding-bottom: 6px;',
-      '  display: inline-block;',
       '}',
 
       // ── Description ──
       '.cc-hero__desc {',
-      '  font-size: 13px;',
+      '  font-size: 14px;',
       '  line-height: 1.5;',
-      '  color: rgba(255,255,255,0.50);',
+      '  color: rgba(255,255,255,0.45);',
       '  margin: 0;',
-      '  max-width: 480px;',
+      '  max-width: 520px;',
       '}',
 
       // ── Latest set card ──
       '.cc-hero__set-card {',
       '  flex-shrink: 0;',
-      '  background: rgba(255,255,255,0.04);',
+      '  background: rgba(255,255,255,0.05);',
       '  border: 1px solid rgba(255,255,255,0.10);',
-      '  border-radius: 10px;',
-      '  padding: 14px 18px;',
+      '  border-radius: 12px;',
+      '  padding: 16px 20px;',
       '  display: flex;',
       '  flex-direction: column;',
-      '  gap: 4px;',
-      '  min-width: 200px;',
-      '  max-width: 260px;',
+      '  gap: 6px;',
+      '  min-width: 220px;',
+      '  max-width: 280px;',
+      '  backdrop-filter: blur(8px);',
       '}',
       '.cc-hero__set-label {',
       '  font-size: 10px;',
       '  font-weight: 700;',
-      '  letter-spacing: 0.08em;',
+      '  letter-spacing: 0.1em;',
       '  text-transform: uppercase;',
       '  color: var(--cc-hero-accent, #F97316);',
       '}',
       '.cc-hero__set-name {',
-      '  font-size: 16px;',
+      '  font-size: 18px;',
       '  font-weight: 600;',
       '  color: #fff;',
       '  line-height: 1.25;',
@@ -429,11 +439,11 @@
       '}',
       '.cc-hero__set-btn {',
       '  display: inline-block;',
-      '  margin-top: 6px;',
-      '  padding: 7px 16px;',
+      '  margin-top: 8px;',
+      '  padding: 9px 20px;',
       '  background: var(--cc-hero-accent, #F97316);',
       '  color: #fff;',
-      '  font-size: 13px;',
+      '  font-size: 14px;',
       '  font-weight: 600;',
       '  border-radius: 8px;',
       '  text-decoration: none;',
@@ -447,28 +457,28 @@
 
       // ── Featured cards ──
       '.cc-hero__featured {',
-      '  margin-top: 18px;',
-      '  padding-top: 16px;',
+      '  margin-top: 24px;',
+      '  padding-top: 20px;',
       '  border-top: 1px solid rgba(255,255,255,0.06);',
       '  position: relative;',
       '  z-index: 1;',
       '}',
       '.cc-hero__featured-heading {',
       '  display: block;',
-      '  font-size: 12px;',
+      '  font-size: 13px;',
       '  font-weight: 600;',
       '  text-transform: uppercase;',
-      '  letter-spacing: 0.06em;',
-      '  color: rgba(255,255,255,0.40);',
-      '  margin-bottom: 10px;',
+      '  letter-spacing: 0.08em;',
+      '  color: rgba(255,255,255,0.35);',
+      '  margin-bottom: 14px;',
       '}',
       '.cc-hero__featured-strip {',
       '  display: flex;',
-      '  gap: 12px;',
+      '  gap: 16px;',
       '  overflow-x: auto;',
       '  scroll-snap-type: x mandatory;',
       '  -webkit-overflow-scrolling: touch;',
-      '  padding-bottom: 4px;',
+      '  padding-bottom: 6px;',
       '}',
       '.cc-hero__featured-strip::-webkit-scrollbar { height: 4px; }',
       '.cc-hero__featured-strip::-webkit-scrollbar-track { background: transparent; }',
@@ -477,72 +487,80 @@
       '  border-radius: 2px;',
       '}',
       '.cc-hero__featured-card {',
-      '  flex-shrink: 0;',
+      '  flex: 1 0 0;',
+      '  min-width: 0;',
       '  scroll-snap-align: start;',
-      '  width: 110px;',
       '  text-decoration: none;',
       '  transition: transform 0.12s ease;',
       '}',
-      '.cc-hero__featured-card:hover { transform: translateY(-3px); }',
+      '.cc-hero__featured-card:hover { transform: translateY(-4px); }',
       '.cc-hero__featured-card img {',
-      '  width: 110px;',
+      '  width: 100%;',
       '  height: auto;',
-      '  border-radius: 6px;',
+      '  border-radius: 8px;',
       '  display: block;',
+      '  box-shadow: 0 4px 12px rgba(0,0,0,0.4);',
       '}',
       '.cc-hero__featured-info {',
-      '  padding: 4px 0;',
+      '  padding: 6px 2px 0;',
       '}',
       '.cc-hero__featured-name {',
       '  display: block;',
-      '  font-size: 11px;',
+      '  font-size: 12px;',
       '  font-weight: 500;',
       '  color: rgba(255,255,255,0.70);',
-      '  line-height: 1.25;',
+      '  line-height: 1.3;',
       '  white-space: nowrap;',
       '  overflow: hidden;',
       '  text-overflow: ellipsis;',
       '}',
       '.cc-hero__featured-price {',
       '  display: block;',
-      '  font-size: 12px;',
+      '  font-size: 13px;',
       '  font-weight: 700;',
       '  color: var(--cc-hero-accent, #F97316);',
       '}',
 
+      // ── Bottom accent line ──
+      '.cc-collection-hero::after {',
+      '  content: "";',
+      '  position: absolute;',
+      '  left: 0; bottom: 0; right: 0;',
+      '  height: 1px;',
+      '  background: rgba(255,255,255,0.06);',
+      '}',
+
       // ── Mobile ──
       '@media screen and (max-width: 749px) {',
-      '  .cc-collection-hero {',
-      '    padding: 20px 16px;',
-      '    margin: 12px 12px 16px;',
-      '    border-radius: 12px;',
+      '  .cc-hero__inner {',
+      '    padding: 24px 16px 20px;',
       '  }',
       '  .cc-hero__top {',
       '    flex-direction: column;',
-      '    gap: 14px;',
+      '    gap: 16px;',
       '  }',
-      '  .cc-hero__logo { width: 34px; height: 34px; }',
-      '  .cc-hero__title-row { gap: 10px; }',
-      '  .cc-hero__title { font-size: 20px; }',
-      '  .cc-hero__desc { font-size: 12px; }',
+      '  .cc-hero__logo { width: 38px; height: 38px; }',
+      '  .cc-hero__title-row { gap: 12px; }',
+      '  .cc-hero__title { font-size: 22px; }',
+      '  .cc-hero__desc { font-size: 13px; }',
       '  .cc-hero__set-card {',
       '    max-width: 100%;',
       '    min-width: 0;',
       '    flex-direction: row;',
       '    flex-wrap: wrap;',
       '    align-items: center;',
-      '    gap: 4px 12px;',
+      '    gap: 6px 14px;',
       '  }',
       '  .cc-hero__set-label { order: 1; }',
       '  .cc-hero__set-name { order: 2; flex: 1; }',
       '  .cc-hero__set-meta { order: 3; width: 100%; }',
       '  .cc-hero__set-btn { order: 4; }',
       '  .cc-hero__watermark {',
-      '    width: 100px; height: 100px;',
-      '    right: -10px; opacity: 0.05;',
+      '    width: 120px; height: 120px;',
+      '    right: 0; opacity: 0.04;',
       '  }',
-      '  .cc-hero__featured-card { width: 90px; }',
-      '  .cc-hero__featured-card img { width: 90px; }',
+      '  .cc-hero__featured-strip { gap: 10px; }',
+      '  .cc-hero__featured-card { flex: 0 0 120px; }',
       '}'
     ].join('\n');
     document.head.appendChild(style);

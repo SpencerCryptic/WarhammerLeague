@@ -19,7 +19,7 @@ const USER_AGENT = 'CrypticCabin-GameData/1.0';
 
 // ── Caching ─────────────────────────────────────────────────────────
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
 const INVENTORY_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 const cache = {};       // { mtg: { data, timestamp }, ... }
@@ -112,17 +112,14 @@ async function getMtgData() {
     getInventory()
   ]);
 
-  // Find latest expansion set (released or upcoming within 6 months)
-  const now = new Date();
-  const sixMonthsAhead = new Date(now);
-  sixMonthsAhead.setMonth(sixMonthsAhead.getMonth() + 6);
-  const cutoff = sixMonthsAhead.toISOString().slice(0, 10);
+  // Find latest RELEASED expansion set (not upcoming/future)
+  const today = new Date().toISOString().slice(0, 10);
 
   const expansions = (setsData.data || [])
     .filter(s =>
       s.set_type === 'expansion' &&
       s.released_at &&
-      s.released_at <= cutoff &&
+      s.released_at <= today &&
       s.card_count > 50
     )
     .sort((a, b) => b.released_at.localeCompare(a.released_at));
@@ -136,10 +133,10 @@ async function getMtgData() {
       'https://api.scryfall.com/cards/search?q=f%3Astandard+game%3Apaper&order=edhrec&dir=asc&page=1'
     );
 
-    const topNames = (popular.data || []).slice(0, 30).map(c => c.name);
+    const topNames = (popular.data || []).slice(0, 40).map(c => c.name);
 
     for (const name of topNames) {
-      if (featuredCards.length >= 6) break;
+      if (featuredCards.length >= 8) break;
       const found = findInShop(inventory, name);
       if (found && found.imageUrl) {
         featuredCards.push(found);
@@ -212,7 +209,7 @@ async function getFabData() {
     .filter(c => c.cryptic_cabin?.in_stock && c.image_uris?.normal)
     .sort((a, b) => (b.cryptic_cabin?.price_gbp || 0) - (a.cryptic_cabin?.price_gbp || 0));
 
-  for (const card of fabCards.slice(0, 6)) {
+  for (const card of fabCards.slice(0, 8)) {
     const cc = card.cryptic_cabin || {};
     featuredCards.push({
       name: card.name,
@@ -246,9 +243,10 @@ async function getYugiohData() {
     getInventory()
   ]);
 
-  // Find latest set by TCG date (filter out tiny promo sets)
+  // Find latest RELEASED set by TCG date (filter out tiny promo sets and future sets)
+  const ygoToday = new Date().toISOString().slice(0, 10);
   const sets = (setsData || [])
-    .filter(s => s.tcg_date && s.num_of_cards > 20)
+    .filter(s => s.tcg_date && s.tcg_date <= ygoToday && s.num_of_cards > 20)
     .sort((a, b) => b.tcg_date.localeCompare(a.tcg_date));
 
   const latestSet = sets[0] || null;
@@ -260,10 +258,10 @@ async function getYugiohData() {
       'https://db.ygoprodeck.com/api/v7/cardinfo.php?staple=yes&num=30&offset=0'
     );
 
-    const stapleNames = (staples.data || []).slice(0, 30).map(c => c.name);
+    const stapleNames = (staples.data || []).slice(0, 40).map(c => c.name);
 
     for (const name of stapleNames) {
-      if (featuredCards.length >= 6) break;
+      if (featuredCards.length >= 8) break;
       const found = findInShop(inventory, name);
       if (found && found.imageUrl) {
         featuredCards.push(found);
