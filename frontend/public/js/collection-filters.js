@@ -665,7 +665,9 @@
 
       const setEl = document.createElement('span');
       setEl.className = 'cc-card__set';
-      setEl.textContent = (card.set_name || card.set || '') + (card.rarity ? ' \u00b7 ' + card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1) : '');
+      var rawSet = card.set_name || card.set || '';
+      var displaySet = rawSet.replace(/^Magic:\s*The Gathering\s*[-|:]?\s*/, '') || rawSet;
+      setEl.textContent = displaySet + (card.rarity ? ' \u00b7 ' + card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1) : '');
       info.appendChild(setEl);
 
       const priceRow = document.createElement('div');

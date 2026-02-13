@@ -63,6 +63,20 @@
     return name.replace(FAB_SUFFIXES, '');
   }
 
+  // ── MTG set name cleanup ───────────────────────────────────────────
+
+  // Scryfall prefixes some MTG sets with the game name:
+  //   "Magic: The Gathering | Avatar: The Last Airbender"
+  //   "Magic: The Gathering - FINAL FANTASY"
+  //   "Magic: The Gathering Foundations"
+  // Strip the prefix so we show just the actual set name.
+  var MTG_SET_PREFIX = /^Magic:\s*The Gathering\s*[-|:]?\s*/;
+
+  function cleanSetName(set) {
+    var cleaned = set.replace(MTG_SET_PREFIX, '');
+    return cleaned || set; // fallback to original if nothing left
+  }
+
   // ── Card enhancement ───────────────────────────────────────────────
 
   function enhanceCard(card) {
@@ -97,13 +111,18 @@
 
     var metaEl = document.createElement('span');
     metaEl.className = 'cc-pmeta';
-    metaEl.textContent = parsed.set;
+    metaEl.textContent = cleanSetName(parsed.set);
     titleP.appendChild(metaEl);
 
     var rarityEl = document.createElement('span');
     rarityEl.className = 'cc-prarity';
     rarityEl.textContent = parsed.rarity;
     titleP.appendChild(rarityEl);
+
+    // Apply info area padding via inline styles (more reliable than CSS vs Horizon theme)
+    if (textBlock) textBlock.style.cssText += 'padding:10px 12px 0 12px !important;';
+    var priceEl = card.querySelector('product-price');
+    if (priceEl) priceEl.style.cssText += 'padding:4px 12px 12px 12px !important;display:block !important;';
 
     // Also fix the zoom-out grid view title
     var zoomTitle = card.querySelector('.product-grid-view-zoom-out--details h3');

@@ -58,6 +58,12 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=300"
 
+# Game Data API - Latest sets, popular cards for hero banners
+[[redirects]]
+  from = "/api/game-data"
+  to = "/.netlify/functions/game-data"
+  status = 200
+
 # Bulk Data API - Endpoint redirects
 # Filtered endpoint must come before the catch-all /api/bulk-data
 [[redirects]]
