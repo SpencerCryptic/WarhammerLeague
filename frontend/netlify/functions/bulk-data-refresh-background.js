@@ -179,6 +179,7 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
     legalities: scryfallCard?.legalities || {},
     image_uris: scryfallCard?.image_uris || { small: product.images?.[0]?.src, normal: product.images?.[0]?.src },
     card_faces: scryfallCard?.card_faces || null,
+    full_art: scryfallCard?.full_art || false,
     layout: scryfallCard?.layout || 'normal',
     cryptic_cabin: {
       product_id: product.id,
@@ -208,7 +209,7 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
 
 async function fetchProducts() {
   const products = [];
-  let url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/${SHOPIFY_API_VERSION}/products.json?limit=250`;
+  let url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/${SHOPIFY_API_VERSION}/products.json?limit=250&status=active`;
 
   console.log('Fetching Shopify products...');
 

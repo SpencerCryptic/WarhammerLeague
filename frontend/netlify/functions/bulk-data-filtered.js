@@ -175,7 +175,7 @@ function applyAllFilters(cards, filters) {
 
 // ── Facet computation (cross-filtered) ───────────────────────────────
 
-const FACET_DIMENSIONS = ['rarity', 'set', 'colors', 'card_type', 'cmc', 'finish', 'in_stock'];
+const FACET_DIMENSIONS = ['rarity', 'set', 'colors', 'card_type', 'cmc', 'finish', 'keywords'];
 
 function computeFacets(allCards, activeFilters) {
   const facets = {};
@@ -282,26 +282,22 @@ function computeFacets(allCards, activeFilters) {
         break;
       }
 
-      case 'in_stock': {
-        let inStock = 0, outOfStock = 0;
+      case 'keywords': {
+        const counts = {};
         for (const c of subset) {
-          if (c.cryptic_cabin?.in_stock) inStock++;
-          else outOfStock++;
+          if (c.keywords?.length) {
+            for (const kw of c.keywords) {
+              counts[kw] = (counts[kw] || 0) + 1;
+            }
+          }
         }
-        facets.in_stock = { true: inStock, false: outOfStock };
+        facets.keywords = Object.entries(counts)
+          .map(([value, count]) => ({ value, label: value, count }))
+          .sort((a, b) => b.count - a.count);
         break;
       }
     }
   }
-
-  // Price range (computed from fully filtered set)
-  const filtered = applyAllFilters(allCards, activeFilters);
-  const prices = filtered
-    .map(c => c.cryptic_cabin?.price_gbp)
-    .filter(p => p != null && p > 0);
-  facets.price_range = prices.length > 0
-    ? { min: Math.min(...prices), max: Math.max(...prices) }
-    : { min: 0, max: 0 };
 
   return facets;
 }

@@ -217,7 +217,7 @@ async function fetchProducts() {
  */
 async function fetchProductsAdminAPI() {
   const products = [];
-  let url = `https://${CONFIG.shopify.store}.myshopify.com/admin/api/${CONFIG.shopify.apiVersion}/products.json?limit=250`;
+  let url = `https://${CONFIG.shopify.store}.myshopify.com/admin/api/${CONFIG.shopify.apiVersion}/products.json?limit=250&status=active`;
 
   console.log(`  Using Admin API with inventory tracking`);
   console.log(`  Store: ${CONFIG.shopify.store}`);
@@ -523,6 +523,7 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
       large: product.images?.[0]?.src || null
     },
     card_faces: scryfallCard?.card_faces || null,
+    full_art: scryfallCard?.full_art || false,
     layout: scryfallCard?.layout || 'normal',
 
     // Cryptic Cabin data

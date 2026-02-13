@@ -50,33 +50,38 @@
 
   // ── Init ─────────────────────────────────────────────────────────
 
-  function init() {
-    console.log('[CrypticCabin] Init starting...');
+  // Collections where this script should activate
+  const ALLOWED_COLLECTIONS = ['magic-single', 'magic-singles'];
 
-    // Find the filter overflow list (rendered empty by Shopify when >5k products)
+  function getCollectionHandle() {
+    const match = window.location.pathname.match(/\/collections\/([^/?#]+)/);
+    return match ? match[1] : null;
+  }
+
+  function init() {
+    // Only activate on allowed collections
+    const handle = getCollectionHandle();
+    if (!handle || !ALLOWED_COLLECTIONS.includes(handle)) {
+      return;
+    }
+
+    console.log('[CrypticCabin] Init on collection:', handle);
+
     filterContainer = document.querySelector('.facets__overflow-list')
       || document.querySelector('.facets__filters-wrapper');
     productGrid = document.querySelector('.product-grid');
 
-    console.log('[CrypticCabin] filterContainer:', !!filterContainer, '| productGrid:', !!productGrid);
     if (!filterContainer || !productGrid) {
-      console.warn('[CrypticCabin] Missing DOM elements — filterContainer:', filterContainer, 'productGrid:', productGrid);
+      console.warn('[CrypticCabin] Missing DOM — filter:', !!filterContainer, 'grid:', !!productGrid);
       return;
     }
 
-    // Check if Shopify already rendered real filter panels (< 5k collection).
-    // Exclude the Sort dropdown which is also a .facets__panel but doesn't
-    // contain filter checkboxes — it lives inside .sorting-filter or has
-    // a <select> instead of <input type="checkbox">.
+    // Check if Shopify already rendered real filter panels (< 5k collection)
     const existingPanels = filterContainer.querySelectorAll('.facets__panel');
     const realFilters = Array.from(existingPanels).filter(
       panel => panel.querySelector('.facets__input[type="checkbox"], .facets__price')
     );
-    console.log('[CrypticCabin] Panels in filter container:', existingPanels.length, '| With real filters:', realFilters.length);
-    if (realFilters.length > 0) {
-      console.log('[CrypticCabin] Shopify native filters detected — standing down');
-      return;
-    }
+    if (realFilters.length > 0) return; // Shopify filters work, don't take over
 
     console.log('[CrypticCabin] Taking over filters for large collection');
 
@@ -114,7 +119,7 @@
 
   // ── URL State ────────────────────────────────────────────────────
 
-  const FILTER_KEYS = ['set', 'rarity', 'colors', 'card_type', 'cmc', 'keywords', 'q', 'finish', 'condition', 'in_stock', 'min_price', 'max_price'];
+  const FILTER_KEYS = ['set', 'rarity', 'colors', 'card_type', 'cmc', 'keywords', 'q', 'finish', 'condition'];
 
   function readStateFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -239,11 +244,8 @@
     // Finish
     filterContainer.appendChild(buildCheckboxPanel('Finish', 'finish', []));
 
-    // In Stock toggle
-    filterContainer.appendChild(buildInStockPanel());
-
-    // Price
-    filterContainer.appendChild(buildPricePanel());
+    // Keywords (searchable)
+    filterContainer.appendChild(buildCheckboxPanel('Keywords', 'keywords', [], true));
 
     // Sort (after filters, outside overflow list if possible)
     const sortPanel = buildSortPanel();
@@ -455,7 +457,7 @@
     if (!state.facets) return;
 
     // Update checkbox panels
-    for (const key of ['rarity', 'set', 'colors', 'card_type', 'cmc', 'finish']) {
+    for (const key of ['rarity', 'set', 'colors', 'card_type', 'cmc', 'finish', 'keywords']) {
       const list = filterContainer.querySelector('[data-filter-key="' + key + '"]');
       if (!list || !state.facets[key]) continue;
 
@@ -494,14 +496,6 @@
         label.appendChild(count);
         li.appendChild(label);
         list.appendChild(li);
-      }
-    }
-
-    // Update in-stock count
-    if (state.facets.in_stock) {
-      const inStockCount = filterContainer.querySelector('[data-filter-key="in_stock"]');
-      if (inStockCount) {
-        inStockCount.textContent = '(' + state.facets.in_stock.true + ')';
       }
     }
 
