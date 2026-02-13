@@ -23,13 +23,18 @@
 
   // ── Collection config ─────────────────────────────────────────────
 
+  // Inline SVG logos — embedded so they always load (no external dependency)
+  var LOGO_MTG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='12' r='10' fill='%23F9F5E3'/%3E%3Ccircle cx='86' cy='40' r='10' fill='%230E68AB'/%3E%3Ccircle cx='72' cy='82' r='10' fill='%23150B00' stroke='%23555' stroke-width='1'/%3E%3Ccircle cx='28' cy='82' r='10' fill='%23D32029'/%3E%3Ccircle cx='14' cy='40' r='10' fill='%2300733E'/%3E%3C/svg%3E";
+  var LOGO_FAB = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 5L56 75L68 82L50 115L32 82L44 75Z' fill='white' opacity='0.85'/%3E%3C/svg%3E";
+  var LOGO_YGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,5 61,35 95,35 68,55 79,88 50,68 21,88 32,55 5,35 39,35' fill='white' opacity='0.85'/%3E%3C/svg%3E";
+
   var COLLECTIONS = {
-    'magic-single':            { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering' },
-    'magic-singles':           { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering' },
-    'flesh-and-blood-single':  { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood' },
-    'flesh-and-blood-singles': { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood' },
-    'yugioh-single':           { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!' },
-    'yugioh-singles':          { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!' }
+    'magic-single':            { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering', logo: LOGO_MTG },
+    'magic-singles':           { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering', logo: LOGO_MTG },
+    'flesh-and-blood-single':  { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: LOGO_FAB },
+    'flesh-and-blood-singles': { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: LOGO_FAB },
+    'yugioh-single':           { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: LOGO_YGO },
+    'yugioh-singles':          { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: LOGO_YGO }
   };
 
   var API_BASE = 'https://leagues.crypticcabin.com/api/game-data';
@@ -99,7 +104,8 @@
     var desc = descEl ? descEl.textContent.trim() : '';
     var imgSrc = imgEl ? imgEl.src : null;
 
-    if (!title) return;
+    // Fallback to config label if Shopify title not found
+    if (!title) title = config.label + ' Singles';
 
     // ── Container ──
     var hero = document.createElement('div');
@@ -118,14 +124,28 @@
     var topRow = document.createElement('div');
     topRow.className = 'cc-hero__top';
 
-    // Left: title + description
+    // Left: logo + title + description
     var info = document.createElement('div');
     info.className = 'cc-hero__info';
+
+    // Title row with game logo
+    var titleRow = document.createElement('div');
+    titleRow.className = 'cc-hero__title-row';
+
+    if (config.logo) {
+      var logoImg = document.createElement('img');
+      logoImg.className = 'cc-hero__logo';
+      logoImg.src = config.logo;
+      logoImg.alt = config.label + ' logo';
+      titleRow.appendChild(logoImg);
+    }
 
     var h = document.createElement('h1');
     h.className = 'cc-hero__title';
     h.textContent = title;
-    info.appendChild(h);
+    titleRow.appendChild(h);
+
+    info.appendChild(titleRow);
 
     if (desc) {
       var p = document.createElement('p');
@@ -150,37 +170,37 @@
     featuredSection.style.display = 'none';
     hero.appendChild(featuredSection);
 
-    // ── Insert into page ──
-    // Try to insert before the facets/filter bar so the hero sits above filters
-    var insertBefore = document.querySelector('.facets-block-wrapper')
-      || document.querySelector('.facets-controls-wrapper')
-      || document.querySelector('.collection-product-list')
-      || document.querySelector('.product-grid');
-
-    if (insertBefore && insertBefore.parentNode) {
-      insertBefore.parentNode.insertBefore(hero, insertBefore);
+    // ── Insert into page — at the TOP of main content ──
+    // The hero replaces the Shopify collection title/description section.
+    // It must go at the very top, before filters, featured cards, product grid.
+    var main = document.querySelector('#MainContent, main, .main-content, [role="main"]');
+    if (main) {
+      main.insertBefore(hero, main.firstChild);
     } else {
-      var main = document.querySelector('main, .main-content, #MainContent');
-      if (main && main.firstChild) {
-        main.insertBefore(hero, main.firstChild);
+      // Absolute fallback — insert before the product grid area
+      var fallback = document.querySelector('.facets-block-wrapper, .product-grid');
+      if (fallback && fallback.parentNode) {
+        fallback.parentNode.insertBefore(hero, fallback);
       }
     }
 
-    // Hide originals — broad selectors for Horizon theme
+    // ── Hide original Shopify collection title/description section ──
+    // Find the Shopify section that contains the h1 (not our hero) and hide it
     if (titleEl && !titleEl.closest('.cc-collection-hero')) {
-      // Try to hide the entire title section/container
-      var titleSection = titleEl.closest('.collection-hero, .collection-banner, .section-collection-hero, .shopify-section-collection-hero, section[class*="collection-hero"]');
-      if (titleSection && !titleSection.closest('.cc-collection-hero')) {
-        titleSection.style.display = 'none';
+      // Walk up to the nearest Shopify section wrapper
+      var shopifySection = titleEl.closest('[id^="shopify-section"], .shopify-section, section.collection-hero, .collection-hero, .collection-banner');
+      if (shopifySection && !shopifySection.closest('.cc-collection-hero')) {
+        shopifySection.style.display = 'none';
       } else {
+        // Fallback: hide individual elements
         titleEl.style.display = 'none';
         if (descEl && !descEl.closest('.cc-collection-hero')) {
           descEl.style.display = 'none';
         }
       }
     }
-    if (imgEl) {
-      var imgSection = imgEl.closest('.collection-hero, .collection-banner, .collection-hero-section, .banner, section[class*="collection"]');
+    if (imgEl && !imgEl.closest('.cc-collection-hero')) {
+      var imgSection = imgEl.closest('[id^="shopify-section"], .shopify-section, .collection-hero, .collection-banner, .banner');
       if (imgSection && !imgSection.closest('.cc-collection-hero')) {
         imgSection.style.display = 'none';
       }
@@ -340,12 +360,27 @@
       '}',
       '.cc-hero__info { flex: 1; min-width: 0; }',
 
+      // ── Title row with logo ──
+      '.cc-hero__title-row {',
+      '  display: flex;',
+      '  align-items: center;',
+      '  gap: 14px;',
+      '  margin-bottom: 6px;',
+      '}',
+      '.cc-hero__logo {',
+      '  width: 44px;',
+      '  height: 44px;',
+      '  flex-shrink: 0;',
+      '  object-fit: contain;',
+      '  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));',
+      '}',
+
       // ── Title ──
       '.cc-hero__title {',
       '  font-size: 26px;',
       '  font-weight: 700;',
       '  color: #fff;',
-      '  margin: 0 0 6px 0;',
+      '  margin: 0;',
       '  line-height: 1.2;',
       '  letter-spacing: -0.02em;',
       '  border-bottom: 3px solid var(--cc-hero-accent, #F97316);',
@@ -486,6 +521,8 @@
       '    flex-direction: column;',
       '    gap: 14px;',
       '  }',
+      '  .cc-hero__logo { width: 34px; height: 34px; }',
+      '  .cc-hero__title-row { gap: 10px; }',
       '  .cc-hero__title { font-size: 20px; }',
       '  .cc-hero__desc { font-size: 12px; }',
       '  .cc-hero__set-card {',
