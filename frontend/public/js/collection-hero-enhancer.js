@@ -23,10 +23,10 @@
 
   // ── Collection config ─────────────────────────────────────────────
 
-  // Inline SVG logos — embedded so they always load (no external dependency)
-  var LOGO_MTG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='12' r='10' fill='%23F9F5E3'/%3E%3Ccircle cx='86' cy='40' r='10' fill='%230E68AB'/%3E%3Ccircle cx='72' cy='82' r='10' fill='%23150B00' stroke='%23555' stroke-width='1'/%3E%3Ccircle cx='28' cy='82' r='10' fill='%23D32029'/%3E%3Ccircle cx='14' cy='40' r='10' fill='%2300733E'/%3E%3C/svg%3E";
-  var LOGO_FAB = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 5L56 75L68 82L50 115L32 82L44 75Z' fill='white' opacity='0.85'/%3E%3C/svg%3E";
-  var LOGO_YGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,5 61,35 95,35 68,55 79,88 50,68 21,88 32,55 5,35 39,35' fill='white' opacity='0.85'/%3E%3C/svg%3E";
+  // Official game logos (external PNGs)
+  var LOGO_MTG = 'https://www.icomedia.eu/wp-content/uploads/2021/03/MTG_Primary_LL_2c_Black_LG_V12-1.png';
+  var LOGO_FAB = 'https://upload.wikimedia.org/wikipedia/en/e/ed/Flesh_and_Blood_TCG_Logo.png';
+  var LOGO_YGO = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Yu-Gi-Oh%21_%28Logo%29.jpg';
 
   var COLLECTIONS = {
     'magic-single':            { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering', logo: LOGO_MTG },
@@ -380,11 +380,12 @@
       '  margin-bottom: 10px;',
       '}',
       '.cc-hero__logo {',
-      '  width: 50px;',
-      '  height: 50px;',
+      '  height: 44px;',
+      '  width: auto;',
+      '  max-width: 180px;',
       '  flex-shrink: 0;',
       '  object-fit: contain;',
-      '  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));',
+      '  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)) brightness(0) invert(1);',
       '}',
 
       // ── Title ──
@@ -539,7 +540,7 @@
       '    flex-direction: column;',
       '    gap: 16px;',
       '  }',
-      '  .cc-hero__logo { width: 38px; height: 38px; }',
+      '  .cc-hero__logo { height: 32px; max-width: 140px; }',
       '  .cc-hero__title-row { gap: 12px; }',
       '  .cc-hero__title { font-size: 22px; }',
       '  .cc-hero__desc { font-size: 13px; }',

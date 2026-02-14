@@ -171,10 +171,20 @@ async function getFabData() {
     getInventory()
   ]);
 
-  // Find latest set by release date
+  // Keywords that indicate non-booster products (blitz decks, promos, etc.)
+  const SKIP_KEYWORDS = [
+    'blitz deck', 'hero deck', 'classic battles', 'promo', 'armory',
+    'ira welcome', 'round the table', 'demo deck', 'starter'
+  ];
+
+  // Find latest BOOSTER set by release date (skip supplementary products)
+  const today = new Date().toISOString().slice(0, 10);
   const setEntries = [];
   for (const set of setsData || []) {
     if (!set.printings || set.printings.length === 0) continue;
+    // Skip non-booster products
+    const nameLower = (set.name || '').toLowerCase();
+    if (SKIP_KEYWORDS.some(kw => nameLower.includes(kw))) continue;
     // Get the most recent printing date
     let latestDate = null;
     for (const p of set.printings) {
@@ -182,12 +192,13 @@ async function getFabData() {
         latestDate = p.initial_release_date;
       }
     }
-    if (latestDate) {
+    // Only include released sets
+    if (latestDate && latestDate <= today) {
       setEntries.push({
         name: set.name,
         code: set.id,
         releaseDate: latestDate,
-        cardCount: null // Not readily available from this API
+        cardCount: null
       });
     }
   }
@@ -251,24 +262,60 @@ async function getYugiohData() {
 
   const latestSet = sets[0] || null;
 
-  // Fetch staple/popular cards
+  // Fetch staple/popular cards — use YGOProDeck images as primary source
+  // since shop inventory may not have image_uris for YGO cards
   let featuredCards = [];
   try {
     const staples = await fetchJSON(
-      'https://db.ygoprodeck.com/api/v7/cardinfo.php?staple=yes&num=30&offset=0'
+      'https://db.ygoprodeck.com/api/v7/cardinfo.php?staple=yes&num=40&offset=0'
     );
 
-    const stapleNames = (staples.data || []).slice(0, 40).map(c => c.name);
-
-    for (const name of stapleNames) {
+    for (const card of (staples.data || []).slice(0, 40)) {
       if (featuredCards.length >= 8) break;
-      const found = findInShop(inventory, name);
-      if (found && found.imageUrl) {
-        featuredCards.push(found);
-      }
+
+      // Get the best image from YGOProDeck API
+      const apiImage = card.card_images?.[0]?.image_url_cropped
+        || card.card_images?.[0]?.image_url
+        || null;
+      if (!apiImage) continue;
+
+      // Cross-reference with shop for price + buy link
+      const shopMatch = findInShop(inventory, card.name);
+
+      featuredCards.push({
+        name: card.name,
+        imageUrl: shopMatch?.imageUrl || apiImage,
+        price: shopMatch?.price || null,
+        inStock: shopMatch?.inStock || false,
+        set: shopMatch?.set || '',
+        setName: shopMatch?.setName || '',
+        shopUrl: shopMatch?.shopUrl || '#'
+      });
     }
   } catch (e) {
     console.warn('[game-data] YGO staples fetch failed:', e.message);
+
+    // Fallback: pull YGO cards from shop inventory directly
+    const ygoCards = inventory.data
+      .filter(c => {
+        const sn = (c.set_name || '').toLowerCase();
+        return sn.includes('yu-gi-oh') || sn.includes('yugioh') || c.game === 'yugioh';
+      })
+      .filter(c => c.cryptic_cabin?.in_stock && (c.image_uris?.normal || c.image_uris?.small))
+      .sort((a, b) => (b.cryptic_cabin?.price_gbp || 0) - (a.cryptic_cabin?.price_gbp || 0));
+
+    for (const card of ygoCards.slice(0, 8)) {
+      const cc = card.cryptic_cabin || {};
+      featuredCards.push({
+        name: card.name,
+        imageUrl: card.image_uris?.normal || card.image_uris?.small,
+        price: cc.price_gbp || null,
+        inStock: true,
+        set: card.set,
+        setName: card.set_name,
+        shopUrl: cc.handle ? '/products/' + cc.handle : null
+      });
+    }
   }
 
   return {
