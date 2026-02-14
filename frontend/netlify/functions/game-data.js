@@ -171,10 +171,11 @@ async function getFabData() {
     getInventory()
   ]);
 
-  // Keywords that indicate non-booster products (blitz decks, promos, etc.)
+  // Keywords that indicate non-booster products (blitz decks, promos, armory decks, etc.)
   const SKIP_KEYWORDS = [
     'blitz deck', 'hero deck', 'classic battles', 'promo', 'armory',
-    'ira welcome', 'round the table', 'demo deck', 'starter'
+    'ira welcome', 'round the table', 'demo deck', 'starter',
+    'deck origins', 'deck legends', 'precon', 'event deck'
   ];
 
   // Find latest BOOSTER set by release date (skip supplementary products)
@@ -185,11 +186,15 @@ async function getFabData() {
     // Skip non-booster products
     const nameLower = (set.name || '').toLowerCase();
     if (SKIP_KEYWORDS.some(kw => nameLower.includes(kw))) continue;
-    // Get the most recent printing date
+    // Get the most recent printing date (normalize to YYYY-MM-DD)
     let latestDate = null;
     for (const p of set.printings) {
-      if (p.initial_release_date && (!latestDate || p.initial_release_date > latestDate)) {
-        latestDate = p.initial_release_date;
+      const rawDate = p.initial_release_date;
+      if (!rawDate) continue;
+      // Strip time component if present (e.g. "2025-09-26T00:00:00.000Z" → "2025-09-26")
+      const dateOnly = rawDate.split('T')[0];
+      if (!latestDate || dateOnly > latestDate) {
+        latestDate = dateOnly;
       }
     }
     // Only include released sets
@@ -273,9 +278,9 @@ async function getYugiohData() {
     for (const card of (staples.data || []).slice(0, 40)) {
       if (featuredCards.length >= 8) break;
 
-      // Get the best image from YGOProDeck API
-      const apiImage = card.card_images?.[0]?.image_url_cropped
-        || card.card_images?.[0]?.image_url
+      // Get the best image from YGOProDeck API (prefer full card, not cropped art)
+      const apiImage = card.card_images?.[0]?.image_url
+        || card.card_images?.[0]?.image_url_cropped
         || null;
       if (!apiImage) continue;
 
