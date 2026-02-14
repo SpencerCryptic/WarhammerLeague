@@ -27,8 +27,8 @@ const BLOBS_TOKEN = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_ACCES
 // Processing limits per invocation
 const MAX_SCRYFALL_PER_RUN = 4000; // ~7 min at 100ms spacing
 const SCRYFALL_DELAY_MS = 110;     // Stay under 10 req/s
-const SHOPIFY_BATCH_SIZE = 25;
-const SHOPIFY_BATCH_DELAY_MS = 500;
+const SHOPIFY_BATCH_SIZE = 5;
+const SHOPIFY_BATCH_DELAY_MS = 4000;
 
 // Set code mappings (same as webhook and bulk-data-refresh)
 const SET_CODE_OVERRIDES = {
@@ -224,21 +224,39 @@ function buildMetafields(card) {
 // --- Shopify helpers ---
 async function shopifyGraphQL(query, variables) {
   const url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/${API_VERSION}/graphql.json`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-    },
-    body: JSON.stringify({ query, variables })
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Shopify API ${res.status}: ${text}`);
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      },
+      body: JSON.stringify({ query, variables })
+    });
+    if (!res.ok) {
+      if (res.status === 429 && attempt < 4) {
+        const wait = Math.pow(2, attempt + 1) * 1000;
+        console.warn(`[backfill] Rate limited (429), retrying in ${wait/1000}s...`);
+        await sleep(wait);
+        continue;
+      }
+      const text = await res.text();
+      throw new Error(`Shopify API ${res.status}: ${text}`);
+    }
+    const result = await res.json();
+    if (result.errors) {
+      const isThrottled = result.errors.some(e => e.extensions?.code === 'THROTTLED');
+      if (isThrottled && attempt < 4) {
+        const wait = Math.pow(2, attempt + 1) * 1000;
+        console.warn(`[backfill] Throttled, retrying in ${wait/1000}s...`);
+        await sleep(wait);
+        continue;
+      }
+      throw new Error(JSON.stringify(result.errors));
+    }
+    return result;
   }
-  const result = await res.json();
-  if (result.errors) throw new Error(JSON.stringify(result.errors));
-  return result;
 }
 
 async function fetchProductPage(cursor) {
@@ -313,15 +331,17 @@ exports.handler = async (event, context) => {
 
   // Load progress cursor from previous run
   let startCursor = null;
-  const store = getBlobStore();
+  let store = null;
   try {
+    store = getBlobStore();
     const progress = await store.get('cursor', { type: 'json' });
     if (progress?.cursor) {
       startCursor = progress.cursor;
       console.log(`Resuming from cursor: ${startCursor}`);
     }
-  } catch {
-    // No previous progress, start from beginning
+  } catch (e) {
+    console.warn('[backfill] Blob store unavailable, starting from scratch:', e.message);
+    store = null; // Disable blob saves if store is broken
   }
 
   let cursor = startCursor;
@@ -392,7 +412,14 @@ exports.handler = async (event, context) => {
       }
 
       // Save progress after each page
-      await store.setJSON('cursor', { cursor, timestamp: new Date().toISOString(), stats });
+      try {
+        await store.setJSON('cursor', { cursor, timestamp: new Date().toISOString(), stats });
+      } catch (blobErr) {
+        console.warn('[backfill] Blob save failed (non-fatal):', blobErr.message);
+      }
+
+      // Pace scan to avoid exhausting rate limit bucket before writes
+      await sleep(300);
 
       if (stats.scanned % 500 === 0) {
         console.log(`Progress: scanned=${stats.scanned} enriched=${stats.enriched} skipped=${stats.alreadyDone}`);
@@ -410,7 +437,9 @@ exports.handler = async (event, context) => {
 
     // Clear progress if we've processed everything
     if (!hasNextPage) {
-      await store.setJSON('cursor', { cursor: null, completed: new Date().toISOString(), stats });
+      if (store) {
+        try { await store.setJSON('cursor', { cursor: null, completed: new Date().toISOString(), stats }); } catch (e) { /* best effort */ }
+      }
       console.log('Backfill complete - all products processed');
     } else {
       console.log(`Paused at cursor ${cursor} - hit Scryfall call limit (${scryfallCalls}). Re-trigger to continue.`);
@@ -429,7 +458,7 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     // Save progress even on error so we can resume
-    if (cursor) {
+    if (cursor && store) {
       try {
         await store.setJSON('cursor', { cursor, error: error.message, timestamp: new Date().toISOString(), stats });
       } catch { /* best effort */ }
