@@ -224,9 +224,14 @@
         populateSetCard(setCard, data.latestSet, handle);
       }
 
-      // Featured cards
+      // Featured cards — only show cards that have a real shop link
       if (data.featuredCards && data.featuredCards.length > 0) {
-        populateFeatured(featuredSection, data.featuredCards);
+        var linkedCards = data.featuredCards.filter(function (c) {
+          return c.shopUrl && c.shopUrl !== '#';
+        });
+        if (linkedCards.length > 0) {
+          populateFeatured(featuredSection, linkedCards);
+        }
       }
     });
   }
