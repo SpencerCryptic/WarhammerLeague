@@ -23,19 +23,16 @@
 
   // ── Collection config ─────────────────────────────────────────────
 
-  // Official game logos (external PNGs — must have transparent backgrounds for filter to work)
+  // Official game logos (must have transparent backgrounds for brightness/invert filter)
   var LOGO_MTG = 'https://www.icomedia.eu/wp-content/uploads/2021/03/MTG_Primary_LL_2c_Black_LG_V12-1.png';
-  var LOGO_FAB = 'https://upload.wikimedia.org/wikipedia/en/e/ed/Flesh_and_Blood_TCG_Logo.png';
-  // YGO: use transparent PNG from Wikimedia (the .jpg version has a white background that breaks the invert filter)
-  var LOGO_YGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Yugioh_Logo.png/320px-Yugioh_Logo.png';
 
   var COLLECTIONS = {
     'magic-single':            { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering', logo: LOGO_MTG, description: 'Browse our collection of Magic: The Gathering singles — from Standard staples and Commander all-stars to rare collectibles.' },
     'magic-singles':           { game: 'mtg',    accent: '#F97316', label: 'Magic: The Gathering', logo: LOGO_MTG, description: 'Browse our collection of Magic: The Gathering singles — from Standard staples and Commander all-stars to rare collectibles.' },
-    'flesh-and-blood-single':  { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: LOGO_FAB, description: 'Browse our collection of Flesh and Blood singles — heroes, equipment, and action cards from all sets.' },
-    'flesh-and-blood-singles': { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: LOGO_FAB, description: 'Browse our collection of Flesh and Blood singles — heroes, equipment, and action cards from all sets.' },
-    'yugioh-single':           { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: LOGO_YGO, description: 'Browse our collection of Yu-Gi-Oh! singles — monsters, spells, and traps for every deck and format.' },
-    'yugioh-singles':          { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: LOGO_YGO, description: 'Browse our collection of Yu-Gi-Oh! singles — monsters, spells, and traps for every deck and format.' }
+    'flesh-and-blood-single':  { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: null, description: 'Browse our collection of Flesh and Blood singles — heroes, equipment, and action cards from all sets.' },
+    'flesh-and-blood-singles': { game: 'fab',    accent: '#DC2626', label: 'Flesh and Blood', logo: null, description: 'Browse our collection of Flesh and Blood singles — heroes, equipment, and action cards from all sets.' },
+    'yugioh-single':           { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: null, description: 'Browse our collection of Yu-Gi-Oh! singles — monsters, spells, and traps for every deck and format.' },
+    'yugioh-singles':          { game: 'yugioh', accent: '#7C3AED', label: 'Yu-Gi-Oh!', logo: null, description: 'Browse our collection of Yu-Gi-Oh! singles — monsters, spells, and traps for every deck and format.' }
   };
 
   var API_BASE = 'https://leagues.crypticcabin.com/api/game-data';
@@ -85,45 +82,6 @@
       }
     };
     xhr.onerror = xhr.ontimeout = function () { callback(null); };
-    xhr.send();
-  }
-
-  // ── Shopify AJAX fallback for featured cards ─────────────────────
-  // When the game-data API returns no featured cards (FaB/YGO not in
-  // the bulk inventory), fall back to Shopify's own product JSON.
-
-  function fetchShopifyFeatured(handle, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/collections/' + handle + '/products.json?sort_by=price-descending&limit=20', true);
-    xhr.timeout = 5000;
-    xhr.onload = function () {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          var cards = [];
-          var products = resp.products || [];
-          for (var i = 0; i < products.length && cards.length < 8; i++) {
-            var p = products[i];
-            if (!p.images || !p.images.length) continue;
-            // Skip very cheap cards (< £1) to keep it interesting
-            var price = p.variants && p.variants[0] ? parseFloat(p.variants[0].price) : 0;
-            if (price < 1) continue;
-            // Clean up TCG product titles (take card name before the first " - ")
-            var cardName = p.title.split(' - ')[0].trim();
-            cards.push({
-              name: cardName,
-              imageUrl: p.images[0].src,
-              price: price,
-              shopUrl: '/products/' + p.handle
-            });
-          }
-          callback(cards);
-        } catch (e) { callback([]); }
-      } else {
-        callback([]);
-      }
-    };
-    xhr.onerror = xhr.ontimeout = function () { callback([]); };
     xhr.send();
   }
 
@@ -195,13 +153,12 @@
 
     info.appendChild(titleRow);
 
-    // Show description — prefer Shopify collection description, then config fallback
-    var descText = desc || config.description || '';
-    if (descText) {
-      var p = document.createElement('p');
-      p.className = 'cc-hero__desc';
-      p.textContent = descText;
-      info.appendChild(p);
+    // Show description — always use config description so it's guaranteed visible
+    if (config.description) {
+      var descP = document.createElement('p');
+      descP.className = 'cc-hero__desc';
+      descP.textContent = config.description;
+      info.appendChild(descP);
     }
 
     topRow.appendChild(info);
@@ -260,23 +217,16 @@
 
     // ── Fetch and populate dynamic data ──
     fetchGameData(config.game, function (data) {
-      if (!data) data = {};
+      if (!data) return;
 
       // Latest set
       if (data.latestSet) {
         populateSetCard(setCard, data.latestSet, handle);
       }
 
-      // Featured cards — use API data if available, otherwise fall back to Shopify
+      // Featured cards
       if (data.featuredCards && data.featuredCards.length > 0) {
         populateFeatured(featuredSection, data.featuredCards);
-      } else {
-        // API returned no featured cards — fetch from Shopify collection directly
-        fetchShopifyFeatured(handle, function (cards) {
-          if (cards.length > 0) {
-            populateFeatured(featuredSection, cards);
-          }
-        });
       }
     });
   }
