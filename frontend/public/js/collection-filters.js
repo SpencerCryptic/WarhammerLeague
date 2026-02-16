@@ -1037,6 +1037,182 @@
       /* Hide native Shopify product cards — only our API cards should show */
       body.cc-filters-active .product-grid__item:has(product-card) { display: none !important; }
       body.cc-filters-active product-card { display: none !important; }
+
+      /* ── Mobile responsive ── */
+      @media (max-width: 749px) {
+        /* Prevent horizontal overflow on the whole page */
+        body.cc-filters-active {
+          overflow-x: hidden;
+        }
+        body.cc-filters-active .section-template--collection {
+          overflow-x: hidden;
+        }
+
+        /* Filter container: single column, full width, proper padding */
+        body.cc-filters-active .facets__overflow-list,
+        body.cc-filters-active .facets__filters-wrapper {
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 8px !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          padding: 0 16px !important;
+          box-sizing: border-box !important;
+          overflow: visible !important;
+        }
+
+        /* Form wrapper constraints */
+        body.cc-filters-active .facets__form,
+        body.cc-filters-active .facets-block-wrapper {
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow: hidden !important;
+          padding: 0 !important;
+        }
+
+        /* Each filter item must stay within bounds */
+        body.cc-filters-active .facets__item {
+          min-width: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        /* Search spans full width */
+        body.cc-filters-active .cc-search-item {
+          grid-column: 1 / -1 !important;
+        }
+
+        /* Sort spans full width */
+        body.cc-filters-active .cc-sort {
+          grid-column: 1 / -1 !important;
+          width: 100% !important;
+          padding: 0 16px !important;
+          box-sizing: border-box !important;
+        }
+        body.cc-filters-active .cc-sort select {
+          width: 100% !important;
+        }
+
+        /* Clear all spans full width */
+        body.cc-filters-active .cc-clear-all {
+          grid-column: 1 / -1 !important;
+        }
+
+        /* Summary buttons: truncate text, ensure they fit */
+        body.cc-filters-active .facets__summary {
+          font-size: 13px !important;
+          padding: 10px 12px !important;
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          min-width: 0 !important;
+        }
+
+        /* Filter dropdown panels: full viewport width overlay */
+        body.cc-filters-active .facets__panel[open] .facets__panel-content {
+          position: fixed !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          top: auto !important;
+          max-height: 60vh !important;
+          overflow-y: auto !important;
+          z-index: 999 !important;
+          background: var(--filter-bg-darker, #1a1d2e) !important;
+          border-top: 2px solid var(--filter-accent, #F97316) !important;
+          padding: 16px !important;
+          box-shadow: 0 -8px 30px rgba(0,0,0,0.5) !important;
+          border-radius: 16px 16px 0 0 !important;
+        }
+
+        /* Backdrop when panel is open */
+        body.cc-filters-active .facets__panel[open]::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 998;
+        }
+
+        /* Checkbox list inside mobile drawer */
+        body.cc-filters-active .facets__panel[open] .facets__inputs-wrapper {
+          max-height: 45vh !important;
+          overflow-y: auto !important;
+        }
+
+        body.cc-filters-active .facets__panel[open] .facets__inputs-list li {
+          padding: 6px 0 !important;
+        }
+
+        body.cc-filters-active .facets__panel[open] .facets__label {
+          font-size: 15px !important;
+          padding: 8px 4px !important;
+          gap: 10px !important;
+        }
+
+        body.cc-filters-active .facets__panel[open] .facets__input {
+          width: 20px !important;
+          height: 20px !important;
+        }
+
+        /* Product grid: 2 columns with proper spacing */
+        body.cc-filters-active .product-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 10px !important;
+          padding: 0 12px !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        body.cc-filters-active .product-grid__item {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+        }
+
+        /* Smaller card text on mobile */
+        .cc-card__name {
+          font-size: 12px !important;
+        }
+        .cc-card__set {
+          font-size: 10px !important;
+        }
+        .cc-card__price {
+          font-size: 14px !important;
+        }
+        .cc-card__info {
+          padding: 8px 8px 10px !important;
+        }
+
+        /* Pagination: compact on mobile */
+        .cc-pagination__btn {
+          padding: 6px 10px !important;
+          font-size: 13px !important;
+        }
+        .cc-pagination__nav {
+          gap: 4px !important;
+        }
+        .cc-pagination {
+          margin: 24px 12px 40px !important;
+        }
+
+        /* Collection page wrapper */
+        body.cc-filters-active .collection,
+        body.cc-filters-active .main-collection {
+          overflow-x: hidden !important;
+          max-width: 100vw !important;
+        }
+      }
+
+      /* ── Small mobile (< 400px): single column filters ── */
+      @media (max-width: 399px) {
+        body.cc-filters-active .facets__overflow-list,
+        body.cc-filters-active .facets__filters-wrapper {
+          grid-template-columns: 1fr !important;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
