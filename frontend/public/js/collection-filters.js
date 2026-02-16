@@ -1042,13 +1042,35 @@
       @media (max-width: 749px) {
         /* Prevent horizontal overflow on the whole page */
         body.cc-filters-active {
-          overflow-x: hidden;
+          overflow-x: hidden !important;
         }
-        body.cc-filters-active .section-template--collection {
-          overflow-x: hidden;
+        body.cc-filters-active .section-template--collection,
+        body.cc-filters-active [class*="section-template"] {
+          overflow-x: hidden !important;
         }
 
-        /* Filter container: single column, full width, proper padding */
+        /* Force Shopify's collection page layout to single column
+           (theme may use a sidebar grid e.g. 1fr 3fr) */
+        body.cc-filters-active .collection .grid,
+        body.cc-filters-active .collection-product-list,
+        body.cc-filters-active .facets-container,
+        body.cc-filters-active [class*="collection"] > .grid,
+        body.cc-filters-active .page-width > .grid,
+        body.cc-filters-active .main-collection .grid {
+          display: block !important;
+          grid-template-columns: 1fr !important;
+        }
+
+        /* All grid children must be full width */
+        body.cc-filters-active .collection .grid > *,
+        body.cc-filters-active [class*="collection"] > .grid > *,
+        body.cc-filters-active .page-width > .grid > * {
+          grid-column: 1 / -1 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        /* Filter container: 2-column grid, full width, proper padding */
         body.cc-filters-active .facets__overflow-list,
         body.cc-filters-active .facets__filters-wrapper {
           display: grid !important;
