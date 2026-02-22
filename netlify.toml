@@ -24,16 +24,26 @@
 [functions."sync-metafields-backfill"]
   schedule = "0 7 * * *"
 
+# Process Product Queue - Every 10 minutes, batch-process queued product webhooks
+[functions."process-product-queue"]
+  schedule = "*/10 * * * *"
+
 # Shopify Inventory Webhook - Real-time stock updates
 [[redirects]]
   from = "/api/shopify-inventory-webhook"
   to = "/.netlify/functions/shopify-inventory-webhook"
   status = 200
 
-# Shopify Product Webhook - Lightweight Scryfall enrichment on create/update
+# Shopify Product Webhook - Queues products for batch Scryfall enrichment
 [[redirects]]
   from = "/api/shopify-product-webhook"
   to = "/.netlify/functions/shopify-product-webhook"
+  status = 200
+
+# Process Product Queue - Manual trigger for batch processing
+[[redirects]]
+  from = "/api/process-product-queue"
+  to = "/.netlify/functions/process-product-queue"
   status = 200
 
 # Metafield Backfill - One-off enrichment for existing products missing Scryfall data
