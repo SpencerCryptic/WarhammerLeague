@@ -57,6 +57,7 @@
   // on ancestor elements, which breaks position:fixed. Instead of trying
   // to patch ancestors, we move the panel content to a body-level portal
   // container where position:fixed is guaranteed to work.
+  // All styles are inline to avoid CSS specificity/cascade issues.
 
   let _portalBackdrop = null;
   let _portalContainer = null;
@@ -67,11 +68,20 @@
     if (_portalBackdrop) return;
 
     _portalBackdrop = document.createElement('div');
-    _portalBackdrop.className = 'cc-portal-backdrop';
+    _portalBackdrop.style.cssText =
+      'display:none;position:fixed;inset:0;z-index:99998;' +
+      'background:rgba(0,0,0,0.62);backdrop-filter:blur(6px) saturate(140%);';
     document.body.appendChild(_portalBackdrop);
 
     _portalContainer = document.createElement('div');
-    _portalContainer.className = 'cc-portal-container';
+    _portalContainer.style.cssText =
+      'display:none;position:fixed;left:50%;transform:translateX(-50%);' +
+      'bottom:18px;width:calc(100vw - 26px);max-width:520px;max-height:72vh;' +
+      'z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;' +
+      'background:radial-gradient(circle at top,#2e3244 0,#1f2230 55%,#181b25 100%);' +
+      'border-radius:18px;border:1px solid rgba(255,255,255,0.12);' +
+      'padding:16px 16px 10px;' +
+      'box-shadow:0 18px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(255,255,255,0.06) inset;';
     document.body.appendChild(_portalContainer);
 
     _portalBackdrop.addEventListener('click', closeMobilePortal);
@@ -93,14 +103,18 @@
     if (!content.querySelector('.cc-portal-close')) {
       const btn = document.createElement('button');
       btn.type = 'button';
+      btn.style.cssText =
+        'display:block;margin:14px auto 6px;padding:7px 16px;border-radius:999px;' +
+        'font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);' +
+        'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.14);cursor:pointer;';
       btn.className = 'cc-portal-close';
       btn.textContent = 'Close \u00d7';
       btn.addEventListener('click', closeMobilePortal);
       content.appendChild(btn);
     }
 
-    _portalBackdrop.classList.add('cc-portal-visible');
-    _portalContainer.classList.add('cc-portal-visible');
+    _portalBackdrop.style.display = 'block';
+    _portalContainer.style.display = 'block';
   }
 
   function closeMobilePortal() {
@@ -109,8 +123,8 @@
     // Move content back into the details element
     _portalSourcePanel.appendChild(_portalSourceContent);
 
-    if (_portalBackdrop) _portalBackdrop.classList.remove('cc-portal-visible');
-    if (_portalContainer) _portalContainer.classList.remove('cc-portal-visible');
+    if (_portalBackdrop) _portalBackdrop.style.display = 'none';
+    if (_portalContainer) _portalContainer.style.display = 'none';
 
     _portalSourcePanel.removeAttribute('open');
     _portalSourcePanel = null;
@@ -1134,30 +1148,6 @@
           overflow-x: hidden !important;
         }
 
-        /* ── Fix position:fixed – clear ancestor containing blocks ──
-           Shopify themes often set transform/will-change/contain on
-           wrappers which traps fixed-position filter panel content. */
-        body.cc-filters-active .facets-block-wrapper,
-        body.cc-filters-active facets-form-component,
-        body.cc-filters-active .facets__form-wrapper,
-        body.cc-filters-active .facets--horizontal,
-        body.cc-filters-active .facets--vertical,
-        body.cc-filters-active .facets__form,
-        body.cc-filters-active .facets__filters-wrapper,
-        body.cc-filters-active .facets__overflow-list,
-        body.cc-filters-active .facets__item,
-        body.cc-filters-active .facets__panel,
-        body.cc-filters-active .collection .grid,
-        body.cc-filters-active [class*="collection"] > .grid,
-        body.cc-filters-active .page-width > .grid,
-        body.cc-filters-active .shopify-section,
-        body.cc-filters-active [class*="section-template"] {
-          transform: none !important;
-          will-change: auto !important;
-          perspective: none !important;
-          contain: none !important;
-        }
-
         /* Force Shopify's collection page layout to single column
            (theme may use a sidebar grid e.g. 1fr 3fr) */
         body.cc-filters-active .collection .grid,
@@ -1239,91 +1229,10 @@
           min-width: 0 !important;
         }
 
-        /* ── Portal: filter panel content moved to body on mobile ── */
-        .cc-portal-backdrop {
-          display: none;
-          position: fixed;
-          inset: 0;
-          z-index: 998;
-          background: rgba(0,0,0,0.62);
-          backdrop-filter: blur(6px) saturate(140%);
-        }
-        .cc-portal-backdrop.cc-portal-visible {
-          display: block;
-        }
-
-        .cc-portal-container {
-          display: none;
-          position: fixed;
-          left: 50%;
-          transform: translateX(-50%);
-          bottom: 18px;
-          width: calc(100vw - 26px);
-          max-width: 520px;
-          max-height: 72vh;
-          z-index: 999;
-          background: radial-gradient(circle at top, #2e3244 0, #1f2230 55%, #181b25 100%);
-          border-radius: 18px;
-          border: 1px solid rgba(255,255,255,0.12);
-          padding: 16px 16px 10px;
-          box-shadow: 0 18px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06) inset;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        .cc-portal-container.cc-portal-visible {
-          display: block;
-        }
-
-        .cc-portal-close {
-          display: block;
-          margin: 14px auto 6px;
-          padding: 7px 16px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.8);
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.14);
-          cursor: pointer;
-        }
-
-        /* Suppress the old in-flow panel content + backdrop pseudo on mobile
-           (portal handles these now) */
+        /* Suppress the ::before backdrop pseudo on open panels
+           (portal handles backdrop now via inline-styled body-level div) */
         body.cc-filters-active .facets__panel[open]::before {
           display: none !important;
-        }
-
-        /* Style filter content inside the portal */
-        .cc-portal-container .facets__inputs-wrapper {
-          max-height: 50vh !important;
-          overflow-y: auto !important;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .cc-portal-container .facets__inputs-list li {
-          padding: 6px 0 !important;
-        }
-
-        .cc-portal-container .facets__label {
-          font-size: 15px !important;
-          padding: 8px 4px !important;
-          gap: 10px !important;
-        }
-
-        .cc-portal-container .facets__input {
-          width: 20px !important;
-          height: 20px !important;
-        }
-
-        .cc-portal-container .cc-facet-search {
-          width: 100% !important;
-          padding: 10px 12px !important;
-          margin-bottom: 8px !important;
-          border-radius: 10px !important;
-          border: 1px solid rgba(255,255,255,0.16) !important;
-          background: rgba(255,255,255,0.04) !important;
-          color: #fff !important;
-          font-size: 14px !important;
         }
 
         /* Product grid: 2 columns with proper spacing */
