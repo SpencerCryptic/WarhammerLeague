@@ -1238,11 +1238,11 @@
           max-width: 100% !important;
         }
 
-        /* Filter container: 2-column grid, full width, proper padding */
+        /* Filter container: single-column stack, full width, proper padding */
         body.cc-filters-active .facets__overflow-list,
         body.cc-filters-active .facets__filters-wrapper {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
+          display: flex !important;
+          flex-direction: column !important;
           gap: 8px !important;
           width: 100% !important;
           max-width: 100% !important;
