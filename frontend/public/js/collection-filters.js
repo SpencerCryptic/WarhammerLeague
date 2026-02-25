@@ -52,6 +52,58 @@
   let productCountEl = null;
   let paginationContainer = null;
 
+  // ── Mobile fixed-position fix ───────────────────────────────────
+  // Shopify themes may set transform/will-change/contain on ancestor
+  // elements, which breaks position:fixed on filter panel content.
+  // Walk up the DOM when a panel opens and neutralise those properties.
+
+  let _savedAncestorStyles = [];
+  const FIXED_BREAK_PROPS = ['transform', 'willChange', 'perspective', 'contain', 'filter'];
+  const FIXED_SAFE_VALUES = {
+    transform: 'none', willChange: 'auto', perspective: 'none', contain: 'none', filter: 'none'
+  };
+
+  function clearAncestorContainingBlocks(el) {
+    _savedAncestorStyles = [];
+    let node = el.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      const cs = getComputedStyle(node);
+      const overrides = {};
+      let needsFix = false;
+      for (const p of FIXED_BREAK_PROPS) {
+        if (cs[p] && cs[p] !== FIXED_SAFE_VALUES[p]) {
+          overrides[p] = node.style[p] || '';
+          needsFix = true;
+        }
+      }
+      if (needsFix) {
+        _savedAncestorStyles.push({ node, overrides });
+        for (const p in overrides) node.style[p] = FIXED_SAFE_VALUES[p];
+      }
+      node = node.parentElement;
+    }
+  }
+
+  function restoreAncestorContainingBlocks() {
+    for (const { node, overrides } of _savedAncestorStyles) {
+      for (const p in overrides) node.style[p] = overrides[p];
+    }
+    _savedAncestorStyles = [];
+  }
+
+  function initMobileFixedFix() {
+    filterContainer.querySelectorAll('.facets__panel').forEach(panel => {
+      panel.addEventListener('toggle', () => {
+        if (window.innerWidth >= 750) return;
+        if (panel.open) {
+          clearAncestorContainingBlocks(panel);
+        } else {
+          restoreAncestorContainingBlocks();
+        }
+      });
+    });
+  }
+
   // ── Init ─────────────────────────────────────────────────────────
 
   // Collections where this script should activate
@@ -123,6 +175,11 @@
 
     // Build filter panels (empty, will populate after first API call)
     buildFilterUI();
+
+    // Fix position:fixed on mobile by clearing ancestor containing blocks at runtime
+    if (window.innerWidth < 750) {
+      initMobileFixedFix();
+    }
 
     // Find/create product count element
     productCountEl = document.querySelector('.products-count-wrapper span')
@@ -1047,6 +1104,30 @@
         body.cc-filters-active .section-template--collection,
         body.cc-filters-active [class*="section-template"] {
           overflow-x: hidden !important;
+        }
+
+        /* ── Fix position:fixed – clear ancestor containing blocks ──
+           Shopify themes often set transform/will-change/contain on
+           wrappers which traps fixed-position filter panel content. */
+        body.cc-filters-active .facets-block-wrapper,
+        body.cc-filters-active facets-form-component,
+        body.cc-filters-active .facets__form-wrapper,
+        body.cc-filters-active .facets--horizontal,
+        body.cc-filters-active .facets--vertical,
+        body.cc-filters-active .facets__form,
+        body.cc-filters-active .facets__filters-wrapper,
+        body.cc-filters-active .facets__overflow-list,
+        body.cc-filters-active .facets__item,
+        body.cc-filters-active .facets__panel,
+        body.cc-filters-active .collection .grid,
+        body.cc-filters-active [class*="collection"] > .grid,
+        body.cc-filters-active .page-width > .grid,
+        body.cc-filters-active .shopify-section,
+        body.cc-filters-active [class*="section-template"] {
+          transform: none !important;
+          will-change: auto !important;
+          perspective: none !important;
+          contain: none !important;
         }
 
         /* Force Shopify's collection page layout to single column
