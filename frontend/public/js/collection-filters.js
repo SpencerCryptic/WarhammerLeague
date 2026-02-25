@@ -1245,6 +1245,97 @@
           display: none !important;
         }
 
+        /* ── Portal content styling ──
+           Content moved to body loses theme styles; re-apply dark theme */
+
+        /* Scrollable list */
+        .cc-portal-container .facets__panel-content {
+          color: #fff !important;
+        }
+        .cc-portal-container .facets__inputs-wrapper {
+          max-height: 55vh !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch;
+        }
+        .cc-portal-container .facets__inputs-list {
+          list-style: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 2px !important;
+        }
+        .cc-portal-container .facets__inputs-list li {
+          padding: 0 !important;
+        }
+
+        /* Labels / rows */
+        .cc-portal-container .facets__label {
+          display: flex !important;
+          align-items: center !important;
+          gap: 10px !important;
+          padding: 10px 6px !important;
+          font-size: 15px !important;
+          color: #fff !important;
+          cursor: pointer !important;
+        }
+        .cc-portal-container .facets__label-text {
+          color: #fff !important;
+          flex: 1 !important;
+        }
+        .cc-portal-container .cc-facet-count {
+          color: rgba(255,255,255,0.5) !important;
+          font-size: 13px !important;
+          flex-shrink: 0 !important;
+        }
+
+        /* Checkboxes */
+        .cc-portal-container .facets__input[type='checkbox'] {
+          -webkit-appearance: none !important;
+          appearance: none !important;
+          width: 22px !important;
+          height: 22px !important;
+          min-width: 22px !important;
+          border-radius: 6px !important;
+          border: 1.5px solid rgba(255,255,255,0.26) !important;
+          background: rgba(255,255,255,0.03) !important;
+          position: relative !important;
+          flex-shrink: 0 !important;
+          cursor: pointer !important;
+        }
+        .cc-portal-container .facets__input[type='checkbox']:checked {
+          background: #F97316 !important;
+          border-color: #F97316 !important;
+        }
+        .cc-portal-container .facets__input[type='checkbox']:checked::after {
+          content: '\u2713' !important;
+          font-size: 14px !important;
+          font-weight: 700 !important;
+          color: #fff !important;
+          position: absolute !important;
+          inset: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        /* Search input inside portal */
+        .cc-portal-container .cc-facet-search {
+          width: 100% !important;
+          padding: 10px 14px !important;
+          margin-bottom: 10px !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(255,255,255,0.16) !important;
+          background: rgba(255,255,255,0.06) !important;
+          color: #fff !important;
+          font-size: 14px !important;
+          box-sizing: border-box !important;
+          outline: none !important;
+        }
+        .cc-portal-container .cc-facet-search::placeholder {
+          color: rgba(255,255,255,0.4) !important;
+        }
+
         /* Product grid: 2 columns with proper spacing */
         body.cc-filters-active .product-grid {
           display: grid !important;
