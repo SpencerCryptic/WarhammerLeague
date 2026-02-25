@@ -125,6 +125,9 @@
     header.appendChild(closeBtn);
     _portalContainer.appendChild(header);
 
+    // Strip any leftover close buttons from a prior code version
+    content.querySelectorAll('.cc-portal-close').forEach(el => el.remove());
+
     // Move content into portal and force it visible
     _portalContainer.appendChild(content);
     content.style.cssText = 'display:block!important;opacity:1!important;' +
@@ -379,16 +382,18 @@
     // "More Filters" toggle button (full width, mobile only)
     const moreBtn = document.createElement('button');
     moreBtn.type = 'button';
-    moreBtn.className = 'cc-more-filters-btn facets__summary';
+    moreBtn.className = 'cc-more-filters-btn';
     moreBtn.textContent = 'More Filters';
     moreBtn.addEventListener('click', () => {
-      filterContainer.classList.toggle('cc-secondary-visible');
-      moreBtn.textContent = filterContainer.classList.contains('cc-secondary-visible')
-        ? 'Fewer Filters' : 'More Filters';
+      const isVisible = filterContainer.classList.toggle('cc-secondary-visible');
+      moreBtn.textContent = isVisible ? 'Fewer Filters' : 'More Filters';
+      const secondaries = filterContainer.querySelectorAll('.cc-filter-secondary');
+      secondaries.forEach(el => { el.style.display = isVisible ? '' : 'none'; });
     });
     filterContainer.appendChild(moreBtn);
 
     // Secondary filters (hidden on mobile by default)
+    const isMobile = window.innerWidth < 750;
     const secondaryPanels = [
       buildCheckboxPanel('Type', 'card_type', []),
       buildCheckboxPanel('CMC', 'cmc', []),
@@ -397,6 +402,7 @@
     ];
     for (const p of secondaryPanels) {
       p.classList.add('cc-filter-secondary');
+      if (isMobile) p.style.display = 'none';
       filterContainer.appendChild(p);
     }
 
@@ -405,12 +411,13 @@
     if (hasActiveSecondary) {
       filterContainer.classList.add('cc-secondary-visible');
       moreBtn.textContent = 'Fewer Filters';
+      for (const p of secondaryPanels) { p.style.display = ''; }
     }
 
     // Clear All button (hidden until filters are active)
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
-    clearBtn.className = 'cc-clear-all facets__summary';
+    clearBtn.className = 'cc-clear-all';
     clearBtn.textContent = 'Clear All';
     clearBtn.style.display = 'none';
     clearBtn.addEventListener('click', () => {
@@ -1151,10 +1158,14 @@
       /* ── Clear All button ── */
       .cc-clear-all {
         background: rgba(239,68,68,0.15) !important;
-        border-color: rgba(239,68,68,0.4) !important;
+        border: 1px solid rgba(239,68,68,0.4) !important;
         color: #ef4444 !important;
         cursor: pointer;
         font-weight: 500;
+        font-size: 13px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-align: center;
       }
       .cc-clear-all:hover {
         background: rgba(239,68,68,0.25) !important;
@@ -1430,13 +1441,16 @@
           cursor: pointer;
           text-align: center;
           font-weight: 500;
-          background: rgba(255,255,255,0.04) !important;
-          border-color: rgba(255,255,255,0.14) !important;
-          color: rgba(255,255,255,0.7) !important;
+          font-size: 13px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.14);
+          background: rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.7);
         }
         .cc-more-filters-btn:hover {
-          background: rgba(255,255,255,0.08) !important;
-          color: #fff !important;
+          background: rgba(255,255,255,0.08);
+          color: #fff;
         }
         .cc-filter-secondary {
           display: none !important;
@@ -1449,13 +1463,6 @@
         .cc-more-filters-btn { display: none !important; }
       }
 
-      /* ── Small mobile (< 320px): single column filters ── */
-      @media (max-width: 319px) {
-        body.cc-filters-active .facets__overflow-list,
-        body.cc-filters-active .facets__filters-wrapper {
-          grid-template-columns: 1fr !important;
-        }
-      }
     `;
     document.head.appendChild(style);
   }
