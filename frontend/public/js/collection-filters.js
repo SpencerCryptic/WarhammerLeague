@@ -388,7 +388,10 @@
       const isVisible = filterContainer.classList.toggle('cc-secondary-visible');
       moreBtn.textContent = isVisible ? 'Fewer Filters' : 'More Filters';
       const secondaries = filterContainer.querySelectorAll('.cc-filter-secondary');
-      secondaries.forEach(el => { el.style.display = isVisible ? '' : 'none'; });
+      secondaries.forEach(el => {
+        if (isVisible) el.style.removeProperty('display');
+        else el.style.setProperty('display', 'none', 'important');
+      });
     });
     filterContainer.appendChild(moreBtn);
 
@@ -402,7 +405,7 @@
     ];
     for (const p of secondaryPanels) {
       p.classList.add('cc-filter-secondary');
-      if (isMobile) p.style.display = 'none';
+      if (isMobile) p.style.setProperty('display', 'none', 'important');
       filterContainer.appendChild(p);
     }
 
@@ -411,7 +414,7 @@
     if (hasActiveSecondary) {
       filterContainer.classList.add('cc-secondary-visible');
       moreBtn.textContent = 'Fewer Filters';
-      for (const p of secondaryPanels) { p.style.display = ''; }
+      for (const p of secondaryPanels) { p.style.removeProperty('display'); }
     }
 
     // Clear All button (hidden until filters are active)
@@ -1452,10 +1455,10 @@
           background: rgba(255,255,255,0.08);
           color: #fff;
         }
-        .cc-filter-secondary {
+        body.cc-filters-active .cc-filter-secondary.cc-filter-secondary {
           display: none !important;
         }
-        .cc-secondary-visible .cc-filter-secondary {
+        body.cc-filters-active .cc-secondary-visible .cc-filter-secondary {
           display: block !important;
         }
       }
