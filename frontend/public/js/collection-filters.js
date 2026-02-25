@@ -96,8 +96,13 @@
     _portalSourcePanel = panel;
     _portalSourceContent = content;
 
-    // Move content into portal
+    // Move content into portal and force it visible
+    // (theme CSS hides .facets__panel-content when not inside details[open])
     _portalContainer.appendChild(content);
+    content.style.cssText = 'display:block!important;opacity:1!important;' +
+      'visibility:visible!important;height:auto!important;' +
+      'position:static!important;transform:none!important;' +
+      'max-height:none!important;overflow:visible!important;';
 
     // Inject close button if needed
     if (!content.querySelector('.cc-portal-close')) {
@@ -120,7 +125,8 @@
   function closeMobilePortal() {
     if (!_portalSourcePanel || !_portalSourceContent) return;
 
-    // Move content back into the details element
+    // Move content back into the details element and clear forced styles
+    _portalSourceContent.style.cssText = '';
     _portalSourcePanel.appendChild(_portalSourceContent);
 
     if (_portalBackdrop) _portalBackdrop.style.display = 'none';
@@ -1140,12 +1146,16 @@
       /* ── Mobile responsive ── */
       @media (max-width: 749px) {
         /* Prevent horizontal overflow on the whole page */
+        html:has(body.cc-filters-active),
         body.cc-filters-active {
           overflow-x: hidden !important;
+          max-width: 100vw !important;
         }
         body.cc-filters-active .section-template--collection,
-        body.cc-filters-active [class*="section-template"] {
+        body.cc-filters-active [class*="section-template"],
+        body.cc-filters-active .shopify-section {
           overflow-x: hidden !important;
+          max-width: 100vw !important;
         }
 
         /* Force Shopify's collection page layout to single column
