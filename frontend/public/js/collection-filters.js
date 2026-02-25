@@ -74,6 +74,7 @@
     document.body.appendChild(_portalBackdrop);
 
     _portalContainer = document.createElement('div');
+    _portalContainer.className = 'cc-portal-container';
     _portalContainer.style.cssText =
       'display:none;position:fixed;left:50%;transform:translateX(-50%);' +
       'bottom:18px;width:calc(100vw - 26px);max-width:520px;max-height:72vh;' +
