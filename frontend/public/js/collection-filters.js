@@ -52,53 +52,79 @@
   let productCountEl = null;
   let paginationContainer = null;
 
-  // ── Mobile fixed-position fix ───────────────────────────────────
-  // Shopify themes may set transform/will-change/contain on ancestor
-  // elements, which breaks position:fixed on filter panel content.
-  // Walk up the DOM when a panel opens and neutralise those properties.
+  // ── Mobile portal for filter panels ─────────────────────────────
+  // Shopify themes set transform/contain/backdrop-filter/container-type
+  // on ancestor elements, which breaks position:fixed. Instead of trying
+  // to patch ancestors, we move the panel content to a body-level portal
+  // container where position:fixed is guaranteed to work.
 
-  let _savedAncestorStyles = [];
-  const FIXED_BREAK_PROPS = ['transform', 'willChange', 'perspective', 'contain', 'filter'];
-  const FIXED_SAFE_VALUES = {
-    transform: 'none', willChange: 'auto', perspective: 'none', contain: 'none', filter: 'none'
-  };
+  let _portalBackdrop = null;
+  let _portalContainer = null;
+  let _portalSourcePanel = null;
+  let _portalSourceContent = null;
 
-  function clearAncestorContainingBlocks(el) {
-    _savedAncestorStyles = [];
-    let node = el.parentElement;
-    while (node && node !== document.body && node !== document.documentElement) {
-      const cs = getComputedStyle(node);
-      const overrides = {};
-      let needsFix = false;
-      for (const p of FIXED_BREAK_PROPS) {
-        if (cs[p] && cs[p] !== FIXED_SAFE_VALUES[p]) {
-          overrides[p] = node.style[p] || '';
-          needsFix = true;
-        }
-      }
-      if (needsFix) {
-        _savedAncestorStyles.push({ node, overrides });
-        for (const p in overrides) node.style[p] = FIXED_SAFE_VALUES[p];
-      }
-      node = node.parentElement;
-    }
+  function ensurePortalElements() {
+    if (_portalBackdrop) return;
+
+    _portalBackdrop = document.createElement('div');
+    _portalBackdrop.className = 'cc-portal-backdrop';
+    document.body.appendChild(_portalBackdrop);
+
+    _portalContainer = document.createElement('div');
+    _portalContainer.className = 'cc-portal-container';
+    document.body.appendChild(_portalContainer);
+
+    _portalBackdrop.addEventListener('click', closeMobilePortal);
   }
 
-  function restoreAncestorContainingBlocks() {
-    for (const { node, overrides } of _savedAncestorStyles) {
-      for (const p in overrides) node.style[p] = overrides[p];
+  function openMobilePortal(panel) {
+    ensurePortalElements();
+
+    const content = panel.querySelector('.facets__panel-content');
+    if (!content) return;
+
+    _portalSourcePanel = panel;
+    _portalSourceContent = content;
+
+    // Move content into portal
+    _portalContainer.appendChild(content);
+
+    // Inject close button if needed
+    if (!content.querySelector('.cc-portal-close')) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cc-portal-close';
+      btn.textContent = 'Close \u00d7';
+      btn.addEventListener('click', closeMobilePortal);
+      content.appendChild(btn);
     }
-    _savedAncestorStyles = [];
+
+    _portalBackdrop.classList.add('cc-portal-visible');
+    _portalContainer.classList.add('cc-portal-visible');
   }
 
-  function initMobileFixedFix() {
+  function closeMobilePortal() {
+    if (!_portalSourcePanel || !_portalSourceContent) return;
+
+    // Move content back into the details element
+    _portalSourcePanel.appendChild(_portalSourceContent);
+
+    if (_portalBackdrop) _portalBackdrop.classList.remove('cc-portal-visible');
+    if (_portalContainer) _portalContainer.classList.remove('cc-portal-visible');
+
+    _portalSourcePanel.removeAttribute('open');
+    _portalSourcePanel = null;
+    _portalSourceContent = null;
+  }
+
+  function initMobilePortal() {
     filterContainer.querySelectorAll('.facets__panel').forEach(panel => {
       panel.addEventListener('toggle', () => {
         if (window.innerWidth >= 750) return;
         if (panel.open) {
-          clearAncestorContainingBlocks(panel);
-        } else {
-          restoreAncestorContainingBlocks();
+          openMobilePortal(panel);
+        } else if (_portalSourcePanel === panel) {
+          closeMobilePortal();
         }
       });
     });
@@ -176,9 +202,9 @@
     // Build filter panels (empty, will populate after first API call)
     buildFilterUI();
 
-    // Fix position:fixed on mobile by clearing ancestor containing blocks at runtime
+    // On mobile, use portal approach for filter panels (fixes position:fixed)
     if (window.innerWidth < 750) {
-      initMobileFixedFix();
+      initMobilePortal();
     }
 
     // Find/create product count element
@@ -555,9 +581,10 @@
   function updateFacetCounts() {
     if (!state.facets) return;
 
-    // Update checkbox panels
+    // Update checkbox panels (search document-wide because on mobile
+    // the panel content may be portaled to body)
     for (const key of ['rarity', 'set', 'colors', 'card_type', 'cmc', 'finish', 'keywords']) {
-      const list = filterContainer.querySelector('[data-filter-key="' + key + '"]');
+      const list = document.querySelector('[data-filter-key="' + key + '"]');
       if (!list || !state.facets[key]) continue;
 
       const facetItems = state.facets[key];
@@ -631,7 +658,8 @@
   }
 
   function updateFilterFromCheckboxes(filterKey) {
-    const checkboxes = filterContainer.querySelectorAll(
+    // Search document-wide (panel content may be in portal on mobile)
+    const checkboxes = document.querySelectorAll(
       'input[data-filter-key="' + filterKey + '"]:checked'
     );
     const values = Array.from(checkboxes).map(cb => cb.value);
@@ -1211,51 +1239,91 @@
           min-width: 0 !important;
         }
 
-        /* Filter dropdown panels: full viewport width overlay */
-        body.cc-filters-active .facets__panel[open] .facets__panel-content {
-          position: fixed !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          top: auto !important;
-          max-height: 60vh !important;
-          overflow-y: auto !important;
-          z-index: 999 !important;
-          background: var(--filter-bg-darker, #1a1d2e) !important;
-          border-top: 2px solid var(--filter-accent, #F97316) !important;
-          padding: 16px !important;
-          box-shadow: 0 -8px 30px rgba(0,0,0,0.5) !important;
-          border-radius: 16px 16px 0 0 !important;
-        }
-
-        /* Backdrop when panel is open */
-        body.cc-filters-active .facets__panel[open]::before {
-          content: '';
+        /* ── Portal: filter panel content moved to body on mobile ── */
+        .cc-portal-backdrop {
+          display: none;
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.5);
           z-index: 998;
+          background: rgba(0,0,0,0.62);
+          backdrop-filter: blur(6px) saturate(140%);
+        }
+        .cc-portal-backdrop.cc-portal-visible {
+          display: block;
         }
 
-        /* Checkbox list inside mobile drawer */
-        body.cc-filters-active .facets__panel[open] .facets__inputs-wrapper {
-          max-height: 45vh !important;
+        .cc-portal-container {
+          display: none;
+          position: fixed;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 18px;
+          width: calc(100vw - 26px);
+          max-width: 520px;
+          max-height: 72vh;
+          z-index: 999;
+          background: radial-gradient(circle at top, #2e3244 0, #1f2230 55%, #181b25 100%);
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.12);
+          padding: 16px 16px 10px;
+          box-shadow: 0 18px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06) inset;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .cc-portal-container.cc-portal-visible {
+          display: block;
+        }
+
+        .cc-portal-close {
+          display: block;
+          margin: 14px auto 6px;
+          padding: 7px 16px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.8);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.14);
+          cursor: pointer;
+        }
+
+        /* Suppress the old in-flow panel content + backdrop pseudo on mobile
+           (portal handles these now) */
+        body.cc-filters-active .facets__panel[open]::before {
+          display: none !important;
+        }
+
+        /* Style filter content inside the portal */
+        .cc-portal-container .facets__inputs-wrapper {
+          max-height: 50vh !important;
           overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch;
         }
 
-        body.cc-filters-active .facets__panel[open] .facets__inputs-list li {
+        .cc-portal-container .facets__inputs-list li {
           padding: 6px 0 !important;
         }
 
-        body.cc-filters-active .facets__panel[open] .facets__label {
+        .cc-portal-container .facets__label {
           font-size: 15px !important;
           padding: 8px 4px !important;
           gap: 10px !important;
         }
 
-        body.cc-filters-active .facets__panel[open] .facets__input {
+        .cc-portal-container .facets__input {
           width: 20px !important;
           height: 20px !important;
+        }
+
+        .cc-portal-container .cc-facet-search {
+          width: 100% !important;
+          padding: 10px 12px !important;
+          margin-bottom: 8px !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(255,255,255,0.16) !important;
+          background: rgba(255,255,255,0.04) !important;
+          color: #fff !important;
+          font-size: 14px !important;
         }
 
         /* Product grid: 2 columns with proper spacing */
