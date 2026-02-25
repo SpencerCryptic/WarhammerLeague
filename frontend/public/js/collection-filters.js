@@ -78,11 +78,12 @@
     _portalContainer.style.cssText =
       'display:none;position:fixed;left:50%;transform:translateX(-50%);' +
       'bottom:18px;width:calc(100vw - 26px);max-width:520px;max-height:72vh;' +
-      'z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;' +
+      'z-index:99999;-webkit-overflow-scrolling:touch;' +
       'background:radial-gradient(circle at top,#2e3244 0,#1f2230 55%,#181b25 100%);' +
       'border-radius:18px;border:1px solid rgba(255,255,255,0.12);' +
       'padding:16px 16px 10px;' +
-      'box-shadow:0 18px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(255,255,255,0.06) inset;';
+      'box-shadow:0 18px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(255,255,255,0.06) inset;' +
+      'flex-direction:column;';
     document.body.appendChild(_portalContainer);
 
     _portalBackdrop.addEventListener('click', closeMobilePortal);
@@ -97,30 +98,42 @@
     _portalSourcePanel = panel;
     _portalSourceContent = content;
 
+    // Clear portal container each time
+    _portalContainer.innerHTML = '';
+
+    // Build header bar with title + close button
+    const header = document.createElement('div');
+    header.style.cssText =
+      'display:flex;align-items:center;justify-content:space-between;' +
+      'padding:0 0 12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:10px;';
+
+    const title = document.createElement('span');
+    const summarySpan = panel.querySelector('summary > span');
+    title.textContent = summarySpan ? summarySpan.textContent : 'Filter';
+    title.style.cssText = 'font-size:16px;font-weight:600;color:#fff;';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.style.cssText =
+      'width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);' +
+      'background:rgba(255,255,255,0.06);color:#fff;font-size:18px;line-height:1;' +
+      'cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    closeBtn.textContent = '\u00d7';
+    closeBtn.addEventListener('click', closeMobilePortal);
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    _portalContainer.appendChild(header);
+
     // Move content into portal and force it visible
-    // (theme CSS hides .facets__panel-content when not inside details[open])
     _portalContainer.appendChild(content);
     content.style.cssText = 'display:block!important;opacity:1!important;' +
       'visibility:visible!important;height:auto!important;' +
       'position:static!important;transform:none!important;' +
-      'max-height:none!important;overflow:visible!important;';
-
-    // Inject close button if needed
-    if (!content.querySelector('.cc-portal-close')) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.style.cssText =
-        'display:block;margin:14px auto 6px;padding:7px 16px;border-radius:999px;' +
-        'font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);' +
-        'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.14);cursor:pointer;';
-      btn.className = 'cc-portal-close';
-      btn.textContent = 'Close \u00d7';
-      btn.addEventListener('click', closeMobilePortal);
-      content.appendChild(btn);
-    }
+      'max-height:none!important;overflow:visible!important;flex:1;min-height:0;';
 
     _portalBackdrop.style.display = 'block';
-    _portalContainer.style.display = 'block';
+    _portalContainer.style.display = 'flex';
   }
 
   function closeMobilePortal() {
@@ -350,32 +363,49 @@
 
   // ── Filter UI ────────────────────────────────────────────────────
 
+  const SECONDARY_FILTERS = ['card_type', 'cmc', 'finish', 'keywords'];
+
   function buildFilterUI() {
     filterContainer.innerHTML = '';
 
-    // Search
+    // Search (full width)
     filterContainer.appendChild(buildSearchPanel());
 
-    // Rarity
+    // Primary filters
     filterContainer.appendChild(buildCheckboxPanel('Rarity', 'rarity', []));
-
-    // Set
     filterContainer.appendChild(buildCheckboxPanel('Set', 'set', [], true));
-
-    // Colour
     filterContainer.appendChild(buildCheckboxPanel('Colour', 'colors', []));
 
-    // Card Type
-    filterContainer.appendChild(buildCheckboxPanel('Type', 'card_type', []));
+    // "More Filters" toggle button (full width, mobile only)
+    const moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.className = 'cc-more-filters-btn facets__summary';
+    moreBtn.textContent = 'More Filters';
+    moreBtn.addEventListener('click', () => {
+      filterContainer.classList.toggle('cc-secondary-visible');
+      moreBtn.textContent = filterContainer.classList.contains('cc-secondary-visible')
+        ? 'Fewer Filters' : 'More Filters';
+    });
+    filterContainer.appendChild(moreBtn);
 
-    // CMC
-    filterContainer.appendChild(buildCheckboxPanel('CMC', 'cmc', []));
+    // Secondary filters (hidden on mobile by default)
+    const secondaryPanels = [
+      buildCheckboxPanel('Type', 'card_type', []),
+      buildCheckboxPanel('CMC', 'cmc', []),
+      buildCheckboxPanel('Finish', 'finish', []),
+      buildCheckboxPanel('Keywords', 'keywords', [], true),
+    ];
+    for (const p of secondaryPanels) {
+      p.classList.add('cc-filter-secondary');
+      filterContainer.appendChild(p);
+    }
 
-    // Finish
-    filterContainer.appendChild(buildCheckboxPanel('Finish', 'finish', []));
-
-    // Keywords (searchable)
-    filterContainer.appendChild(buildCheckboxPanel('Keywords', 'keywords', [], true));
+    // Auto-expand if URL has active secondary filters
+    const hasActiveSecondary = SECONDARY_FILTERS.some(k => state.filters[k]);
+    if (hasActiveSecondary) {
+      filterContainer.classList.add('cc-secondary-visible');
+      moreBtn.textContent = 'Fewer Filters';
+    }
 
     // Clear All button (hidden until filters are active)
     const clearBtn = document.createElement('button');
@@ -400,6 +430,11 @@
       formParent.appendChild(sortPanel);
     } else {
       filterContainer.appendChild(sortPanel);
+    }
+
+    // Re-bind portal listeners on mobile after rebuild
+    if (window.innerWidth < 750) {
+      initMobilePortal();
     }
   }
 
@@ -1274,9 +1309,9 @@
         .cc-portal-container .facets__label {
           display: flex !important;
           align-items: center !important;
-          gap: 10px !important;
-          padding: 10px 6px !important;
-          font-size: 15px !important;
+          gap: 8px !important;
+          padding: 6px 6px !important;
+          font-size: 14px !important;
           color: #fff !important;
           cursor: pointer !important;
         }
@@ -1294,9 +1329,9 @@
         .cc-portal-container .facets__input[type='checkbox'] {
           -webkit-appearance: none !important;
           appearance: none !important;
-          width: 22px !important;
-          height: 22px !important;
-          min-width: 22px !important;
+          width: 20px !important;
+          height: 20px !important;
+          min-width: 20px !important;
           border-radius: 6px !important;
           border: 1.5px solid rgba(255,255,255,0.26) !important;
           background: rgba(255,255,255,0.03) !important;
@@ -1388,8 +1423,34 @@
         }
       }
 
-      /* ── Small mobile (< 400px): single column filters ── */
-      @media (max-width: 399px) {
+      /* ── "More Filters" toggle (mobile only) ── */
+      @media (max-width: 749px) {
+        .cc-more-filters-btn {
+          grid-column: 1 / -1 !important;
+          cursor: pointer;
+          text-align: center;
+          font-weight: 500;
+          background: rgba(255,255,255,0.04) !important;
+          border-color: rgba(255,255,255,0.14) !important;
+          color: rgba(255,255,255,0.7) !important;
+        }
+        .cc-more-filters-btn:hover {
+          background: rgba(255,255,255,0.08) !important;
+          color: #fff !important;
+        }
+        .cc-filter-secondary {
+          display: none !important;
+        }
+        .cc-secondary-visible .cc-filter-secondary {
+          display: block !important;
+        }
+      }
+      @media (min-width: 750px) {
+        .cc-more-filters-btn { display: none !important; }
+      }
+
+      /* ── Small mobile (< 320px): single column filters ── */
+      @media (max-width: 319px) {
         body.cc-filters-active .facets__overflow-list,
         body.cc-filters-active .facets__filters-wrapper {
           grid-template-columns: 1fr !important;
