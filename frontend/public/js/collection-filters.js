@@ -219,6 +219,10 @@
     const blockWrapper = filterContainer.closest('.facets-block-wrapper');
     if (blockWrapper) blockWrapper.classList.add('cc-takeover');
 
+    // Remove native theme "more filters" toggle (we use our own cc-more-filters-btn)
+    document.querySelectorAll('.more-filters-toggle, .facets__toggle-more, .filter-secondary-toggle')
+      .forEach(el => el.remove());
+
     // Hide native Shopify pagination
     document.querySelectorAll('.pagination-wrapper, .pagination:not(.cc-pagination)')
       .forEach(el => el.style.display = 'none');
@@ -1184,6 +1188,11 @@
       /* Sort component may live outside .cc-takeover wrapper */
       body.cc-filters-active sorting-filter-component,
       body.cc-filters-active .column-options-wrapper { display: none !important; }
+
+      /* Hide Horizon theme's native "more filters" toggle (we use our own) */
+      body.cc-filters-active .more-filters-toggle,
+      body.cc-filters-active .facets__toggle-more,
+      body.cc-filters-active .filter-secondary-toggle { display: none !important; }
 
       /* Hide native Shopify pagination when we take over */
       body.cc-filters-active .pagination-wrapper,
