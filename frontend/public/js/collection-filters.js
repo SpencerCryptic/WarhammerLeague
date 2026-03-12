@@ -32,7 +32,7 @@
   // ── State ────────────────────────────────────────────────────────
 
   const state = {
-    filters: {},
+    filters: { in_stock: 'true' },
     sort: 'name',
     dir: 'asc',
     page: 1,
@@ -771,13 +771,14 @@
       li.className = 'product-grid__item';
       li.dataset.productId = card.cryptic_cabin?.product_id || '';
 
-      const imgSrc = card.image_uris?.normal
+      // Prefer Shopify product image (always correct for the specific printing),
+      // fall back to Scryfall images, then double-faced card front face
+      const shopifyImg = card.cryptic_cabin?.image || '';
+      const scryfallImg = card.image_uris?.normal
         || card.image_uris?.small
-        || card.cryptic_cabin?.url
         || '';
-
-      // Handle double-faced cards
-      const frontImg = card.card_faces?.[0]?.image_uris?.normal || imgSrc;
+      const dfcFront = card.card_faces?.[0]?.image_uris?.normal || '';
+      const frontImg = shopifyImg || scryfallImg || dfcFront || '';
 
       const handle = card.cryptic_cabin?.handle || '';
       const price = card.cryptic_cabin?.price_gbp;

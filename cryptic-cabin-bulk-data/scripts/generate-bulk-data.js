@@ -516,12 +516,19 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
     keywords: scryfallCard?.keywords || [],
     legalities: scryfallCard?.legalities || {},
 
-    // Images
-    image_uris: scryfallCard?.image_uris || {
-      small: product.images?.[0]?.src || null,
-      normal: product.images?.[0]?.src || null,
-      large: product.images?.[0]?.src || null
-    },
+    // Images — always prefer Shopify product images (correct for the specific
+    // printing/alt-art), fall back to Scryfall only when Shopify has none
+    image_uris: (() => {
+      const shopifySrc = product.images?.[0]?.src || null;
+      if (shopifySrc) {
+        return {
+          small: shopifySrc,
+          normal: shopifySrc,
+          large: shopifySrc
+        };
+      }
+      return scryfallCard?.image_uris || { small: null, normal: null, large: null };
+    })(),
     card_faces: scryfallCard?.card_faces || null,
     full_art: scryfallCard?.full_art || false,
     layout: scryfallCard?.layout || 'normal',
@@ -533,6 +540,9 @@ function transformToCard(product, variant, parsed, variantOptions, scryfallCard)
       inventory_item_id: variant.inventory_item_id || null,
       sku: variant.sku || null,
       handle: product.handle,
+      image: variant.image_id
+        ? (product.images?.find(img => img.id === variant.image_id)?.src || product.images?.[0]?.src || null)
+        : (product.images?.[0]?.src || null),
       url: `https://tcg.crypticcabin.com/products/${product.handle}`,
       variant_url: product.variants?.length > 1
         ? `https://tcg.crypticcabin.com/products/${product.handle}?variant=${variant.id}`
