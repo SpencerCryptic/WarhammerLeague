@@ -211,7 +211,8 @@ export default function PlayoffsPage() {
               </div>
 
               {(() => {
-                const playerCount = selectedPlayoff.league_players?.length || 0;
+                const players = (selectedPlayoff.league_players || []).filter((p: any) => p.status !== 'dropped');
+                const playerCount = players.length;
                 const bs = Math.pow(2, Math.floor(Math.log2(Math.max(playerCount, 2))));
                 const tr = Math.log2(bs);
                 return (
@@ -219,6 +220,7 @@ export default function PlayoffsPage() {
                     matches={selectedPlayoff.matches || []}
                     totalRounds={tr}
                     bracketSize={bs}
+                    leaguePlayers={players}
                   />
                 );
               })()}

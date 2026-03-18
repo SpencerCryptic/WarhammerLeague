@@ -12,7 +12,7 @@ const Table = () => {
   const documentId = params.leagueDocumentId as string;
   const [format, setFormat] = useState<string | null>(null);
   const [matches, setMatches] = useState<any[]>([]);
-  const [playerCount, setPlayerCount] = useState(0);
+  const [leaguePlayers, setLeaguePlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,8 +22,8 @@ const Table = () => {
       .then(data => {
         setFormat(data.data?.format || 'round_robin');
         setMatches(data.data?.matches || []);
-        const activePlayers = (data.data?.league_players || []).filter((p: any) => p.status !== 'dropped');
-        setPlayerCount(activePlayers.length);
+        const players = (data.data?.league_players || []).filter((p: any) => p.status !== 'dropped');
+        setLeaguePlayers(players);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -34,17 +34,17 @@ const Table = () => {
   }
 
   if (format === 'single_elimination') {
-    // Calculate bracket size from player count
-    const playInMatches = matches.filter((m: any) => m.round === 0);
-    const bracketSize = Math.pow(2, Math.floor(Math.log2(Math.max(playerCount, 2))));
-    const totalRounds = Math.log2(bracketSize);
+    const playerCount = leaguePlayers.length;
+    const bs = Math.pow(2, Math.floor(Math.log2(Math.max(playerCount, 2))));
+    const tr = Math.log2(bs);
 
     return (
       <div className="w-full">
         <TournamentBracket
           matches={matches}
-          totalRounds={totalRounds}
-          bracketSize={bracketSize}
+          totalRounds={tr}
+          bracketSize={bs}
+          leaguePlayers={leaguePlayers}
         />
       </div>
     );
