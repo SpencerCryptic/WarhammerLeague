@@ -49,11 +49,23 @@ export default function PlayoffsPage() {
   const [generatingBracket, setGeneratingBracket] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
     if (stored) {
       try { setUser(JSON.parse(stored)); } catch {}
+    }
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`${API_BASE}/users/me?populate[role]=*`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          setIsAdmin(data?.role?.name === 'Admin' || data?.role?.name === 'LeagueCreator');
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -219,12 +231,14 @@ export default function PlayoffsPage() {
     );
   }
 
-  if (!user) {
+  if (!user || !isAdmin) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-lg p-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Playoffs Admin</h2>
-          <p className="text-gray-600 dark:text-gray-400">You must be logged in to access this page.</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            {!user ? 'You must be logged in to access this page.' : 'You do not have permission to access this page.'}
+          </p>
         </div>
       </div>
     );
