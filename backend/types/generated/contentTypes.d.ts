@@ -651,7 +651,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
         lostButScored50Percent: false;
         scoredAllPrimaryObjectives: false;
       }>;
-    leaguePlayer1LeaguePoints: Schema.Attribute.Integer 
+    leaguePlayer1LeaguePoints: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
     leaguePlayer1List: Schema.Attribute.Text;
     leaguePlayer1Result: Schema.Attribute.Integer;
@@ -679,6 +679,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'unplayed'>;
     matchUID: Schema.Attribute.UID;
+    bracketPosition: Schema.Attribute.Integer;
     playByDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
