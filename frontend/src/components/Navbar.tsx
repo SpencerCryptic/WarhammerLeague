@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 const publicLinks: { href: string; text: string }[] = [
   { href: '/leagues', text: 'leagues' },
+  { href: '/playoffs', text: 'playoffs' },
   { href: '/stats', text: 'stats' },
 ];
 
