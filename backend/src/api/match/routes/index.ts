@@ -62,6 +62,11 @@ export default {
       method: 'POST',
       path: '/matches/:id/submit',
       handler: 'match.submit',
+      config: {
+        auth: {
+          required: true,
+        },
+      },
     },
     {
       // Admin score modification route - force deployment
