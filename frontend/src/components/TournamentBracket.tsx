@@ -54,6 +54,7 @@ export default function TournamentBracket({ matches, totalRounds }: TournamentBr
   };
 
   const getRoundName = (round: number) => {
+    if (round === 0) return 'Play-In';
     if (round === totalRounds) return 'Finals';
     if (round === totalRounds - 1) return 'Semifinals';
     if (round === totalRounds - 2) return 'Quarterfinals';
@@ -69,7 +70,11 @@ export default function TournamentBracket({ matches, totalRounds }: TournamentBr
         </h2>
         
         <div className="flex space-x-8">
-          {Array.from({ length: totalRounds }, (_, i) => i + 1).map(round => (
+          {(() => {
+            const hasRound0 = matches.some(m => m.round === 0);
+            const startRound = hasRound0 ? 0 : 1;
+            return Array.from({ length: totalRounds - startRound + 1 }, (_, i) => i + startRound);
+          })().map(round => (
             <div key={round} className="flex flex-col">
               <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
                 {getRoundName(round)}

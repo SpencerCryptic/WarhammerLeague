@@ -1,6 +1,26 @@
 export default {
     routes: [
       {
+        method: 'POST',
+        path: '/leagues/generate-playoffs',
+        handler: 'league.generatePlayoffs',
+        config: {
+          auth: {
+            required: true,
+          },
+        },
+      },
+      {
+        method: 'POST',
+        path: '/leagues/:id/generate-playoffs-bracket',
+        handler: 'league.generatePlayoffBracket',
+        config: {
+          auth: {
+            required: true,
+          },
+        },
+      },
+      {
         method: 'GET',
         path: '/leagues/dashboard',
         handler: 'league.dashboard',

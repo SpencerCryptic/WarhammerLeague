@@ -65,11 +65,15 @@ function hasOracleId(product) {
   );
 }
 
-function getBlobStore() {
-  const options = { name: BLOB_STORE_NAME };
+function getBlobStoreOptions(storeName) {
+  const options = { name: storeName || BLOB_STORE_NAME };
   if (SITE_ID) options.siteID = SITE_ID;
   if (BLOBS_TOKEN) options.token = BLOBS_TOKEN;
-  return getStore(options);
+  return options;
+}
+
+function getBlobStore() {
+  return getStore(getBlobStoreOptions(BLOB_STORE_NAME));
 }
 
 // --- Handler ---
@@ -95,9 +99,38 @@ exports.handler = async (event) => {
 
     // Only process create/update
     const topic = event.headers['x-shopify-topic'] || '';
-    if (topic === 'products/delete') return ok('ignored: delete event');
 
     const product = JSON.parse(event.body);
+
+    // Handle product deletion or drafting — remove from bulk data
+    if (topic === 'products/delete' || product.status === 'draft' || product.status === 'archived') {
+      try {
+        const bulkStore = getStore(getBlobStoreOptions('bulk-data'));
+        // Also check the filtered cache store
+        try {
+          const filteredStore = getStore(getBlobStoreOptions('bulk-data-cache'));
+          // Clear filtered cache so stale data isn't served
+          await filteredStore.delete('filtered-inventory');
+        } catch (_) { /* cache miss is fine */ }
+        const bulkData = await bulkStore.get('inventory', { type: 'json' });
+        if (bulkData && bulkData.data) {
+          const productId = product.id;
+          const before = bulkData.data.length;
+          bulkData.data = bulkData.data.filter(card =>
+            card.cryptic_cabin?.product_id !== productId
+          );
+          const removed = before - bulkData.data.length;
+          if (removed > 0) {
+            bulkData.total_cards = bulkData.data.length;
+            await bulkStore.setJSON('inventory', bulkData);
+            console.log(`Removed ${removed} cards for ${topic} product ${productId}: "${product.title}"`);
+          }
+        }
+      } catch (e) {
+        console.error('Error removing drafted/deleted product from bulk data:', e.message);
+      }
+      return ok(topic === 'products/delete' ? 'deleted from bulk data' : 'drafted/archived: removed from bulk data', { product_id: product.id });
+    }
 
     // Skip non-MTG products
     if (!isMTGProduct(product)) return ok('skipped: not MTG');

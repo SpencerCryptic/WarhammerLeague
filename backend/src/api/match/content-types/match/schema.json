@@ -103,6 +103,9 @@
     },
     "playByDate": {
       "type": "date"
+    },
+    "bracketPosition": {
+      "type": "integer"
     }
   }
 }

@@ -413,7 +413,8 @@ export default factories.createCoreController('api::league.league', ({ strapi })
               'leaguePlayer1LeaguePoints',
               'leaguePlayer2LeaguePoints',
               'matchResult',
-              'round'
+              'round',
+              'bracketPosition'
             ],
             populate: {
               leaguePlayer1 : { fields: ['id', 'leagueName', 'faction'] },
@@ -1201,6 +1202,363 @@ export default factories.createCoreController('api::league.league', ({ strapi })
     } catch (error) {
       console.error('❌ Error fixing statuses:', error);
       return ctx.badRequest(`Failed to fix statuses: ${error.message}`);
+    }
+  },
+
+  async generatePlayoffs(ctx) {
+    const { poolLeagueIds, name, qualifiersPerPool = 3 } = ctx.request.body;
+    const userId = ctx.state.user?.id;
+
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in.');
+    }
+    if (!poolLeagueIds || !Array.isArray(poolLeagueIds) || poolLeagueIds.length < 2) {
+      return ctx.badRequest('Must provide at least 2 pool league IDs.');
+    }
+    if (!name) {
+      return ctx.badRequest('Playoff league name is required.');
+    }
+    if (qualifiersPerPool < 1 || qualifiersPerPool > 10) {
+      return ctx.badRequest('Qualifiers per pool must be between 1 and 10.');
+    }
+
+    try {
+      // Fetch each pool league with players and matches
+      const pools: any[] = [];
+      for (const poolId of poolLeagueIds) {
+        const league = await strapi.documents('api::league.league').findOne({
+          documentId: poolId,
+          populate: {
+            league_players: {
+              populate: { player: true }
+            },
+            matches: {
+              populate: {
+                leaguePlayer1: { fields: ['leagueName'] },
+                leaguePlayer2: { fields: ['leagueName'] }
+              }
+            }
+          }
+        } as any);
+        if (!league) {
+          return ctx.badRequest(`Pool league not found: ${poolId}`);
+        }
+        pools.push(league);
+      }
+
+      // Sort each pool and extract top N qualifiers
+      // qualifiers are stored in seed order: all 1st-placers, then all 2nd-placers, etc.
+      const qualifiersByPosition: any[][] = [];
+      for (let pos = 0; pos < qualifiersPerPool; pos++) {
+        qualifiersByPosition.push([]);
+      }
+
+      for (const pool of pools) {
+        const players = ((pool as any).league_players || []).filter((p: any) => p.status !== 'dropped');
+        const matches = (pool as any).matches || [];
+
+        // Calculate VP for each player
+        const vpMap: Record<string, number> = {};
+        for (const p of players) {
+          vpMap[p.documentId] = 0;
+        }
+        for (const m of matches) {
+          if (m.leaguePlayer1 && vpMap[m.leaguePlayer1.documentId] !== undefined) {
+            vpMap[m.leaguePlayer1.documentId] += (m.leaguePlayer1Score || 0);
+          }
+          if (m.leaguePlayer2 && vpMap[m.leaguePlayer2.documentId] !== undefined) {
+            vpMap[m.leaguePlayer2.documentId] += (m.leaguePlayer2Score || 0);
+          }
+        }
+
+        // Sort: rankingPoints → wins → VP
+        players.sort((a: any, b: any) => {
+          if (b.rankingPoints !== a.rankingPoints) return b.rankingPoints - a.rankingPoints;
+          if (b.wins !== a.wins) return b.wins - a.wins;
+          return (vpMap[b.documentId] || 0) - (vpMap[a.documentId] || 0);
+        });
+
+        const topN = players.slice(0, qualifiersPerPool);
+        for (let i = 0; i < Math.min(qualifiersPerPool, topN.length); i++) {
+          const entry = {
+            ...topN[i],
+            poolName: (pool as any).name,
+            poolPosition: i + 1,
+            vp: vpMap[topN[i].documentId] || 0
+          };
+          qualifiersByPosition[i].push(entry);
+        }
+      }
+
+      // Sort within each position tier by rankingPoints → VP for seeding
+      for (const tier of qualifiersByPosition) {
+        tier.sort((a: any, b: any) => {
+          if (b.rankingPoints !== a.rankingPoints) return b.rankingPoints - a.rankingPoints;
+          return b.vp - a.vp;
+        });
+      }
+
+      // Flatten: all 1st-placers (sorted), then all 2nd-placers, etc. = seed order
+      const allQualifiers = qualifiersByPosition.flat();
+      const totalQualifiers = allQualifiers.length;
+
+      if (totalQualifiers < 2) {
+        return ctx.badRequest(`Not enough qualifiers. Found ${totalQualifiers}, need at least 2.`);
+      }
+
+      // Determine bracket size (largest power of 2 <= totalQualifiers)
+      const bracketSize = Math.pow(2, Math.floor(Math.log2(totalQualifiers)));
+      const numPlayInMatches = totalQualifiers - bracketSize;
+      // Players with byes = bracketSize - numPlayInMatches
+      // Play-in players = numPlayInMatches * 2 (bottom 2*numPlayInMatches seeds)
+      const numPlayInPlayers = numPlayInMatches * 2;
+      const byeCount = bracketSize - numPlayInMatches;
+
+      // Bye players = seeds 1 through byeCount (top of allQualifiers)
+      // Play-in players = seeds (byeCount+1) through totalQualifiers (bottom of allQualifiers)
+      const byePlayers = allQualifiers.slice(0, byeCount);
+      const playInPlayers = allQualifiers.slice(byeCount);
+
+      // Create playoff league
+      const playoffLeague = await strapi.documents('api::league.league').create({
+        data: {
+          name,
+          format: 'single_elimination',
+          statusleague: 'ongoing',
+          gameSystem: (pools[0] as any).gameSystem,
+          scoringRules: (pools[0] as any).scoringRules,
+          rulesetType: (pools[0] as any).rulesetType,
+          createdByUser: userId,
+          publishedAt: new Date()
+        }
+      });
+
+      // Create league-player records for all qualifiers (in seed order)
+      const lpMap: Record<string, string> = {}; // old documentId -> new documentId
+      for (const q of allQualifiers) {
+        const newLp = await strapi.documents('api::league-player.league-player').create({
+          data: {
+            league: playoffLeague.documentId,
+            player: (q.player as any)?.documentId || null,
+            leagueName: q.leagueName,
+            faction: q.faction,
+            firstName: q.firstName || '',
+            lastName: q.lastName || '',
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            rankingPoints: 0,
+            status: 'active',
+            publishedAt: new Date()
+          }
+        });
+        lpMap[q.documentId] = newLp.documentId;
+      }
+
+      // Create play-in matches (round 0)
+      // Pair highest remaining seed vs lowest remaining seed
+      const playInMatchesCreated: any[] = [];
+      for (let i = 0; i < numPlayInMatches; i++) {
+        const p1 = playInPlayers[i]; // higher seed
+        const p2 = playInPlayers[playInPlayers.length - 1 - i]; // lower seed
+        const m = await strapi.documents('api::match.match').create({
+          data: {
+            league: playoffLeague.documentId,
+            leaguePlayer1: lpMap[p1.documentId],
+            leaguePlayer2: lpMap[p2.documentId],
+            leaguePlayer1Score: 0,
+            leaguePlayer2Score: 0,
+            statusMatch: 'upcoming',
+            round: 0,
+            bracketPosition: i + 1,
+            matchResult: 'unplayed',
+            publishedAt: new Date()
+          }
+        });
+        playInMatchesCreated.push({
+          documentId: m.documentId,
+          player1: p1.leagueName,
+          player2: p2.leagueName
+        });
+      }
+
+      return ctx.send({
+        message: 'Playoff league created successfully',
+        data: {
+          playoffLeague: {
+            documentId: playoffLeague.documentId,
+            name: playoffLeague.name
+          },
+          bracketSize,
+          totalQualifiers,
+          numPlayInMatches,
+          qualifiers: allQualifiers.map((q, idx) => ({
+            seed: idx + 1,
+            leagueName: q.leagueName,
+            faction: q.faction,
+            poolName: q.poolName,
+            poolPosition: q.poolPosition,
+            rankingPoints: q.rankingPoints,
+            vp: q.vp,
+            newLeaguePlayerId: lpMap[q.documentId],
+            status: idx < byeCount ? 'bye' : 'play-in'
+          })),
+          playInMatches: playInMatchesCreated
+        }
+      });
+    } catch (error) {
+      console.error('Error generating playoffs:', error);
+      return ctx.badRequest(`Failed to generate playoffs: ${error.message}`);
+    }
+  },
+
+  async generatePlayoffBracket(ctx) {
+    const { id: playoffLeagueId } = ctx.params;
+    const userId = ctx.state.user?.id;
+
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in.');
+    }
+
+    try {
+      const league = await strapi.documents('api::league.league').findOne({
+        documentId: playoffLeagueId,
+        populate: {
+          league_players: {
+            populate: { player: true }
+          },
+          matches: {
+            populate: {
+              leaguePlayer1: true,
+              leaguePlayer2: true
+            }
+          }
+        }
+      } as any);
+
+      if (!league) {
+        return ctx.notFound('Playoff league not found.');
+      }
+      if ((league as any).format !== 'single_elimination') {
+        return ctx.badRequest('League is not a single elimination format.');
+      }
+
+      const matches = (league as any).matches || [];
+      const leaguePlayers = (league as any).league_players || [];
+
+      // Check if bracket already exists
+      const existingBracketMatches = matches.filter((m: any) => m.round >= 1);
+      if (existingBracketMatches.length > 0) {
+        return ctx.badRequest('Bracket has already been generated.');
+      }
+
+      // Find play-in matches (round 0)
+      const playInMatches = matches.filter((m: any) => m.round === 0);
+
+      // Verify all play-in matches are resolved
+      const unresolvedPlayIns = playInMatches.filter((m: any) => m.matchResult === 'unplayed');
+      if (unresolvedPlayIns.length > 0) {
+        return ctx.badRequest(`${unresolvedPlayIns.length} play-in match(es) still unresolved.`);
+      }
+
+      // Collect play-in losers
+      const loserIds = new Set<string>();
+      for (const m of playInMatches) {
+        if (m.matchResult === 'player1_win') {
+          loserIds.add(m.leaguePlayer2.documentId);
+        } else if (m.matchResult === 'player2_win') {
+          loserIds.add(m.leaguePlayer1.documentId);
+        } else {
+          return ctx.badRequest('A play-in match ended in a draw - not valid for single elimination.');
+        }
+      }
+
+      // Finalists = all league players minus losers
+      const finalists = leaguePlayers.filter((lp: any) => !loserIds.has(lp.documentId));
+      const bracketSize = finalists.length;
+
+      // Verify bracket size is a power of 2
+      if (bracketSize < 2 || (bracketSize & (bracketSize - 1)) !== 0) {
+        return ctx.badRequest(`Bracket size ${bracketSize} is not a power of 2.`);
+      }
+
+      const totalRounds = Math.log2(bracketSize);
+
+      // Seed finalists by their creation order (which is seed order from generatePlayoffs)
+      // Play-in winners keep the seed position of the higher seed in their play-in pair
+      // For simplicity, maintain league_players order minus losers
+      const seeded = finalists;
+
+      // Generate standard bracket matchups for round 1
+      // Standard seeding: 1v(N), 2v(N-1), etc. but arranged so winners meet correctly
+      // For proper bracket structure, use the standard tournament seeding algorithm
+      function generateBracketOrder(n: number): number[] {
+        if (n === 1) return [0];
+        const half = generateBracketOrder(n / 2);
+        return half.flatMap((seed) => [seed, n - 1 - seed]);
+      }
+
+      const bracketOrder = generateBracketOrder(bracketSize);
+      const round1Matches = bracketSize / 2;
+
+      const createdMatches: any[] = [];
+
+      // Create round 1 matches
+      for (let i = 0; i < round1Matches; i++) {
+        const p1Index = bracketOrder[i * 2];
+        const p2Index = bracketOrder[i * 2 + 1];
+        const m = await strapi.documents('api::match.match').create({
+          data: {
+            league: playoffLeagueId,
+            leaguePlayer1: seeded[p1Index]?.documentId || null,
+            leaguePlayer2: seeded[p2Index]?.documentId || null,
+            leaguePlayer1Score: 0,
+            leaguePlayer2Score: 0,
+            statusMatch: 'upcoming',
+            round: 1,
+            bracketPosition: i + 1,
+            matchResult: 'unplayed',
+            publishedAt: new Date()
+          }
+        });
+        createdMatches.push(m);
+      }
+
+      // Create subsequent round matches (empty, players TBD via advancement)
+      for (let round = 2; round <= totalRounds; round++) {
+        const matchesInRound = bracketSize / Math.pow(2, round);
+        for (let i = 0; i < matchesInRound; i++) {
+          const m = await strapi.documents('api::match.match').create({
+            data: {
+              league: playoffLeagueId,
+              leaguePlayer1Score: 0,
+              leaguePlayer2Score: 0,
+              statusMatch: 'upcoming',
+              round,
+              bracketPosition: i + 1,
+              matchResult: 'unplayed',
+              publishedAt: new Date()
+            }
+          });
+          createdMatches.push(m);
+        }
+      }
+
+      return ctx.send({
+        message: 'Playoff bracket generated successfully',
+        data: {
+          bracketSize,
+          totalRounds,
+          matches: createdMatches.map(m => ({
+            documentId: m.documentId,
+            round: m.round,
+            bracketPosition: m.bracketPosition
+          }))
+        }
+      });
+    } catch (error) {
+      console.error('Error generating playoff bracket:', error);
+      return ctx.badRequest(`Failed to generate bracket: ${error.message}`);
     }
   },
 

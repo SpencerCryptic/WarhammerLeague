@@ -74,7 +74,8 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         'leaguePlayer1LeaguePoints',
         'leaguePlayer2LeaguePoints',
         'matchResult',
-        'round'
+        'round',
+        'bracketPosition'
       ],
       populate: {
         leaguePlayer1: {
@@ -144,7 +145,7 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
     // Get league scoring rules
     const league = await strapi.documents('api::league.league').findOne({
       documentId: match.league.documentId,
-      fields: ['scoringRules', 'gameSystem']
+      fields: ['scoringRules', 'gameSystem', 'format']
     });
 
     const defaultRules = {
@@ -296,6 +297,53 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         rankingPoints: match.leaguePlayer2.rankingPoints + player2LeaguePoints
       }
     });
+
+    // Bracket advancement for single_elimination leagues
+    if ((league as any)?.format === 'single_elimination' && match.round !== undefined && match.bracketPosition) {
+      try {
+        const winnerId = matchResult === 'player1_win'
+          ? match.leaguePlayer1.documentId
+          : matchResult === 'player2_win'
+          ? match.leaguePlayer2.documentId
+          : null;
+
+        if (winnerId) {
+          const nextRound = match.round + 1;
+          const nextBracketPosition = Math.ceil(match.bracketPosition / 2);
+
+          // Find the next-round match in the same league
+          const nextMatches = await strapi.documents('api::match.match').findMany({
+            filters: {
+              league: { documentId: match.league.documentId },
+              round: nextRound,
+              bracketPosition: nextBracketPosition
+            },
+            populate: ['leaguePlayer1', 'leaguePlayer2']
+          } as any);
+
+          if (nextMatches.length > 0) {
+            const nextMatch = nextMatches[0] as any;
+            const isOddBracketPosition = match.bracketPosition % 2 === 1;
+            const updateData: any = {};
+
+            if (isOddBracketPosition) {
+              updateData.leaguePlayer1 = winnerId;
+            } else {
+              updateData.leaguePlayer2 = winnerId;
+            }
+
+            await strapi.documents('api::match.match').update({
+              documentId: nextMatch.documentId,
+              data: updateData
+            });
+          }
+        }
+      } catch (bracketError) {
+        console.error('Error advancing bracket:', bracketError);
+        // Don't fail the match submission if bracket advancement fails
+      }
+    }
+
     ctx.body = { message: 'Match result reported successfully', match: updatedMatch };
   },
 

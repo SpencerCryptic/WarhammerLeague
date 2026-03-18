@@ -12,6 +12,7 @@ const publicLinks: { href: string; text: string }[] = [
 const authenticatedLinks: { href: string; text: string }[] = [
   { href: '/dashboard', text: 'dashboard' },
   { href: '/leagues', text: 'leagues' },
+  { href: '/playoffs', text: 'playoffs' },
   { href: '/stats', text: 'stats' },
 ];
 

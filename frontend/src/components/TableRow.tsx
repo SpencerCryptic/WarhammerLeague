@@ -53,22 +53,31 @@ const TableRow = () => {
           // Filter out dropped players
           const activePlayers = players.filter((p: LeaguePlayer) => p.status !== 'dropped');
           const sortedPlayers = activePlayers.sort((a: LeaguePlayer, b: LeaguePlayer) => {
-            if (b.rankingPoints - a.rankingPoints != 0 ) {
+            // Primary: sort by ranking points (highest first)
+            if (b.rankingPoints !== a.rankingPoints) {
               return b.rankingPoints - a.rankingPoints;
             }
-            let aVictoryPoints = 0
-            let bVictoryPoints = 0
+            // Secondary: sort by wins (highest first)
+            if (b.wins !== a.wins) {
+              return b.wins - a.wins;
+            }
+            // Tertiary: sort by VP (highest first)
+            let aVictoryPoints = 0;
+            let bVictoryPoints = 0;
             data.data.matches.forEach((match: Match) => {
-              if (match.leaguePlayer1.documentId === a.documentId) {
+              if (match.leaguePlayer1?.documentId === a.documentId) {
                 aVictoryPoints += match.leaguePlayer1Score;
-              } else if (match.leaguePlayer2.documentId === a.documentId) {
+              }
+              if (match.leaguePlayer2?.documentId === a.documentId) {
                 aVictoryPoints += match.leaguePlayer2Score;
-              } else if (match.leaguePlayer2.documentId === b.documentId) {
-                bVictoryPoints += match.leaguePlayer2Score;
-              } else if (match.leaguePlayer2.documentId === b.documentId) {
+              }
+              if (match.leaguePlayer1?.documentId === b.documentId) {
+                bVictoryPoints += match.leaguePlayer1Score;
+              }
+              if (match.leaguePlayer2?.documentId === b.documentId) {
                 bVictoryPoints += match.leaguePlayer2Score;
               }
-            })
+            });
             return bVictoryPoints - aVictoryPoints;
           });
           setLeaguePlayers(sortedPlayers);
