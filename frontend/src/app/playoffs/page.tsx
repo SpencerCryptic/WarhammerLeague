@@ -210,49 +210,18 @@ export default function PlayoffsPage() {
                 </Link>
               </div>
 
-              {(selectedPlayoff.matches || []).filter((m: any) => m.round >= 1).length > 0 ? (
-                <TournamentBracket
-                  matches={selectedPlayoff.matches || []}
-                  totalRounds={Math.max(...(selectedPlayoff.matches || []).map((m: any) => m.round || 0))}
-                />
-              ) : (
-                <div className="text-center py-12">
-                  {(selectedPlayoff.matches || []).some((m: any) => m.round === 0) ? (
-                    <>
-                      <h4 className="text-xl font-bold text-gray-300 mb-2">Play-In Stage</h4>
-                      <p className="text-gray-500 mb-6">The bracket will be generated after play-in matches are resolved.</p>
-                      <div className="space-y-3 max-w-md mx-auto">
-                        {(selectedPlayoff.matches || [])
-                          .filter((m: any) => m.round === 0)
-                          .map((m: any) => {
-                            const resolved = m.matchResult !== 'unplayed';
-                            return (
-                              <div key={m.documentId} className={`p-4 rounded-lg border ${
-                                resolved ? 'border-green-700 bg-green-900/10' : 'border-yellow-700 bg-yellow-900/10'
-                              }`}>
-                                <div className="flex items-center justify-center gap-4 text-white font-medium">
-                                  <span>{m.leaguePlayer1?.leagueName || 'TBD'}</span>
-                                  <span className="text-gray-500 text-sm">vs</span>
-                                  <span>{m.leaguePlayer2?.leagueName || 'TBD'}</span>
-                                </div>
-                                {resolved && (
-                                  <div className="text-center mt-2 text-sm text-green-400 font-medium">
-                                    Winner: {m.matchResult === 'player1_win' ? m.leaguePlayer1?.leagueName : m.leaguePlayer2?.leagueName}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <h4 className="text-xl font-bold text-gray-300 mb-2">Bracket Not Yet Generated</h4>
-                      <p className="text-gray-500">The bracket will appear here once the tournament admin generates it.</p>
-                    </>
-                  )}
-                </div>
-              )}
+              {(() => {
+                const playerCount = selectedPlayoff.league_players?.length || 0;
+                const bs = Math.pow(2, Math.floor(Math.log2(Math.max(playerCount, 2))));
+                const tr = Math.log2(bs);
+                return (
+                  <TournamentBracket
+                    matches={selectedPlayoff.matches || []}
+                    totalRounds={tr}
+                    bracketSize={bs}
+                  />
+                );
+              })()}
             </div>
           )}
         </div>
