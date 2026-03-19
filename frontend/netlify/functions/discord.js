@@ -162,7 +162,8 @@ exports.handler = async (event) => {
         }
         case 'league': {
           const gameSystem = getOption(options, 'game_system');
-          response = await handleLeague(gameSystem);
+          const search = getOption(options, 'search');
+          response = await handleLeague(gameSystem, search);
           break;
         }
         default:

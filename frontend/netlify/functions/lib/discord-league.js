@@ -30,7 +30,7 @@ const SYSTEM_MAP = {
   'asoiaf': 'A Song of Ice and Fire',
 };
 
-async function handleLeague(gameSystem) {
+async function handleLeague(gameSystem, search) {
   try {
     // Query leagues API directly with full player stats
     let query = 'filters[statusleague]=ongoing&pagination[limit]=10' +
@@ -48,6 +48,12 @@ async function handleLeague(gameSystem) {
     const result = await fetchJSON(`${STRAPI_BASE}/api/leagues?${query}`);
     let leagues = result?.data || [];
 
+    // Filter by name/pool search term
+    if (search) {
+      const term = search.toLowerCase();
+      leagues = leagues.filter(l => (l.name || '').toLowerCase().includes(term));
+    }
+
     if (leagues.length === 0) {
       const systemStr = gameSystem ? ` for ${gameSystem}` : '';
       return {
@@ -62,11 +68,11 @@ async function handleLeague(gameSystem) {
       };
     }
 
-    // Discord allows max 10 embeds — show up to 5 leagues
-    const embeds = leagues.slice(0, 5).map(league => {
+    // Show top 3 leagues, top 5 players each to keep it readable
+    const embeds = leagues.slice(0, 3).map(league => {
       const players = (league.league_players || [])
         .sort((a, b) => (b.rankingPoints || 0) - (a.rankingPoints || 0))
-        .slice(0, 10);
+        .slice(0, 5);
 
       const standingsLines = players.map((p, i) => {
         const medal = i === 0 ? '\uD83E\uDD47' : i === 1 ? '\uD83E\uDD48' : i === 2 ? '\uD83E\uDD49' : `${i + 1}.`;
@@ -91,9 +97,9 @@ async function handleLeague(gameSystem) {
     });
 
     // If there are more leagues than shown
-    if (leagues.length > 5) {
+    if (leagues.length > 3) {
       embeds.push({
-        title: `+${leagues.length - 5} more leagues`,
+        title: `+${leagues.length - 3} more leagues`,
         description: `[View all leagues](${FRONTEND_URL}/leagues)`,
         color: EMBED_COLOR,
         fields: [],

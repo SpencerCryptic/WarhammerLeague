@@ -106,11 +106,18 @@ const commands = [
         choices: [
           { name: 'Warhammer 40K', value: '40k' },
           { name: 'Age of Sigmar', value: 'aos' },
+          { name: 'ASOIAF', value: 'asoiaf' },
           { name: 'Horus Heresy', value: 'heresy' },
           { name: 'Kill Team', value: 'killteam' },
           { name: 'Blood Bowl', value: 'bloodbowl' },
           { name: 'The Old World', value: 'oldworld' },
         ]
+      },
+      {
+        name: 'search',
+        description: 'Search by league/pool name (e.g. "Pool A", "Bristol")',
+        type: 3, // STRING
+        required: false,
       }
     ]
   }
