@@ -99,6 +99,16 @@ const commands = [
     description: 'Show current league standings',
     options: [
       {
+        name: 'store',
+        description: 'Store location',
+        type: 3, // STRING
+        required: false,
+        choices: [
+          { name: 'Bracknell', value: 'bracknell' },
+          { name: 'Bristol', value: 'bristol' },
+        ]
+      },
+      {
         name: 'game_system',
         description: 'Filter by game system',
         type: 3, // STRING
@@ -114,8 +124,8 @@ const commands = [
         ]
       },
       {
-        name: 'search',
-        description: 'Search by league/pool name (e.g. "Pool A", "Bristol")',
+        name: 'pool',
+        description: 'Filter by pool (e.g. "Pool A", "Pool B")',
         type: 3, // STRING
         required: false,
       }

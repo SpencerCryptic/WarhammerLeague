@@ -161,9 +161,10 @@ exports.handler = async (event) => {
           break;
         }
         case 'league': {
+          const store = getOption(options, 'store');
           const gameSystem = getOption(options, 'game_system');
-          const search = getOption(options, 'search');
-          response = await handleLeague(gameSystem, search);
+          const pool = getOption(options, 'pool');
+          response = await handleLeague({ store, gameSystem, pool });
           break;
         }
         default:

@@ -18,7 +18,6 @@ function fetchJSON(url) {
   });
 }
 
-// Map shorthand to actual enum values
 const SYSTEM_MAP = {
   '40k': 'Warhammer: 40,000',
   'aos': 'Age of Sigmar',
@@ -30,10 +29,9 @@ const SYSTEM_MAP = {
   'asoiaf': 'A Song of Ice and Fire',
 };
 
-async function handleLeague(gameSystem, search) {
+async function handleLeague({ store, gameSystem, pool } = {}) {
   try {
-    // Query leagues API directly with full player stats
-    let query = 'filters[statusleague]=ongoing&pagination[limit]=10' +
+    let query = 'filters[statusleague]=ongoing&pagination[limit]=25' +
       '&fields[0]=name&fields[1]=gameSystem&fields[2]=format&fields[3]=statusleague' +
       '&populate[league_players][fields][0]=leagueName&populate[league_players][fields][1]=faction' +
       '&populate[league_players][fields][2]=wins&populate[league_players][fields][3]=draws' +
@@ -48,31 +46,45 @@ async function handleLeague(gameSystem, search) {
     const result = await fetchJSON(`${STRAPI_BASE}/api/leagues?${query}`);
     let leagues = result?.data || [];
 
-    // Filter by name/pool search term
-    if (search) {
-      const term = search.toLowerCase();
-      leagues = leagues.filter(l => (l.name || '').toLowerCase().includes(term));
+    // Filter by store location (league names contain "Bracknell" or "Bristol")
+    if (store) {
+      const storeTerm = store.toLowerCase();
+      leagues = leagues.filter(l => (l.name || '').toLowerCase().includes(storeTerm));
     }
 
+    // Filter by pool name
+    if (pool) {
+      const poolTerm = pool.toLowerCase();
+      leagues = leagues.filter(l => (l.name || '').toLowerCase().includes(poolTerm));
+    }
+
+    // Build filter description for the "no results" message
+    const filters = [store, gameSystem, pool].filter(Boolean);
+    const filterStr = filters.length > 0 ? ` for ${filters.join(' / ')}` : '';
+
     if (leagues.length === 0) {
-      const systemStr = gameSystem ? ` for ${gameSystem}` : '';
       return {
         type: 4,
         data: {
           embeds: [{
             title: 'League Standings',
-            description: `No active leagues found${systemStr}.\n\n[View all leagues](${FRONTEND_URL}/leagues)`,
+            description: `No active leagues found${filterStr}.\n\n[View all leagues](${FRONTEND_URL}/leagues)`,
             color: EMBED_COLOR
           }]
         }
       };
     }
 
-    // Show top 3 leagues, top 5 players each to keep it readable
-    const embeds = leagues.slice(0, 3).map(league => {
+    // If only 1 league matches, show full detail (top 10 players)
+    // If multiple, show top 3 per league, max 3 leagues
+    const isDetailed = leagues.length === 1;
+    const maxLeagues = isDetailed ? 1 : 3;
+    const maxPlayers = isDetailed ? 10 : 5;
+
+    const embeds = leagues.slice(0, maxLeagues).map(league => {
       const players = (league.league_players || [])
         .sort((a, b) => (b.rankingPoints || 0) - (a.rankingPoints || 0))
-        .slice(0, 5);
+        .slice(0, maxPlayers);
 
       const standingsLines = players.map((p, i) => {
         const medal = i === 0 ? '\uD83E\uDD47' : i === 1 ? '\uD83E\uDD48' : i === 2 ? '\uD83E\uDD49' : `${i + 1}.`;
@@ -96,10 +108,9 @@ async function handleLeague(gameSystem, search) {
       };
     });
 
-    // If there are more leagues than shown
-    if (leagues.length > 3) {
+    if (leagues.length > maxLeagues) {
       embeds.push({
-        title: `+${leagues.length - 3} more leagues`,
+        title: `+${leagues.length - maxLeagues} more leagues`,
         description: `[View all leagues](${FRONTEND_URL}/leagues)`,
         color: EMBED_COLOR,
         fields: [],
