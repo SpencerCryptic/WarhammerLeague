@@ -74,20 +74,22 @@ async function handleStock(query) {
 
   const gqlQuery = `
     query searchProducts($query: String!) {
-      products(first: 5, query: $query) {
+      search(first: 5, query: $query, types: PRODUCT) {
         edges {
           node {
-            title
-            handle
-            productType
-            availableForSale
-            totalInventory
-            variants(first: 10) {
-              edges {
-                node {
-                  title
-                  price { amount currencyCode }
-                  availableForSale
+            ... on Product {
+              title
+              handle
+              productType
+              availableForSale
+              totalInventory
+              variants(first: 10) {
+                edges {
+                  node {
+                    title
+                    price { amount currencyCode }
+                    availableForSale
+                  }
                 }
               }
             }
@@ -102,7 +104,7 @@ async function handleStock(query) {
       query: query + productTypeFilter
     });
 
-    const products = result?.data?.products?.edges || [];
+    const products = (result?.data?.search?.edges || []).filter(e => e.node.title);
 
     if (products.length === 0) {
       return {
