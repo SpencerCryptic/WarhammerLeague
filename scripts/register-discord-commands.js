@@ -74,23 +74,17 @@ const commands = [
   },
   {
     name: 'book',
-    description: 'Check table hire availability and book a gaming table',
+    description: 'Book a gaming table at Cryptic Cabin',
     options: [
       {
-        name: 'table_size',
-        description: 'Table size',
-        type: 3, // STRING
-        required: true,
-        choices: [
-          { name: '6x4 (Standard Wargaming)', value: '6x4' },
-          { name: '4x4', value: '4x4' },
-        ]
-      },
-      {
-        name: 'date',
-        description: 'Date to check (YYYY-MM-DD)',
+        name: 'table',
+        description: 'Table type',
         type: 3, // STRING
         required: false,
+        choices: [
+          { name: 'Wargaming Table (6x4)', value: 'wargaming' },
+          { name: 'Board Gaming Table', value: 'board' },
+        ]
       }
     ]
   },

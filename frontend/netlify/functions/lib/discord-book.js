@@ -1,145 +1,66 @@
-const https = require('https');
-
 const EMBED_COLOR = 0xf59e0b;
 
-function appointoGet(path) {
-  const token = process.env.APPOINTO_TOKEN;
-  if (!token) return Promise.reject(new Error('APPOINTO_TOKEN not configured'));
-
-  return new Promise((resolve, reject) => {
-    https.get(`https://app.appointo.me/api${path}`, {
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-    }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error('Failed to parse Appointo response')); }
-      });
-    }).on('error', reject);
-  });
-}
-
-const TABLE_SIZE_MAP = {
-  '6x4': ['6x4', '6-x-4', 'table-hire-6x4', 'standard'],
-  '4x4': ['4x4', '4-x-4', 'table-hire-4x4'],
+const TABLES = {
+  'wargaming': {
+    name: 'Wargaming Table (6x4)',
+    description: 'Full-size 6x4 wargaming table for Warhammer 40K, AoS, Horus Heresy, and more.',
+    url: 'https://crypticcabin.com/products/table-hire-wargaming-table',
+  },
+  'board': {
+    name: 'Board Gaming Table',
+    description: 'Board gaming table for D&D, board games, card games, and smaller wargames.',
+    url: 'https://crypticcabin.com/products/table-hire-board-gaming-table',
+  },
 };
 
-async function handleBook(tableSize, date) {
-  if (!process.env.APPOINTO_TOKEN) {
+async function handleBook(tableType) {
+  // If no specific type or "all", show both options
+  if (!tableType || tableType === 'all') {
     return {
       type: 4,
       data: {
         embeds: [{
-          title: 'Table Booking',
-          description: 'Table booking integration is not configured yet.\n\nVisit the store to book directly:',
+          title: 'Table Hire',
+          description: 'Book a table at Cryptic Cabin:',
           color: EMBED_COLOR,
+          fields: Object.values(TABLES).map(t => ({
+            name: t.name,
+            value: `${t.description}\n[Book Now](${t.url})`,
+            inline: false
+          })),
           url: 'https://crypticcabin.com/collections/table-hire',
-          footer: { text: 'Cryptic Cabin · Table Hire' }
+          footer: { text: 'Cryptic Cabin \u00B7 Table Hire' }
         }]
       }
     };
   }
 
-  try {
-    // Get available products from Appointo
-    const products = await appointoGet('/products');
-
-    // Find matching table product
-    const sizeTerms = TABLE_SIZE_MAP[tableSize.toLowerCase()] || [tableSize.toLowerCase()];
-    const matched = (products.data || products || []).find(p => {
-      const handle = (p.handle || p.title || '').toLowerCase();
-      return sizeTerms.some(term => handle.includes(term));
-    });
-
-    if (!matched) {
-      return {
-        type: 4,
-        data: {
-          embeds: [{
-            title: `Table Hire: ${tableSize}`,
-            description: `Couldn't find a "${tableSize}" table. Available sizes: 6x4 (standard wargaming), 4x4.\n\n[Browse Table Hire](https://crypticcabin.com/collections/table-hire)`,
-            color: EMBED_COLOR
-          }]
-        }
-      };
-    }
-
-    const handle = matched.handle || matched.title?.toLowerCase().replace(/\s+/g, '-');
-    const bookingUrl = `https://crypticcabin.com/collections/table-hire/products/${handle}`;
-
-    // If a date is provided, try to get available slots
-    if (date) {
-      try {
-        const productId = matched.id || matched.product_id;
-        const slots = await appointoGet(`/products/${productId}/slots?date=${date}`);
-        const available = (slots.data || slots || []).filter(s => s.available !== false);
-
-        if (available.length === 0) {
-          return {
-            type: 4,
-            data: {
-              embeds: [{
-                title: `Table Hire: ${tableSize} — ${date}`,
-                description: `No available slots on ${date}.\n\nTry a different date or [book online](${bookingUrl}).`,
-                color: EMBED_COLOR
-              }]
-            }
-          };
-        }
-
-        const slotLines = available.slice(0, 8).map(s => {
-          const time = s.start_time || s.time || s.slot;
-          return `• ${time}`;
-        }).join('\n');
-
-        return {
-          type: 4,
-          data: {
-            embeds: [{
-              title: `Table Hire: ${tableSize} — ${date}`,
-              description: `**Available Slots:**\n${slotLines}`,
-              color: EMBED_COLOR,
-              url: bookingUrl,
-              footer: { text: 'Click the title to book · Cryptic Cabin' }
-            }]
-          }
-        };
-      } catch (slotErr) {
-        console.error('Slot fetch error:', slotErr);
-        // Fall through to basic product info
-      }
-    }
-
-    // Return basic product info + booking link
+  const table = TABLES[tableType];
+  if (!table) {
     return {
       type: 4,
       data: {
         embeds: [{
-          title: `Table Hire: ${tableSize}`,
-          description: `**${matched.title || tableSize}**\n\nBook your table online:`,
-          color: EMBED_COLOR,
-          url: bookingUrl,
-          fields: [
-            { name: 'Book Now', value: `[${bookingUrl}](${bookingUrl})`, inline: false }
-          ],
-          footer: { text: 'Cryptic Cabin · Table Hire' }
-        }]
-      }
-    };
-  } catch (err) {
-    console.error('Book command error:', err);
-    return {
-      type: 4,
-      data: {
-        embeds: [{
-          title: 'Table Booking Error',
-          description: 'Something went wrong. [Book directly on the website](https://crypticcabin.com/collections/table-hire).',
+          title: 'Table Hire',
+          description: `Unknown table type. Choose **wargaming** (6x4) or **board gaming**.\n\n[Browse Table Hire](https://crypticcabin.com/collections/table-hire)`,
           color: EMBED_COLOR
         }]
       }
     };
   }
+
+  return {
+    type: 4,
+    data: {
+      embeds: [{
+        title: `Table Hire: ${table.name}`,
+        description: `${table.description}\n\n**[Click here to book](${table.url})**`,
+        color: EMBED_COLOR,
+        url: table.url,
+        footer: { text: 'Cryptic Cabin \u00B7 Table Hire' }
+      }]
+    }
+  };
 }
 
 module.exports = { handleBook };

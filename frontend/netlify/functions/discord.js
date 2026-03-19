@@ -96,9 +96,8 @@ exports.handler = async (event) => {
             const query = getOption(options, 'query');
             response = await handleStock(query || '');
           } else {
-            const tableSize = getOption(options, 'table_size');
-            const date = getOption(options, 'date');
-            response = await handleBook(tableSize || '6x4', date);
+            const tableType = getOption(options, 'table');
+            response = await handleBook(tableType);
           }
           await sendFollowup(applicationId, interactionToken, response.data);
         } catch (err) {
