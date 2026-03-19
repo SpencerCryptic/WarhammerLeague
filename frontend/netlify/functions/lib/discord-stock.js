@@ -1,110 +1,30 @@
 const https = require('https');
 
 const EMBED_COLOR = 0x00b4d8;
+const STORE_DOMAIN = 'crypticcabin.com';
 
-// Game keyword -> Shopify product_type / tag filters
-const GAME_FILTERS = {
-  '40k': 'Warhammer 40,000',
-  'warhammer': 'Warhammer',
-  'sigmar': 'Age of Sigmar',
-  'aos': 'Age of Sigmar',
-  'mtg': 'Magic: The Gathering',
-  'magic': 'Magic: The Gathering',
-  'pokemon': 'Pokemon',
-  'yugioh': 'Yu-Gi-Oh',
-  'lorcana': 'Lorcana',
-  'heresy': 'Horus Heresy',
-  'killteam': 'Kill Team',
-  'kill team': 'Kill Team',
-  'bloodbowl': 'Blood Bowl',
-  'blood bowl': 'Blood Bowl',
-};
-
-function shopifyGraphQL(domain, token, query, variables) {
+/**
+ * Shopify Predictive Search API — same as the website search bar.
+ * Public endpoint, no authentication needed.
+ */
+function predictiveSearch(query, limit = 5) {
+  const params = `q=${encodeURIComponent(query)}&resources[type]=product&resources[limit]=${limit}`;
   return new Promise((resolve, reject) => {
-    const postData = JSON.stringify({ query, variables });
-    const req = https.request({
-      hostname: domain,
-      path: '/api/2024-01/graphql.json',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': token,
-      }
-    }, (res) => {
+    https.get(`https://${STORE_DOMAIN}/search/suggest.json?${params}`, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try { resolve(JSON.parse(data)); }
         catch (e) { reject(new Error('Failed to parse Shopify response')); }
       });
-    });
-    req.on('error', reject);
-    req.write(postData);
-    req.end();
+    }).on('error', reject);
   });
 }
 
 async function handleStock(query) {
-  const domain = process.env.SHOPIFY_DOMAIN || 'crypticcabin.myshopify.com';
-  const token = process.env.SHOPIFY_STOREFRONT_TOKEN;
-
-  if (!token) {
-    return {
-      type: 4,
-      data: {
-        embeds: [{
-          title: 'Stock Search Unavailable',
-          description: 'Shopify integration is not configured.',
-          color: EMBED_COLOR
-        }]
-      }
-    };
-  }
-
-  // Detect game keywords for filtering
-  const lowerQuery = query.toLowerCase();
-  let productTypeFilter = '';
-  for (const [keyword, gameType] of Object.entries(GAME_FILTERS)) {
-    if (lowerQuery.includes(keyword)) {
-      productTypeFilter = ` product_type:${gameType}`;
-      break;
-    }
-  }
-
-  const gqlQuery = `
-    query searchProducts($query: String!) {
-      search(first: 5, query: $query, types: PRODUCT) {
-        edges {
-          node {
-            ... on Product {
-              title
-              handle
-              productType
-              availableForSale
-              totalInventory
-              variants(first: 10) {
-                edges {
-                  node {
-                    title
-                    price { amount currencyCode }
-                    availableForSale
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
   try {
-    const result = await shopifyGraphQL(domain, token, gqlQuery, {
-      query: query + productTypeFilter
-    });
-
-    const products = (result?.data?.search?.edges || []).filter(e => e.node.title);
+    const result = await predictiveSearch(query);
+    const products = result?.resources?.results?.products || [];
 
     if (products.length === 0) {
       return {
@@ -114,27 +34,33 @@ async function handleStock(query) {
             title: `No results for "${query}"`,
             description: 'Try a different search term or check the store directly.',
             color: EMBED_COLOR,
-            url: `https://crypticcabin.com/search?q=${encodeURIComponent(query)}`
+            url: `https://${STORE_DOMAIN}/search?q=${encodeURIComponent(query)}`
           }]
         }
       };
     }
 
-    const fields = products.map(({ node }) => {
-      const variants = node.variants.edges;
-      const prices = variants.map(v => parseFloat(v.node.price.amount));
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const priceStr = minPrice === maxPrice
-        ? `\u00A3${minPrice.toFixed(2)}`
-        : `\u00A3${minPrice.toFixed(2)} - \u00A3${maxPrice.toFixed(2)}`;
+    const fields = products.map(product => {
+      const price = product.price;
+      // Shopify returns price in minor units (pence) as a string like "3655"
+      // or as a formatted string — handle both
+      let priceStr;
+      if (price && typeof price === 'string' && !price.includes('.')) {
+        const pence = parseInt(price, 10);
+        priceStr = `\u00A3${(pence / 100).toFixed(2)}`;
+      } else if (price) {
+        priceStr = `\u00A3${parseFloat(price).toFixed(2)}`;
+      } else {
+        priceStr = 'Price N/A';
+      }
 
-      const stockStatus = node.availableForSale ? 'In Stock' : 'Out of Stock';
-      const variantCount = variants.length > 1 ? ` (${variants.length} variants)` : '';
+      const available = product.available;
+      const stockStatus = available ? 'In Stock' : 'Out of Stock';
+      const handle = product.handle || product.url?.split('/products/')[1];
 
       return {
-        name: node.title,
-        value: `${priceStr} \u00B7 ${stockStatus}${variantCount}\n[View Product](https://crypticcabin.com/products/${node.handle})`,
+        name: product.title,
+        value: `${priceStr} \u00B7 ${stockStatus}\n[View Product](https://${STORE_DOMAIN}/products/${handle})`,
         inline: false
       };
     });
@@ -147,7 +73,7 @@ async function handleStock(query) {
           color: EMBED_COLOR,
           fields,
           footer: { text: 'Cryptic Cabin \u00B7 crypticcabin.com' },
-          url: `https://crypticcabin.com/search?q=${encodeURIComponent(query)}`
+          url: `https://${STORE_DOMAIN}/search?q=${encodeURIComponent(query)}`
         }]
       }
     };
