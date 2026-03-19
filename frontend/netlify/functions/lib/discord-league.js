@@ -27,7 +27,7 @@ function strapiGet(path) {
 }
 
 async function handleLeague(gameSystem) {
-  if (!process.env.STRAPI_URL) {
+  if (!process.env.STRAPI_URL && !process.env.NEXT_PUBLIC_API_URL) {
     return {
       type: 4,
       data: {
