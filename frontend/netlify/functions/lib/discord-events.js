@@ -32,14 +32,7 @@ async function handleEvents(location) {
       });
     }
 
-    // Filter to upcoming events only
-    const now = new Date();
-    events = events.filter(e => {
-      if (!e.date) return true;
-      // Parse the display date format (e.g. "Thu, Mar 19, 5:30 PM")
-      const eventDate = new Date(e.date);
-      return isNaN(eventDate.getTime()) || eventDate >= now;
-    });
+    // Strapi store-events endpoint already returns upcoming events only
 
     if (events.length === 0) {
       const locationStr = location ? ` in ${location}` : '';
