@@ -32,22 +32,21 @@ const SYSTEM_MAP = {
 
 async function handleLeague(gameSystem) {
   try {
-    const result = await fetchJSON(`${STRAPI_BASE}/api/leagues/dashboard`);
-    const data = result?.data || {};
+    // Query leagues API directly with full player stats
+    let query = 'filters[statusleague]=ongoing&pagination[limit]=10' +
+      '&fields[0]=name&fields[1]=gameSystem&fields[2]=format&fields[3]=statusleague' +
+      '&populate[league_players][fields][0]=leagueName&populate[league_players][fields][1]=faction' +
+      '&populate[league_players][fields][2]=wins&populate[league_players][fields][3]=draws' +
+      '&populate[league_players][fields][4]=losses&populate[league_players][fields][5]=rankingPoints' +
+      '&sort=name:asc';
 
-    // Combine current and upcoming leagues
-    let leagues = [
-      ...(data.currentLeagues || []),
-      ...(data.upcomingLeagues || []),
-    ];
-
-    // Filter by game system if specified
     if (gameSystem) {
       const mapped = SYSTEM_MAP[gameSystem.toLowerCase()] || gameSystem;
-      leagues = leagues.filter(l =>
-        (l.gameSystem || '').toLowerCase() === mapped.toLowerCase()
-      );
+      query += `&filters[gameSystem][$eqi]=${encodeURIComponent(mapped)}`;
     }
+
+    const result = await fetchJSON(`${STRAPI_BASE}/api/leagues?${query}`);
+    let leagues = result?.data || [];
 
     if (leagues.length === 0) {
       const systemStr = gameSystem ? ` for ${gameSystem}` : '';
@@ -63,8 +62,8 @@ async function handleLeague(gameSystem) {
       };
     }
 
-    // Limit to 3 leagues (Discord embed limit considerations)
-    const embeds = leagues.slice(0, 3).map(league => {
+    // Discord allows max 10 embeds — show up to 5 leagues
+    const embeds = leagues.slice(0, 5).map(league => {
       const players = (league.league_players || [])
         .sort((a, b) => (b.rankingPoints || 0) - (a.rankingPoints || 0))
         .slice(0, 10);
@@ -76,7 +75,6 @@ async function handleLeague(gameSystem) {
         return `${medal} **${p.leagueName || 'Unknown'}** \u2014 ${p.rankingPoints || 0}pts (${record})${faction}`;
       }).join('\n');
 
-      const status = league.statusleague === 'ongoing' ? 'Active' : 'Upcoming';
       const leagueId = league.documentId || league.id;
 
       return {
@@ -85,13 +83,24 @@ async function handleLeague(gameSystem) {
         color: EMBED_COLOR,
         fields: [
           { name: 'Game System', value: league.gameSystem || 'Not specified', inline: true },
-          { name: 'Status', value: status, inline: true },
           { name: 'Format', value: (league.format || 'round_robin').replace(/_/g, ' '), inline: true }
         ],
         url: `${FRONTEND_URL}/leagues/${leagueId}`,
         footer: { text: 'Cryptic Cabin Leagues \u00B7 leagues.crypticcabin.com' }
       };
     });
+
+    // If there are more leagues than shown
+    if (leagues.length > 5) {
+      embeds.push({
+        title: `+${leagues.length - 5} more leagues`,
+        description: `[View all leagues](${FRONTEND_URL}/leagues)`,
+        color: EMBED_COLOR,
+        fields: [],
+        url: `${FRONTEND_URL}/leagues`,
+        footer: { text: '' }
+      });
+    }
 
     return {
       type: 4,
