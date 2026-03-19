@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { postMatchResultToDiscord } from '../services/discord-webhook';
 
 export default factories.createCoreController('api::match.match', ({ strapi }) => ({
 
@@ -297,6 +298,27 @@ export default factories.createCoreController('api::match.match', ({ strapi }) =
         rankingPoints: match.leaguePlayer2.rankingPoints + player2LeaguePoints
       }
     });
+
+    // Fire-and-forget Discord webhook notification
+    try {
+      const isP1Winner = matchResult === 'player1_win';
+      const isDraw = matchResult === 'draw';
+      postMatchResultToDiscord({
+        winnerName: isDraw ? match.leaguePlayer1.leagueName : (isP1Winner ? match.leaguePlayer1.leagueName : match.leaguePlayer2.leagueName),
+        winnerFaction: isDraw ? (match.leaguePlayer1.faction || 'Unknown') : (isP1Winner ? (match.leaguePlayer1.faction || 'Unknown') : (match.leaguePlayer2.faction || 'Unknown')),
+        loserName: isDraw ? match.leaguePlayer2.leagueName : (isP1Winner ? match.leaguePlayer2.leagueName : match.leaguePlayer1.leagueName),
+        loserFaction: isDraw ? (match.leaguePlayer2.faction || 'Unknown') : (isP1Winner ? (match.leaguePlayer2.faction || 'Unknown') : (match.leaguePlayer1.faction || 'Unknown')),
+        winnerScore: isP1Winner ? leaguePlayer1Score : leaguePlayer2Score,
+        loserScore: isP1Winner ? leaguePlayer2Score : leaguePlayer1Score,
+        isDraw,
+        gameSystem: (league as any)?.gameSystem || '',
+        leagueName: match.league?.name || 'League Match',
+        leagueDocumentId: match.league?.documentId || '',
+        round: match.round,
+      });
+    } catch (webhookErr) {
+      console.error('Discord webhook notification failed (non-blocking):', webhookErr);
+    }
 
     // Bracket advancement for single_elimination leagues
     if ((league as any)?.format === 'single_elimination' && match.round !== undefined && match.bracketPosition) {
