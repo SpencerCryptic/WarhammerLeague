@@ -3,7 +3,7 @@ const https = require('https');
 const EMBED_COLOR = 0x7c3aed;
 
 function strapiGet(path) {
-  const baseUrl = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_API_URL;
+  const baseUrl = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_API_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
   if (!baseUrl) return Promise.reject(new Error('STRAPI_URL not configured'));
 
   const url = new URL(path, baseUrl);
