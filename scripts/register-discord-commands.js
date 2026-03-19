@@ -46,11 +46,11 @@ if (!isGlobal && !GUILD_ID) {
 const commands = [
   {
     name: 'stock',
-    description: 'Search Cryptic Cabin store for products',
+    description: 'Search Cryptic Cabin store (e.g. /stock blue horrors)',
     options: [
       {
-        name: 'query',
-        description: 'Product name or keyword (e.g. "space marines", "mtg modern horizons")',
+        name: 'search',
+        description: 'What are you looking for?',
         type: 3, // STRING
         required: true,
       }

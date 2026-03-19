@@ -93,7 +93,7 @@ exports.handler = async (event) => {
         try {
           let response;
           if (name === 'stock') {
-            const query = getOption(options, 'query');
+            const query = getOption(options, 'search');
             response = await handleStock(query || '');
           } else {
             const tableType = getOption(options, 'table');
@@ -119,7 +119,7 @@ exports.handler = async (event) => {
       try {
         let response;
         if (name === 'stock') {
-          const query = getOption(options, 'query');
+          const query = getOption(options, 'search');
           response = await handleStock(query || '');
         } else {
           const tableSize = getOption(options, 'table_size');
