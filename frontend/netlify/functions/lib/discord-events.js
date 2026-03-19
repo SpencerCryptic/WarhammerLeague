@@ -1,70 +1,45 @@
 const https = require('https');
 
 const EMBED_COLOR = 0x7c3aed;
+const STRAPI_BASE = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_API_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
 
-function strapiGet(path) {
-  const baseUrl = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_API_URL || 'https://accessible-positivity-e213bb2958.strapiapp.com';
-  if (!baseUrl) return Promise.reject(new Error('STRAPI_URL not configured'));
-
-  const url = new URL(path, baseUrl);
-  const headers = {};
-  if (process.env.STRAPI_API_TOKEN) {
-    headers['Authorization'] = `Bearer ${process.env.STRAPI_API_TOKEN}`;
-  }
-
+function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    const mod = url.protocol === 'https:' ? https : require('http');
-    mod.get(url.toString(), { headers }, (res) => {
+    const mod = url.startsWith('https') ? https : require('http');
+    mod.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error('Failed to parse Strapi response')); }
+        catch (e) { reject(new Error('Failed to parse response')); }
       });
     }).on('error', reject);
   });
 }
 
 async function handleEvents(location) {
-  if (!process.env.STRAPI_URL && !process.env.NEXT_PUBLIC_API_URL) {
-    return {
-      type: 4,
-      data: {
-        embeds: [{
-          title: 'Events Unavailable',
-          description: 'Strapi backend is not configured.',
-          color: EMBED_COLOR
-        }]
-      }
-    };
-  }
-
   try {
-    const now = new Date().toISOString();
-    let queryParams = `filters[startDate][$gte]=${now}&sort=startDate:asc&pagination[limit]=6`;
+    // Use the same store-events endpoint as the frontend (fetches from Mahina)
+    const result = await fetchJSON(`${STRAPI_BASE}/api/leagues/store-events`);
+    let events = result?.data || [];
 
+    // Filter by location if provided
     if (location) {
-      // Filter by store location if provided
-      const locationMap = {
-        'bracknell': 'Bracknell',
-        'bristol': 'Bristol'
-      };
-      const mapped = locationMap[location.toLowerCase()];
-      if (mapped) {
-        queryParams += `&filters[location][$eqi]=${mapped}`;
-      }
+      const loc = location.toLowerCase();
+      events = events.filter(e => {
+        const eventLoc = (e.location || '').toLowerCase();
+        return eventLoc.includes(loc);
+      });
     }
 
-    // Try common Strapi event content type names
-    let result;
-    try {
-      result = await strapiGet(`/api/events?${queryParams}&populate=*`);
-    } catch (e) {
-      // Fallback: try singular
-      result = await strapiGet(`/api/event?${queryParams}&populate=*`);
-    }
-
-    const events = result?.data || [];
+    // Filter to upcoming events only
+    const now = new Date();
+    events = events.filter(e => {
+      if (!e.date) return true;
+      // Parse the display date format (e.g. "Thu, Mar 19, 5:30 PM")
+      const eventDate = new Date(e.date);
+      return isNaN(eventDate.getTime()) || eventDate >= now;
+    });
 
     if (events.length === 0) {
       const locationStr = location ? ` in ${location}` : '';
@@ -75,29 +50,21 @@ async function handleEvents(location) {
             title: 'Upcoming Events',
             description: `No upcoming events found${locationStr}. Check back soon!`,
             color: EMBED_COLOR,
-            url: 'https://leagues.crypticcabin.com'
+            url: 'https://crypticcabin.com/pages/events'
           }]
         }
       };
     }
 
     const fields = events.slice(0, 6).map(event => {
-      const attrs = event.attributes || event;
-      const date = attrs.startDate || attrs.date || attrs.eventDate;
-      const dateStr = date ? new Date(date).toLocaleDateString('en-GB', {
-        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      }) : 'TBD';
-
       const details = [
-        dateStr,
-        attrs.location && `Location: ${attrs.location}`,
-        attrs.gameSystem && `Game: ${attrs.gameSystem}`,
-        attrs.entryFee && `Entry: ${attrs.entryFee}`,
+        event.date,
+        event.location && `Cryptic Cabin ${event.location}`,
+        event.gameType && `Type: ${event.gameType}`,
       ].filter(Boolean).join('\n');
 
       return {
-        name: attrs.name || attrs.title || 'Unnamed Event',
+        name: event.title || 'Unnamed Event',
         value: details || 'No details available',
         inline: false
       };
@@ -111,7 +78,7 @@ async function handleEvents(location) {
           color: EMBED_COLOR,
           fields,
           footer: { text: 'Cryptic Cabin Events' },
-          url: 'https://leagues.crypticcabin.com'
+          url: 'https://crypticcabin.com/pages/events'
         }]
       }
     };
@@ -122,7 +89,7 @@ async function handleEvents(location) {
       data: {
         embeds: [{
           title: 'Events Error',
-          description: 'Could not fetch events. Please try again later.',
+          description: 'Could not fetch events. [View events online](https://crypticcabin.com/pages/events).',
           color: EMBED_COLOR
         }]
       }
