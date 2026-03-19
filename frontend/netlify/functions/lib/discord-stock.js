@@ -41,21 +41,33 @@ async function handleStock(query) {
     }
 
     const fields = products.map(product => {
-      const price = product.price;
-      // Shopify returns price in minor units (pence) as a string like "3655"
-      // or as a formatted string — handle both
+      const price = parseFloat(product.price);
+      const compareAt = parseFloat(product.compare_at_price_min);
       let priceStr;
-      if (price && typeof price === 'string' && !price.includes('.')) {
-        const pence = parseInt(price, 10);
-        priceStr = `\u00A3${(pence / 100).toFixed(2)}`;
+      if (compareAt && compareAt > price) {
+        const discount = Math.round((1 - price / compareAt) * 100);
+        priceStr = `~~\u00A3${compareAt.toFixed(2)}~~ \u00A3${price.toFixed(2)} (Save ${discount}%)`;
       } else if (price) {
-        priceStr = `\u00A3${parseFloat(price).toFixed(2)}`;
+        priceStr = `\u00A3${price.toFixed(2)}`;
       } else {
         priceStr = 'Price N/A';
       }
 
-      const available = product.available;
-      const stockStatus = available ? 'In Stock' : 'Out of Stock';
+      // Determine real stock status — "available" in Shopify includes back-order items
+      const title = product.title || '';
+      const tags = (product.tags || []).map(t => t.toLowerCase());
+      const isMailOrder = title.toLowerCase().includes('mail order');
+      const isBackOrder = tags.includes('back order') || tags.includes('backorder') || isMailOrder;
+
+      let stockStatus;
+      if (!product.available) {
+        stockStatus = 'Out of Stock';
+      } else if (isBackOrder) {
+        stockStatus = 'Back Order';
+      } else {
+        stockStatus = 'In Stock';
+      }
+
       const handle = product.handle || product.url?.split('/products/')[1];
 
       return {
