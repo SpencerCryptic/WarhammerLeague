@@ -2,7 +2,7 @@ const https = require('https');
 
 const EMBED_COLOR = 0x00b4d8;
 
-// Game keyword → Shopify product_type / tag filters
+// Game keyword -> Shopify product_type / tag filters
 const GAME_FILTERS = {
   '40k': 'Warhammer 40,000',
   'warhammer': 'Warhammer',
@@ -46,10 +46,10 @@ function shopifyGraphQL(domain, token, query, variables) {
 }
 
 async function handleStock(query) {
-  const domain = process.env.SHOPIFY_DOMAIN;
+  const domain = process.env.SHOPIFY_DOMAIN || 'crypticcabin.myshopify.com';
   const token = process.env.SHOPIFY_STOREFRONT_TOKEN;
 
-  if (!domain || !token) {
+  if (!token) {
     return {
       type: 4,
       data: {
@@ -124,15 +124,15 @@ async function handleStock(query) {
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
       const priceStr = minPrice === maxPrice
-        ? `£${minPrice.toFixed(2)}`
-        : `£${minPrice.toFixed(2)} - £${maxPrice.toFixed(2)}`;
+        ? `\u00A3${minPrice.toFixed(2)}`
+        : `\u00A3${minPrice.toFixed(2)} - \u00A3${maxPrice.toFixed(2)}`;
 
       const stockStatus = node.availableForSale ? 'In Stock' : 'Out of Stock';
       const variantCount = variants.length > 1 ? ` (${variants.length} variants)` : '';
 
       return {
         name: node.title,
-        value: `${priceStr} · ${stockStatus}${variantCount}\n[View Product](https://crypticcabin.com/products/${node.handle})`,
+        value: `${priceStr} \u00B7 ${stockStatus}${variantCount}\n[View Product](https://crypticcabin.com/products/${node.handle})`,
         inline: false
       };
     });
@@ -144,7 +144,7 @@ async function handleStock(query) {
           title: `Stock Search: "${query}"`,
           color: EMBED_COLOR,
           fields,
-          footer: { text: 'Cryptic Cabin · crypticcabin.com' },
+          footer: { text: 'Cryptic Cabin \u00B7 crypticcabin.com' },
           url: `https://crypticcabin.com/search?q=${encodeURIComponent(query)}`
         }]
       }
